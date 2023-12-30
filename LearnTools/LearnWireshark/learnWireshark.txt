@@ -1,0 +1,15 @@
+NB:: MAKE SURE YOU RUN IT IN SUDO /ROOT USER MODE..
+
+					USAGE..
+when you open the application, you will see all the networks that are running on your computer like wlp(wlan/internet) and bluetooth just to mention a few.
+now when you select the network you wish to concentrate/monitor on, double click on it and it will show you all the packets moving in and out of your system either through the internet or when you decide to scan a port.
+
+				WHAT CAN I DO
+filtering -> since wireshark receives packets to and from the network, we recieve soo many packets as they pass through the 
+			network. so we can filter the specific network you wish like:
+				tcp - for tcp connections.
+				udp - for udp connections.
+				ip.addr - for finding a specific ip address.
+				tcp.port/udp.port - for finding specific ports called by a tcp or udp connection. 
+				frame/tcp contains/matches "String" - search by a specific string.MAKE SURE YOU USE THE DOUBLE QUOTES.
+

@@ -1,0 +1,15 @@
+we looked very briefly at the --script switch for activating NSE scripts from the vuln category using --script=vuln. It should come as no surprise that the other categories work in exactly the same way. If the command --script=safe is run, then any applicable safe scripts will be run against the target (Note: only scripts which target an active service will be activated).
+
+To run a specific script, we would use --script=<script-name> , e.g. --script=http-fileupload-exploiter.
+
+Multiple scripts can be run simultaneously in this fashion by separating them by a comma. For example: --script=smb-enum-users,smb-enum-shares.
+
+Some scripts require arguments (for example, credentials, if they're exploiting an authenticated vulnerability). These can be given with the --script-args Nmap switch. An example of this would be with the http-put script (used to upload files using the PUT method). This takes two arguments: the URL to upload the file to, and the file's location on disk.  For example:
+
+nmap -p 80 --script http-put --script-args http-put.url='/dav/shell.php',http-put.file='./shell.php'
+
+Note that the arguments are separated by commas, and connected to the corresponding script with periods (i.e.  <script-name>.<argument>).
+
+A full list of scripts and their corresponding arguments (along with example use cases) can be found here.
+
+Nmap scripts come with built-in help menus, which can be accessed using nmap --script-help <script-name>. This tends not to be as extensive as in the link given above, however, it can still be useful when working locally.

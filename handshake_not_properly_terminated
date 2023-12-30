@@ -1,0 +1,30 @@
+when you get an error occures when you run the command :
+		1) sudo apt update && sudo apt upgrade
+
+and get errors following the similar odder:
+	ign1: 
+	ign2:
+
+then this happens:
+	the handshake was not_properly terminated:
+
+first:
+	1) try the link of the deb in the file /etc/apt/sources.list:
+		# this are original links.
+		# deb https://deb.parrot.sh/parrot lts main contrib non-free
+		# deb-src https://deb.parrot.sh/parrot lts main contrib non-free
+
+		we use the link https://deb.parrot.sh/parrot and paste it in the browser to see if it opens anywhere.
+		if it doesn't then we need to change the link from the webpage.
+			https://parrotsec.org/docs/mirrors/mirrors-list/#emea-europe-middle-east-and-africa
+
+		and get a working link.
+		lets take this link for example...
+			http://ftp.halifax.rwth-aachen.de/parrotsec
+
+		then we add it to the sources.list file and comment out/remove the others.
+			deb https://ftp.halifax.rwth-aachen.de/parrotsec/ parrot main contrib non-free
+			deb https://ftp.halifax.rwth-aachen.de/parrotsec/ parrot-security main contrib non-free
+			deb https://ftp.halifax.rwth-aachen.de/parrotsec/ parrot-backports main contrib non-free
+
+		then run sudo apt update.

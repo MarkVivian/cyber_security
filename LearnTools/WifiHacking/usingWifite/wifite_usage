@@ -1,0 +1,51 @@
+-You need a wifi adapter that supports monitor mode.
+-This is a python script.
+-Must be run in root.
+
+				USAGE
+				======
+- run wifite in sudo mode
+	EG.
+		sudo wifite
+
+	- since there might be some conflicting system processes we run:
+		EG.
+			sudo wifite --kill
+
+-This will show all the networks available or that are being detected by your wifi interface.
+	-There are some column headers that are good to know
+
+		ESSID :- the network the wifi interface is detecting.
+	
+		CH :- channel
+	
+		ENCR :- encryption type.
+	
+		PWR :- strength of the wifi.
+	
+		WPS :- whether it supports wps or not.
+	
+		CLIENT :- how many users the network has at the moment.
+
+
+- You can also specify the dictionary that wifite uses to hack into the wifi.
+	EG.
+		sudo wifite --dict ./file --kill
+
+- You can also specify the type of wifi you want to crack like wpa.
+	EG.
+		sudo wifite --wpa --dict ./file --kill
+
+
+							-*- NOTE -*- 
+							=============
+	- it leaves the wifi card in monitor mode.
+	-do disable this we use the following commands.
+ 		EG.
+ 			ip link set wlp2s0 down
+ 				AND
+    		iw wlp2s0 set type managed
+ 		   		AND
+ 		   ip link set wlp2s0 up
+				AND
+			service NetworkManager start

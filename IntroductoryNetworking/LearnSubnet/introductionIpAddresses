@@ -1,0 +1,57 @@
+-We access the ip using the:
+	EG.
+		ip addr show
+			OR
+		sudo ifconfig
+
+
+					EXPLANATION
+					============
+-When the command is typed we get some basic items: 
+	>> Broadcast domain
+		- allows all devices on the network to recieve info sent using this ip.
+			EG.
+				192.168.1.255
+
+	>>Default Gateway
+		-This is the ip address of the router.
+			EG.
+				192.168.1.1
+
+	>> ip address 
+		- this is the ip address of the device that we are using.
+			EG.
+				192.168.1.14 / 24
+
+	>> subnetmask 
+			EG.
+				255.255.255.0 / 24
+				255.255.0.0 / 16
+				255.0.0.0 / 8
+
+	>> host 
+		+ how many host ip are there in 192.168.1.45 with a cidr of /24.
+			= since the ip uses the subnet mask of 
+				255.255.255.0
+
+			= now this by default would mean we have
+				256 ip addresses from 0 to 255.
+
+			= but we need to remove some ip's including:
+				*the first ip address
+					192.168.1.0
+
+				*the broadcast domain
+					192.168.1.255
+
+				*the default gateway.
+					192.168.1.1
+
+
+-using a common ip address:
+	>> 192.168.1.80
+		-Networking address 
+			192.168.1.0
+
+		-Host address
+			80

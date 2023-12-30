@@ -1,0 +1,21 @@
+                    FIRST CONNECTION.
+                    ==================
+Connect to the remote computer using SSH:
+    eg = ssh username@remote_ip_address 
+
+you can also specify the port you wish to use like:
+    eg = ssh username@remote_ip_address -p 22
+
+Replace username with your username on the remote computer and remote_ip_address with the IP address or hostname of the remote computer.
+
+
+                MOVING FILES IN SSH.
+                =====================
+Copying files from local to remote computer:
+    eg = scp /path/to/local/file username@remote_ip_address:/path/to/destination
+
+Copying files from remote to local computer:
+    eg = scp username@remote_ip_address:/path/to/remote/file /path/to/destination
+
+Note: If you're copying directories, you can use the -r option with scp to copy recursively.
+    eg = scp -r username@remote_ip_address:/path/to/remote/file /path/to/destination

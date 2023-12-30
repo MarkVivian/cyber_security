@@ -1,0 +1,18 @@
+
+1) Does the target (MACHINE_IP)respond to ICMP (ping) requests (Y/N)?
+	command => ping 192.168.0.103
+	answer => No
+
+2) Perform an Xmas scan on the first 999 ports of the target -- how many ports are shown to be open or filtered?
+		command => sudo nmap -sX -p1-999 -vv 192.168.0.103
+		answer => 999
+
+2b) There is a reason given for this -- what is it? no responses.
+
+3) Perform a TCP SYN scan on the first 5000 ports of the target -- how many ports are shown to be open?
+		command => sudo nmap -sS -p1-5000 192.168.0.103
+
+4) Open Wireshark (see Cryillic's Wireshark Room for instructions) and perform a TCP Connect scan against port 80 on the target, monitoring the results. Make sure you understand what's going on.
+
+5) Deploy the ftp-anon script against the box. Can Nmap login successfully to the FTP server on port 21? (Y/N)
+Y

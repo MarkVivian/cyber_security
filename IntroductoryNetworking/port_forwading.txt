@@ -1,0 +1,37 @@
+						HOW IS PORT FORWADING DONE.
+						===========================
+port forwading is done by providing:
+	1) the host machine internal ip you wish to connect to: eg.
+		a) 192.168.0.105 
+	2) the port you wish to open, like 80 for http, 443 for https, 21/20 for FTP and 22 for ssh.
+	3) the type of protocol either tcp, udp or both.
+
+
+				PORT FORWARDING
+				===================
+| 	ip address 	|	internal port 	| external port  | protocol | 
+  192.168.0.105		 21					21				tcp			-> FTP CONNECTION
+  192.168.0.105		 22					22				tcp			-> SSH CONNECTION
+  192.168.0.105  	 3000				8080			tcp			-> -----
+  192.168.0.105  	 3001				8081			tcp			-> 		|-> RANDOM WEBSITE PORT FORWADING
+  192.168.0.105  	 3002				8082			tcp			-> -----
+  192.168.0.105		 80					80				tcp			-> unsecure HTTP
+  192.168.0.105		 443				443				tcp			-> secure HTTPS
+
+ 
+ 				CHECKING OPEN PORTS
+ 				====================
+to check for the open ports on your pc you use the command:
+	EG.
+		netstat -lntu
+			OR
+		ss -lntu
+
+			-l :- show only listenning ports.
+
+			-n :- show numerical addresses only.
+
+			-t :- show tcp connections.
+
+			-u :- show udp connections.
+			
