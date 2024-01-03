@@ -1,0 +1,300 @@
+- It allows us to create multiple instances of a terminal (window) and run smaller version of the terminal (panes) in one massive terminal.
+- To install:
+	EG.
+		sudo apt install tmux
+
+* WHEN USING CTRL + B IT ONLY WORKS WITH ONE COMMAND MEANING IF PRESSED THEN A COMMAND IS PRESSED LIKE % OR "" IF YOU WISH TO DO IT AGAIN IT WILL REQUIRE YOU TO REPRESS IT AGAIN*
+
+
+					USAGE
+					======
+		*CREATION*
+		------------
+- Simple way of activating the tmux we use:
+	EG.
+		tmux
+
+	- This will create window which is basically another terminal.
+
+
+	- If you want to give the window a name you can use
+		EG.
+			tmux new -s newWindow --> tmux new -s <name of window>
+
+
+		*RUNNING TERMINALS*
+		--------------------
+- to check the open/ running tmux we use:
+	EG.
+		tmux ls
+
+	- this will show all the running tmux
+
+
+
+		*DELETING/KILLING*
+		--------------------
+- We kill the windows sessions using the command.
+	EG.
+		tmux kill-session
+
+	- This will delete the most recent session of the tmux / the last opened window.
+
+
+	- If you have multiple sessions and want to delete a specific
+		EG.
+			tmux kill-session -t newWindow --> tmux kill-session -t <name of window to delete>
+				OR
+			tmux kill-session -t 0 --> tmux kill-session -t <index of the window if no name given> 
+
+				t :- target. the window you wish to use.
+
+
+		- If you want to remove all the sessions at once.
+			EG.
+				tmux kill-server
+
+
+		*CLOSING AND DETATCHING*
+		---------------------------
+- If you wish to detatch a tmux / close but leave the functionality running.
+	EG.
+		press CTRL + B
+			AND
+		press D
+
+			CTRL + B :- its a prefix key that makes the tmux listen for what command you want to give it.
+
+			D :- will detatch the window allowing you to go back to the normal terminal.
+
+
+- If you want to close the tmux completely :
+	EG.
+		exit
+
+
+		*REOPENING*
+		------------
+-if you wish to access any of the running tmux windows we use:
+	EG.
+		tmux a
+
+	- This will access the recently closed tmux window.
+
+
+	-if you want open a specific window:
+		EG.
+			tmux a -t newWindow --> tmux kill-session -t <name of window to delete>
+				OR
+			tmux a -t 0 --> tmux kill-session -t <index of the window if no name given> 
+
+				t :- target. the window you wish to use.
+
+
+		*PANE CREATION*
+		---------------------
+- If you want to create panes inside a window we use:
+	EG.
+		press CTRL + B
+			AND
+		press % (SHIFT + 5)
+
+		- this will add a pane to the right
+			| window | pane | 
+
+
+	- If you want to add the pane to the bottom we use:
+		EG.
+			press CTRL + B
+				AND
+			press "" (SHIFT + 2)
+
+			- this will add a pane to the bottom.
+				| window |
+				----------
+				|  pane  |
+
+
+		*PANE NAVIGATION*
+		-------------------
+- If you wish to navigate through the panes we use:
+	EG.
+		press CTRL + B
+			AND
+		press ARROW KEY
+			
+
+	- If you want to move more consisly you can use:
+		EG.
+			press CTRL + B
+				AND
+			press Q
+				AND
+			press 2 --> press <index of the pane you want to go to.>
+
+			- it will show indexes of the panes and press the index of the pane you wish to go to.
+				|  0 | 1  |
+				----------
+				|  2 |  3 |
+
+			- NB :- the indexes are on a timer and if not clicked on time you will have to repress the ctrl + b and q again.
+
+
+		*PANE RESIZING*
+		---------------
+- If you want to resize a pane you can use:
+	EG.
+		press CTRL + B
+			AND
+		press CTRL + ARROW
+
+		- it will manipulate the size according to the arrow key used.
+
+
+	- If you want to resize the panes by larger sizes:
+		EG.
+			press CTRL + B
+				AND
+			press ALT + ARROW
+
+
+	- If you want to use a layout that is already preset you can use:
+		EG.
+			press CTRL + B
+				AND
+			press ALT + 2 --> press ALT + <1 - 5>
+
+				1 :- formation
+					|  pane1 | pane2 | pane3 |
+
+				2 :- formation
+					| pane1 |
+					---------
+					| pane2 |
+					---------
+					| pane3 |
+
+				3 :- formation
+					| 			pane1		 |
+					--------------------------
+					|  pane2 | pane3 | pane4 |
+
+				4 :- formation
+					| 			| pane2 |
+					|			|-------|
+					|  pane 1   | pane3 |
+					|			|-------|
+					|			| pane4 |
+					|			|-------|
+
+				5 :- formation
+					|	pane1 | pane2 |
+					|---------|-------|
+					|  pane3  | pane4 |
+					|---------|-------|
+
+
+		*PANEL CLOSING*
+		---------------
+- We close panels using the command:
+	EG.
+		exit
+
+			OR
+
+		press CTRL + B
+			AND
+		press X
+
+
+	- If you want to delete all the panes at the same time:
+		EG.
+			press CTRL + B
+				AND
+			press & (ampersand)
+
+			- It will ask whether you want to delete or not. (y or n)
+
+
+		*CREATING NEW WINDOWS *
+		-----------------------
+- You create new windows using:
+	EG.
+		press CTRL + B
+			AND
+		press C
+
+
+		*NAVIGATING WINDOWS*
+		--------------------
+- We can navigate windows using:
+	EG.
+		press CTRL + B
+			AND
+		press N
+
+		- It will move along the windows sequencially.
+
+
+	- An easier way to move arround is using:
+		EG.
+			press CTRL + B
+				AND
+			press W
+
+			- It will show you all the tmux and its windows .
+			- Select a window or timux and it will switch to it.
+
+
+			- We can also kill processes from here by highlighting the tmux or window and:
+				EG.
+					press CTRL + B
+						AND
+					press X
+
+					- it will prompt you if you want to kill the window/tmux. (y or n)
+
+
+		*RENAMING WINDOWS*
+		------------------
+- If you want to rename the windows:
+	EG.
+		press CTRL + B
+			AND
+		press , (comma)
+
+		- it will bring a prompt to write the name of the window and press enter when done.
+
+
+		*COPY AND PASTE*
+		-----------------
+- First we need to create a file:
+	EG.
+		nano ~/.tmux.conf
+
+		- then we add the following:
+			EG.
+				set -g mouse on --> will allow you to use the mouse to select the text you want to copy.
+
+				setw -g mode-keys vi --> allow some vi commands.
+
+
+	- Now if you want to copy:
+		EG.
+			press CTRL + B
+				AND
+			press [
+				AND
+			move with ARROWS
+
+			- Use the arrows to move to the beginning of where you want to copy.
+
+			- then:
+				EG.
+					press ENTER.
+
+				-if you want to past it use:
+					EG.
+						press CTRL + B
+							AND
+						press ]
