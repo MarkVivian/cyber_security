@@ -13,6 +13,8 @@
     EG.
         bettercap -iface wlp2s0 -> bettercap -iface <network interface card>
 
+            -iface :- it tells bettercap to use the specified network interface.
+
         - It will open a kind of terminal like metasploit.
 
 
@@ -21,6 +23,12 @@
             net.probe on
 
             - This will scan the current wifi network and find targets.
+
+            - if you want to turn this off you use:
+                EG.
+                    net.probe off
+                        AND
+                    net.recon off
 
         
         - Then to see what network have been found you use:
@@ -32,13 +40,18 @@
 
         - Then we set up the arp using the command:
             EG.
-                set arp.spoof.fullduplex true
+                set arp.spoof.fullduplex true   
+
+                - this means that bettercap will attempt to forward packets in all directions from target to router and vise versa.
 
             
             - Then we specify the target.
                 EG.
-                    set arp.spoof.targets 192.168.0.103 -> arp spoof.targets <ip of the target>
+                    set arp.spoof.targets 192.168.0.103 -> arp.spoof.targets <ip of the target>
 
+                    - for multiple targets we use:
+                        EG.
+                            set arp.spoof.targets 192.168.0.103,192.168.0.104 -> arp.spoof.targets <ip 1>,<ip 2>
 
             - Then turn arp spoofing on:
                 EG.
