@@ -1,0 +1,1 @@
+Write-Host "introduction to powershell scripting"
