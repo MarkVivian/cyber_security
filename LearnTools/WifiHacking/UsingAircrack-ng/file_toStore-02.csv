@@ -1,0 +1,9 @@
+
+BSSID, First time seen, Last time seen, channel, Speed, Privacy, Cipher, Authentication, Power, # beacons, # IV, LAN IP, ID-length, ESSID, Key
+3C:15:FB:E4:14:DC, 2024-01-18 17:34:49, 2024-01-18 17:35:40,  9, 130, WPA2, CCMP TKIP, PSK, -78,      141,     2154,   0.  0.  0.  0,   7, BULLION, 
+
+Station MAC, First time seen, Last time seen, Power, # packets, BSSID, Probed ESSIDs
+02:55:75:58:ED:F2, 2024-01-18 17:34:49, 2024-01-18 17:35:26, -52,     2237, 3C:15:FB:E4:14:DC,
+64:80:99:AB:87:EA, 2024-01-18 17:34:55, 2024-01-18 17:35:05,  -1,        5, 3C:15:FB:E4:14:DC,
+40:2C:F4:32:D0:DF, 2024-01-18 17:35:02, 2024-01-18 17:35:29, -91,       34, 3C:15:FB:E4:14:DC,
+

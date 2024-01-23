@@ -9,3 +9,17 @@ echo "$variable"
 command=$(history | grep dir)
 
 echo "$command $(history)"
+
+# local variables that can't be used outside a function
+name="mary wachira"
+local_variables(){
+    local name="mark vivian"
+    echo "$name"
+}
+local_variables
+echo "$name"
+
+
+# storing calculations in variables
+addition=$((1 + 2))
+echo $addition

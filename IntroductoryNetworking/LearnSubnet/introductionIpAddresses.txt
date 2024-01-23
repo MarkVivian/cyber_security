@@ -4,6 +4,9 @@
 			OR
 		sudo ifconfig
 
+- Ip addresses allow machines on a network to communicate with each other and the internet.
+- All ip addresses are given by the router.
+- Octet(192) or (168) etc.
 
 					EXPLANATION
 					============
@@ -13,21 +16,43 @@
 			EG.
 				192.168.1.255
 
+
 	>>Default Gateway
 		-This is the ip address of the router.
 			EG.
 				192.168.1.1
+
+
+	>> Network ip and host ip
+		- Depends on the cidr (class interdomain range).
+		- network ip a
+			EG.
+				/24 [8.8.8.0] [255.255.255.0]
+					192.168.100.12
+				    |__________|__|
+						|		 |
+					network ip   host ip
+
+				/16 [8.8.0.0] [255.255.0.0]
+					172.123.0.1
+				    |______|__|
+						|	 |
+					network host ip
+						ip
+
 
 	>> ip address 
 		- this is the ip address of the device that we are using.
 			EG.
 				192.168.1.14 / 24
 
+
 	>> subnetmask 
 			EG.
 				255.255.255.0 / 24
 				255.255.0.0 / 16
 				255.0.0.0 / 8
+
 
 	>> host 
 		+ how many host ip are there in 192.168.1.45 with a cidr of /24.
@@ -47,9 +72,10 @@
 				*the default gateway.
 					192.168.1.1
 
+				*this will leave 253 hosts out of all 256 hosts.
 
 -using a common ip address:
-	>> 192.168.1.80
+	>> 192.168.1.80 /24
 		-Networking address 
 			192.168.1.0
 
