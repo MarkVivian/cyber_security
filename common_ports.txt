@@ -5,6 +5,7 @@ Port 20-21 – (FTP)
 Port 23 – (Telnet)
 Port 22 – (SSH)
 Port 53 TCP/UDP – (DNS)
+Port 80 - mysql database
 Port 8080  - (HTTP)
 Port 123 UDP – (NTP)
 Port 25 TCP – (SMTP)
