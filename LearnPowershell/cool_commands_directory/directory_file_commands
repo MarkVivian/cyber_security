@@ -1,0 +1,42 @@
+				MOVING ITEMS
+			=========================
+move-item -path <the file you wish to move> -destination <path to move file to >
+	
+	- It will move the file to the specified destination
+	EG.
+		move-item -path filename -destination ./path/
+
+move-item -path <the directory you wish to move> -destination <path to move directory to> -Recurse -Verbose
+	
+	- it will move the directory and its contents to the destination
+	EG.
+		move-item -path directory_name -destination .\path\ -Recurse -Verbose
+			
+			-Verbose - it will show the details of the move like how many files have been moved and so on.
+			-Recurse - tells it to move even the contents of the directory.
+
+
+				COPYING ITEMS
+			=========================
+copy-item -path <the file you wish to copy> -destination <path to copy file to >
+	
+	- It will copy the file to the specified destination
+	EG.
+		copy-item -path filename -destination ./path/
+
+copy-item -path <the directory you wish to copy> -destination <path to copy directory to> -Recurse -Verbose
+	
+	- it will copy the directory and its contents to the destination
+	EG.
+		copy-item -path directory_name -destination .\path\ -Recurse -Verbose
+
+
+				CREATING ITEMS
+			=========================
+new-item -type <file/directory> -name ./path/to/filename
+	
+	- it will create a file or directory to the specified location
+	EG.
+		new-item -type file name ./Desktop/hello.txt
+			OR
+		new-item -type directory name ./Desktop/Content/
