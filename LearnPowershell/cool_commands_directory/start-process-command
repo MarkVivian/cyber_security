@@ -1,0 +1,26 @@
+				START PROCESS
+			===========================
+we use the start process from the windows terminal:
+	
+
+			------------COMMANDS----------
+start-process -filepath <process name>
+	
+	- this will open/run the process you have specified.
+	EG.
+		start-process -filepath vlc.exe 
+			OR
+		start-process -filepath vlc
+
+
+start-process -filepath <process name> -workingdirectory <directory to open in>
+	- this will open the process into a specific directory.
+	EG.
+		start-process -filepath vlc.exe -workingdirectory .\moviesDirectory
+
+
+start-process -filepath <process name> -argumentlist <file to open>
+	
+	- this will open the process into a specific file
+	EG.
+		start-process -filepath notepad -argumentlist .\file
