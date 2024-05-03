@@ -1,0 +1,15 @@
+				FORGOTTEN PASSWORD
+			===========================
+- Boot into safe mode or an account with admin privileges and in the cmd or powershell.
+- to boot into safe mode press f8 when the pc is rebooting.
+- type the command:
+	EG.
+		net user
+			--> will show all the users on the system
+
+		net user [username]
+			--> will show the info about a user on the system
+			--> replace username with the user account.
+
+		net user [username] new_password
+			--> set the new password here to the specified account.

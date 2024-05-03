@@ -1,0 +1,13 @@
+				GREP
+			=============
+to use grep in windows we use the command:
+	select-string
+		or
+	findstr
+
+findstr is more case sensetive compared to select-string.
+
+	EG.
+		--> get-content filename | select-string "certain string here"
+			OR
+		--> get-content filename | findstr "certain string here with case sensitivity"

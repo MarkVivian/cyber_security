@@ -1,0 +1,11 @@
+to see all the wifi's that a device has connected to we use the command:
+	Eg.
+		--> netsh wlan show profile
+
+if you want a specific password of a specific device we use the command:
+	EG.
+		--> netsh wlan show profile name="wifi name goes here" key=clear
+	
+	look for the key content and there the password will be displayed.
+
+
