@@ -1,0 +1,26 @@
+					PING AND TIMEOUT
+				========================
+- a good network should have little to no time out.
+- timeout means that the network disconnects after a certain amount of packets have been sent.
+- we can check if a network has timeout using the command:
+	EG.
+		ping google.com -t
+			--> this will send packets until stopped manually by the user.
+
+		ping google.com
+			--> will send fixed number of ICMP requests (usually 4) and stop once it gets a response from google or times out waiting for response.
+
+		ping google.com -n (number of packets)
+			--> similar to above but you specify the number of ICMP packets to be sent.
+
+		ping -a [ip addr]
+			--> this is used to show the dns hostname from the ip address.
+			--> it can also be used to know the name of a device connected to the network as long as you have the ip address.
+			** does not work in linux.**
+
+		ping -i (seconds) google.com
+			--> this will specify the interval(in seconds) between successive pings.
+
+		
+
+- network in laikipia county comes from port v27. 	
