@@ -1,0 +1,27 @@
+				RECOVER PASSWORD
+			===========================
+- Boot into recovery mode (usually available in the GRUB menu during startup).
+- Choose the root shell prompt option.
+- Remount the root filesystem with read-write access:
+	EG.
+		mount -o remount,rw /
+
+- Reset the password for a specific user (replace [username] with the actual username):
+	EG.
+		passwd [username]
+
+- Set a new password when prompted.
+- Reboot your machine and log in with the new password.
+
+- we can also get all the users in a linux system using:
+	EG.
+		cat /etc/passwd 
+			--> This will display a list of all users along with additional details like their home directory, login shell, and more.
+
+- we can also use the getent command to retrieve info from databases, including user accounts.
+	EG.
+		getent passwd
+
+- we can also use the users command to list currently logged-in users.
+	EG.
+		users.
