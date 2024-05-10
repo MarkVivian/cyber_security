@@ -1,0 +1,55 @@
+						FORMATTING A DRIVE
+					============================
+
+- We first need to access a terminal that can format drives using the command:
+	EG.
+		diskpart
+			--> it requires admin privileges.
+		
+
+- In the diskpart terminal, we need to locate the disk we want to format.
+- We use the command:
+	EG.
+		list disk
+		
+
+- Identify the disk you want to format from the list of disks displayed. Note the disk number of the target disk.
+- Select the disk by typing:
+	EG.
+		select disk {disk number} --> select disk 1
+			--> Replace {disk number} with the number of the disk you want to format.
+
+
+- Confirm that you've selected the correct disk by typing:
+	EG.
+		detail disk
+			--> This command provides detailed information about the selected disk, including its size and status.
+
+- Once you've confirmed the selection, proceed to clean the disk to remove any existing partitions or volumes. Type:
+	EG.
+		clean
+			--> This command erases all partitions and volumes from the selected disk.
+
+- After cleaning the disk, create a new partition on it. You can do this by typing:
+	EG.
+		create partition primary
+			--> This command creates a new primary partition on the disk.
+
+- Then we select the volume you want to provide an ntfs:
+	EG.
+		select volume {volume number} --> select volume 2
+
+- Now, format the partition with a file system of your choice. For example, to format the partition with the NTFS file system, type:
+	EG.
+		format fs=ntfs quick
+			--> This command quickly formats the partition with the NTFS file system. Replace "ntfs" with the desired file system type if necessary.
+
+- Once the formatting is complete, assign a drive letter to the newly formatted partition using the following command:
+	EG.
+		assign letter={drive letter}
+			--> Replace {drive letter} with the letter you want to assign to the partition (e.g., "D", "E", etc.).
+
+- You can now exit the diskpart utility by typing:
+	EG.
+		exit
+			--> This command exits the diskpart utility and returns you to the regular command prompt.
