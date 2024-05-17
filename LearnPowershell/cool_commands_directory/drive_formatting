@@ -30,6 +30,9 @@
 		clean
 			--> This command erases all partitions and volumes from the selected disk.
 
+- to convert drive from gpt to mbr we use
+		convert mbr
+
 - After cleaning the disk, create a new partition on it. You can do this by typing:
 	EG.
 		create partition primary
