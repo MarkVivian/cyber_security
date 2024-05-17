@@ -1,0 +1,8 @@
+
+BSSID, First time seen, Last time seen, channel, Speed, Privacy, Cipher, Authentication, Power, # beacons, # IV, LAN IP, ID-length, ESSID, Key
+46:3A:1E:12:17:11, 2024-05-06 10:29:52, 2024-05-06 10:36:45,  6, 180, WPA2, CCMP, PSK, -81,      162,       23,   0.  0.  0.  0,  12, OPPO Reno8 T, 
+
+Station MAC, First time seen, Last time seen, Power, # packets, BSSID, Probed ESSIDs
+7C:E9:D3:F2:80:48, 2024-05-06 10:29:59, 2024-05-06 10:35:13, -77,       15, 46:3A:1E:12:17:11,
+2C:DB:07:61:31:13, 2024-05-06 10:30:29, 2024-05-06 10:34:42, -77,        3, 46:3A:1E:12:17:11,
+
