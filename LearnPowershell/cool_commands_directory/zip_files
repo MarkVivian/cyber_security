@@ -1,0 +1,10 @@
+							FORMATTING FILES
+						===========================
+to open a zipped file from the terminal we use the command:
+	EG.
+		expand-archive -path /path/to/zipped/file.zip -destination /path/to/unzip/to
+
+if you wish to zip a directory from the terminal we use the command:
+	EG.
+		compress-archive -path /path/to/directory -destination /path/to/zip/to.zip -r
+
