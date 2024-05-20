@@ -1,0 +1,96 @@
+                    INSTALLATION
+                   ==============
+- To install we first need to clone the repo use the command:
+    EG.
+        sudo git clone https://github.com/pybluez/pybluez.git
+            AND
+        sudo apt install -y bluez-tools bluez-hcidump libbluetooth-dev git gcc python3-pip python3-setuptools python3-pydbus
+            AND
+        git clone --depth=1 https://github.com/bluez/bluez.git
+            AND
+        git clone https://github.com/pentestfunctions/BlueDucky.git
+        
+        
+        - then we run the following inside the directory that are created:
+            EG.
+                cd pybluez
+                sudo python3 setup.py install
+                        AND
+                cd bluez
+                sudo gcc -o bdaddr ~/bluez/tools/bdaddr.c ~/bluez/src/oui.c -I ~/bluez -lbluetooth
+                sudo cp bdaddr /usr/local/bin/ # THIS IS BECAUSE THE USR/LOCAL/BIN IS IN THE PATH VARIABLE.
+                        AND
+                cd BlueDucky   
+                chmod 755 BlueDucky.py
+                
+                - If any error install the package that was missing: 
+                    EG.   
+                        sudo apt install <package causing the error>
+
+
+                    USAGE
+                 ===========
+- To check what bluetooth adapter/card is called we use:
+    EG.
+        hciconfig
+        
+        - if you are using an external adapter we can enable/take it up using:
+            EG.
+                sudo hciconfig <adapter name> up
+                
+                - the adapter name is gotten from the hciconfig command.
+                - if it is not read you can't take it up/enable.
+                
+
+- We can scan to see what bluetooth devices are accessible similar to nmap scan:
+    EG.
+        sudo hcitool scan
+        
+        - it will show the mac address and device name.
+        - all we need is the mac address of the devices.
+        - We can learn more about a device with the mac using:
+            EG.
+                sudo sdptool browse <mac address target>
+                
+                
+- BlueDucky payloads are mostly used with hci0 bluetooth adapter but it can be changed using:
+    EG.
+        sudo pluma BlueDucky.py # OPEN BLUEDUCKY IN A TEXT EDITOR.
+                AND
+        # CHANGE THE HCI0 WITH THE APPROPRIATE BLUETOOTH ADAPTER NAME.
+        parser.add_argument('--adapter', type=str, default='hci0', help='Specify the Bluetooth adapter to use (default: hci0)')
+
+- We then run the python scripts:
+    EG.
+        sudo python3 BlueDucky.py
+        
+        - there are a few issues i encountered when trying to use it so here are some of the problems and their solutions:
+            EG.
+            1)
+                ConnectionFailureException: Failed to execute command: sudo hciconfig hci0 name Robot POC. 
+                Error: Can't change local name on hci0: Network is down (100)
+                    FIX
+                # ADD SLEEP
+                def setup_bluetooth(target_address, adapter_id):
+                    restart_bluetooth_daemon()
+                    profile_proc = Process(target=register_hid_profile, args=(adapter_id, target_address))
+                    profile_proc.start()
+                    child_processes.append(profile_proc)
+                    adapter = Adapter(adapter_id)
+
+                    # Add sleep time (adjust the value in seconds as needed)
+                    time.sleep(2)  # Sleeps for 2 seconds
+                    
+                    adapter.set_property("name", "Robot POC")
+                    adapter.set_property("class", 0x002540)
+                    adapter.power(True)
+                    return adapter
+                    
+             2) 
+                raise ConnectionFailureException("Failed to enable SSP")
+                ConnectionFailureException: Failed to enable SSP
+                        FIX
+                # use the file in https://github.com/pentestfunctions/BlueDucky/issues/39
+
+NB:// FOR ANY MORE ISSUES USE
+https://github.com/pentestfunctions/BlueDucky/issues/
