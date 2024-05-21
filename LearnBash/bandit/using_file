@@ -1,0 +1,12 @@
+                FILE COMMAND
+            ===================
+- file comand is used for:
+    
+    1) checking the  type of file
+        EG.
+            file <filename> --> file data
+
+    2) removing paddding in the file type.
+        EG.
+            file -N <filename> --> file -N data
+                

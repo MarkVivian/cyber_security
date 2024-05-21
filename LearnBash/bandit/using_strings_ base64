@@ -1,0 +1,18 @@
+                STRINGS COMMAND
+             =====================
+we can use this command to print out the human readable characters in a file using:
+    EG.
+        strings filename.
+        
+        
+                BASE64 
+              ===========
+we can encode and decode using base 64.
+    
+    1) decoding 
+        EG.
+            base64 -d data.txt
+            
+    2) encode 
+        EG.
+            base64 data.txt

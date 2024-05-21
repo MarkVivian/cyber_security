@@ -1,0 +1,27 @@
+                SORT COMMAND
+              ======================
+- we can sort files using the command:
+    EG.
+        sort filename
+        
+    1) we can also sort in reverse order.
+        EG.
+            sort -r filename
+            
+    2) we can also sort numerically instead of alphabetically.
+        EG.
+            sort -n filename
+            
+    3) also we can sort based on a specific column within the file. (seperated by spaces or tabs)
+        EG.
+            sort -k 2 filename # sort based on the second column.
+            
+    4) remove duplicate lines
+        EG.
+            sort -u filename # similar to unique.
+            
+    5) ingores case sensetivity during sorting.
+        EG.
+            sort -f filename.
+            
+            

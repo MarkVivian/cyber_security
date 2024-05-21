@@ -1,0 +1,18 @@
+                 UNIQ COMMAND
+             ========================
+- we can output only the unique values using:
+    
+    1) we can output the unique values :
+        EG.
+            unique -u filename
+
+
+    2) unique values after skipping characters.
+        EG.
+            unique -i <number of characters to skip> filename   
+                
+                -useful when there is leading space.
+                
+
+    3) 
+

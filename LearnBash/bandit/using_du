@@ -1,0 +1,9 @@
+            DU COMAND
+         ==============
+- It is used to estimate the amount of disk space used by files and directories.
+- it displays the total size in blocks for the current directory and its subdirectories.
+
+    1) checking the size of each file in a human readable format.
+        EG.
+            du -h <filename> --> du -h data
+                

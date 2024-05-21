@@ -20,7 +20,6 @@
 # visudo : To restrict user access to specific commands, you can modify the sudoers file (/etc/sudoers). we use the visudo because it provides syntax.
 
 
-
 # -------------UNIQUE FUNCTIONALITY ---------------------
 # $ : for use with variables.
 # = : Assignment.

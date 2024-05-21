@@ -1,0 +1,14 @@
+                GREP COMMAND
+            =========================
+we can get a specific character using:
+    EG.
+        grep "value to look for" ./file
+        
+            - it will show the content of file that matches.
+        
+        
+we can also avoid specific characters using:
+    EG.
+        grep -v "don't show this" ./file 
+        
+            - it will show the content of file that doesn't match.

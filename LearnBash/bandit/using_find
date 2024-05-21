@@ -1,0 +1,97 @@
+                FIND COMMAND
+             =======================
+- we use the find command to:
+    
+    1) find a file by the name
+        EG.
+            find . -name "*.txt"
+                -this option searches for files with a specific name.
+                
+            find . -iname "important"
+                - this option performs a case sensetive search for filenames.
+    
+    
+    2) find a directory or file by its type
+        EG.
+            find ./* -type f 
+                - looks for files only
+                
+            find ./* -type d
+                - looks for directories only
+         
+                
+    3) find by permissions.
+        EG.
+            find . -perm <permission code> --> find . -perm -664
+                                               find . -perm /222
+                                               find . -perm /u+w,g+w
+                                               find . -perm /u=w,g=w
+                                               find . -perm -g+w,u+w
+                - 1 > 001 > --x
+                - 2 > 010 > -w-
+                - 3 > 011 > r--
+                
+            
+    4) find by size.
+        EG.
+            find . -size <size> --> find . -size +10M # find files larger than 10MB.
+                                    find . -size -50k # find files smaller than 50KB.
+                                    
+               -> +<size>c: Search for files larger than a specified size (in bytes).
+               -> -<size>c: Search for files smaller than a specified size (in bytes).
+               -> k: Denotes size in kilobytes (1024 bytes).
+               -> M: Denotes size in megabytes (1048576 bytes).
+               -> G: Denotes size in gigabytes (1073741824 bytes). 
+               -> c: denotes size in bytes.
+          
+               
+    5) find by date
+        -mtime <days>: Search for files modified in the last <days> days.
+        -atime <days>: Search for files accessed in the last <days> days.
+        -ctime <days>: Search for files where the inode data changed in the last <days> days.
+            EG.
+                find -mtime <days> --> find . -mtime -7 # modified in the last week. 
+                
+                
+    6) using exec with find
+        - exec allows us to pass the output of the find command to another command.
+            EG.
+              find . -name "*.s" -exec <comand> {} \; --> find . -name "*.s" -exec cat {} \;
+                
+                    - the {} is where the output of find command will be passed to the command.
+                    - the \; marks the end of the -exec command.
+                    
+    
+    7) find using group and user.
+            EG.
+                find . -user <name> -group <name> -> find . -user bandit7 -group bandit6
+                    
+                    -user bandit7: This searches for files owned by the user named "bandit7".
+                    -group bandit6: This searches for files owned by the group named "bandit6".
+                    
+                    
+    8) find non executable and executable files.
+            EG.
+                find . ! -executable # for none executable files
+                find . -executable # for executable files.
+                    
+                    -This searches for files that have execute permission for the user trying to run the find command (usually the current user).
+                    
+                    
+    9) find but ignoring errors.
+            EG.
+                find . -name "*.sh" 2>/dev/null
+                
+                     - it will ignore any erronous output.
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
