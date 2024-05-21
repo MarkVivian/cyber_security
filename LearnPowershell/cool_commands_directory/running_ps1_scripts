@@ -1,0 +1,22 @@
+- to run the ps1/powershell scripts its better to set the execution policy to either
+    i) unrestricted
+    ii)RemoteSigned
+
+    - you can check the current execution policy using:
+        EG.
+            get-executionPolicy
+
+            - if it is either:
+                i) Restricted
+                ii) allSigned
+
+                - it means that your scripts won't be able to run.
+
+
+- to change the execution policy we need an admin powershell where we will run:
+    EG.
+        set-executionPolicy unrestricted
+            OR
+        set-executionPolicy remoteSigned
+
+        - then you can run the script.
