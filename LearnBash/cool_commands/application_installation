@@ -1,0 +1,18 @@
+                APPLICATION INSTALLATION
+             =============================
+- if you clone an application we can move it to the directory:
+    EG.
+        mv ~/directory /opt/
+        
+            - /opt/ -> this is where most application data is .
+            
+
+- if you want to create a link between the application such that it can be run from anywhere in the terminal we use:
+    EG.
+        sudo ln -s /path/to/app/directory /usr/local/bin
+        
+        
+- the difference between /usr/local/bin and /usr/bin is that:
+    /usr/bin - used by system application and easily upgraded by using sudo apt.
+    
+    /usr/local/bin - used to create links especially to applications that have been manually downloaded.			
