@@ -1,0 +1,16 @@
+					NMCLI COMMAND
+				===================
+- If you want to search for available networks you use the command:
+	EG.
+		nmcli dev wifi list
+
+			- it will list all available wifi connection.
+
+
+- if you find you want to connect to a network we use:
+	EG.
+		nmcli dev wifi connect <wifi name> password <password goes here>
+
+			- when writting the passwords and name use the ""
+
+			
