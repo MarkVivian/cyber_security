@@ -1,0 +1,11 @@
+				FIREWALL 
+			====================
+- we can enable and disable the firewall from an elavated powershell using the command:
+	EG.
+		set-NetFirewallProfile -profile Domain,Public,Private -Enabled True/false # True enables the firewall and false disables it.
+																																# You can also disable specific networks like Public alone.
+			
+
+
+
+			

@@ -1,0 +1,8 @@
+				USING THE START PROCESS COMMAND
+			=============================================
+- we can start or open a terminal with elavated priveleges using the command:
+	EG.
+		start-process powershell -Verb RunAs
+
+			- it will open a powershell with admin priveleges.
+
