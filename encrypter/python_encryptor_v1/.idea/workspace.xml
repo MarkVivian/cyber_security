@@ -4,7 +4,24 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="21d3077a-ae95-456e-83cd-664af6d6b6bf" name="Changes" comment="" />
+    <list default="true" id="21d3077a-ae95-456e-83cd-664af6d6b6bf" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/functions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../LearnBash/arrays.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../LearnBash/commands.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../LearnBash/conditions/for_loops.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../LearnBash/conditions/if_loops.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../LearnBash/conditions/overview.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../LearnBash/conditions/while_loops.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../LearnBash/creatingVariables.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../LearnBash/functions.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../LearnBash/introduction.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../LearnBash/userInput.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../LearnPowershell/basics/arrays.ps1" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../LearnPowershell/basics/conditions.ps1" beforeDir="false" afterPath="$PROJECT_DIR$/../../LearnPowershell/basics/conditions.ps1" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../LearnPowershell/basics/introduction.ps1" beforeDir="false" afterPath="$PROJECT_DIR$/../../LearnPowershell/basics/introduction.ps1" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../LearnPowershell/basics/variables.ps1" beforeDir="false" afterPath="$PROJECT_DIR$/../../LearnPowershell/basics/variables.ps1" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -20,22 +37,24 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../.." />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 0
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 0
+}</component>
   <component name="ProjectId" id="2gj0zXmvwSzX63a5wsMnDy3IpCQ" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Python.main.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "main",
-    "last_opened_file_path": "C:/Users/Mark/Desktop/cyber_security/encrypter/python_encryptor_v1/encrypter_decrypter"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python.classes.executor&quot;: &quot;Run&quot;,
+    &quot;Python.functions.executor&quot;: &quot;Run&quot;,
+    &quot;Python.main.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Mark/Desktop/cyber_security/encrypter/python_encryptor_v1/encrypter_decrypter&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\Mark\Desktop\cyber_security\encrypter\python_encryptor_v1\encrypter_decrypter" />
