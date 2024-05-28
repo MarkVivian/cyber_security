@@ -1,0 +1,7 @@
+				MEASURE COMMAND
+			===========================
+- We can time the execution time of an argument using the command:
+	EG.
+		measure-command { run script here }
+		
+			- put the script inside the curry brackets.
