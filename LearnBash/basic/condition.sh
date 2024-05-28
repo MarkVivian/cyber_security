@@ -1,42 +1,6 @@
 #!/bin/bash
 
-# ****************** SINGLE BRACKETS ***********************
-# its a traditional way of writing tests and conditional expressions.
-# It requires proper quoting of variables to handle spaces and special characters correctly.
-
-
-# ------------BASIC SYNTAX---------------
-# if [ condition ]; then
-    # command to execute.
-# fi
-
-
-# ----------------COMPARISON OF NUMERICAL VALUES------------------
-# Terms
-# -eq : equal to
-# -ne : Not equal to
-# -gt : Greater than
-# -lt : Less than
-# -ge : Greater than or equal to
-# -le : Less than or equal to
-
-read -p "enter a value: " value;
-
-if [ $value -eq 8 ]; then
-    echo "the values match good guess."
-else    
-    echo "wrong value"
-
-    if [ $value -lt 8 ]; then
-        echo "the value was too low"
-    else
-        if [ $value -gt 8 ]; then
-            echo "the value was too large"
-        fi
-    fi
-fi
-
-
+# ***********************IF LOOPS **************************************
 # -------------CHECK IF FILE --------------
 # -e, -a : checks if file exists.
 # -r : checks if file is readable
@@ -63,6 +27,57 @@ fi
 # -O : true if file exists and is owned by the effective user id. checks if the file is owned by the same user who is executing a script.
 # -N : true if file exists and has been modified since it was last read.
 
+# ----------------COMPARISON OF NUMERICAL VALUES------------------
+# Terms
+# -eq : equal to
+# -ne : Not equal to
+# -gt : Greater than
+# -lt : Less than
+# -ge : Greater than or equal to
+# -le : Less than or equal to
+
+# ****************** SINGLE BRACKETS AND DOUBLE BRACKETS.***********************
+# For simple checks like file existence or basic string comparisons, single brackets suffice.
+# For complex evaluations involving string operators, arithmetic comparisons, or regular expressions, double brackets provide a safer and more powerful approach.
+
+# ------------ COMPARISON OF STRING ----------------
+# == : checks if strings are equal.
+# != : check if strings are not equal.
+# -z : check if a string is empty.
+# =~ : matches string on the left side against the regular expression on the right side. 
+# -n : check if string is not empty.
+# "word"* : check if string starts with word
+# *"word" : check if string ends with word.
+# *"word"* : check if strings contains word.
+# > : lexicographical order greather than  
+# < : lexicographical order less than
+
+# ------------BASIC SYNTAX---------------
+# if [ condition ]; then
+    # command to execute.
+# fi
+
+# comparing intergers .
+read -p "enter a number between 1 and 10: " value;
+
+if [[ $value -gt 10 ]]; then
+    echo "you can't follow instructions, can you? "
+else
+    echo "sometimes rebel"
+fi
+
+
+# comparing strings.
+# we use the normal == not the -eq
+read -p "guess a word: " word;
+
+if [[ $word == "mark" ]]; then   
+    echo "basic ass nigga"
+else
+    echo "you must think your soo unique"
+fi
+
+# checking if file exists
 file_path="./overview.sh"
 if [ -e $file_path ]; then
     echo "the file exists."
@@ -78,23 +93,7 @@ else
     fi
 fi
 
-
-# ****************DOUBLE QUOTES ************************
-# This is a newer extension to Bash and provides more features and flexibility compared to single square brackets.
-# It supports advanced pattern matching, regular expressions, and additional logical operators (&&, ||, ==, !=, etc.).
-
-# ------------ COMPARISON OF STRING ----------------
-# == : checks if strings are equal.
-# != : check if strings are not equal.
-# -z : check if a string is empty.
-# =~ : matches string on the left side against the regular expression on the right side. 
-# -n : check if string is not empty.
-# "word"* : check if string starts with word
-# *"word" : check if string ends with word.
-# *"word"* : check if strings contains word.
-# > : lexicographical order greather than  
-# < : lexicographical order less than
-
+# when comparing strings.
 string1="hello"
 if [[ -z $string1 ]]; then
     echo "the string is empty"
@@ -119,6 +118,37 @@ else
     fi
 fi
 
+# ************************* FOR LOOP ****************************
+for (( i=0; i<5; i++)); do
+    echo "iteration : $i"
+done
 
-# ******************** DOUBLE PARENTHESIS *****************
-# used when conducting arithmetic operations.
+items=("mark" "elephant" "lion");
+
+for item in ${items[@]}; do
+    echo "items at ${item}"
+done
+
+
+# **************************WHILE LOOP ************************************
+current_value=1
+while [[ $current_value -lt 10 ]]; do
+    echo "value is at $current_value"
+    current_value=$(( current_value + 1 ))
+done
+
+current_state=true
+ 
+while [[ $current_state ]]; do
+    echo "the state is still true: $current_state"
+
+    read -p "provide authentication: " auth
+
+    if [[ $auth == "farmer" ]]; then
+        current_state=false
+        echo "you have been locked out"
+        break
+    else
+        echo "stop this already"
+    fi
+done

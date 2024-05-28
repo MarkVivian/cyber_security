@@ -12,7 +12,13 @@
 for ($i=1; $i -le 5; $i++) {
     Write-Host "Iteration $($i)"
 }
- 
+
+$values = @("mark", "vivian", "wachira")
+
+foreach ($item in $values){
+    Write-Host "the items in the list is $($item)"
+}
+
 
                 # IF LOOPS
 $age = 25

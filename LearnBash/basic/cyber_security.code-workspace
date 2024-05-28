@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "../.."
+		},
+		{
+			"path": "../../../Scripts"
+		}
+	],
+	"settings": {
+		"files.autoSave": "afterDelay"
+	}
+}

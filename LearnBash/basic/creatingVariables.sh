@@ -23,3 +23,12 @@ echo "$name"
 # storing calculations in variables
 addition=$((1 + 2))
 echo $addition
+
+# getting the length of a string and array. we use the #.
+# length of string
+random_string="this is just some nonesense"
+echo ${#random_string}
+
+# length of array
+random_array=("mark" "day" "red")
+echo ${#random_array[@]}
