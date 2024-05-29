@@ -1,0 +1,6 @@
+- we use the command:
+    EG. 
+        data_output | Out-File -filepath .\path\to\store\to -Append
+
+            - the data output is what you want to store.
+            - the Append makes sure the info doesn't overwrite the existing info.

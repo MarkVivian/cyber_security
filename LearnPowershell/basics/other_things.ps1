@@ -35,3 +35,4 @@ function text_manipulation{
 
 # skipping lines like \n in python
 Write-Host "we skip lines using `n look in the code to see it"
+
