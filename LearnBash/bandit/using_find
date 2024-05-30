@@ -13,7 +13,7 @@
     
     2) find a directory or file by its type
         EG.
-            find ./* -type f 
+            find ./* -type f    
                 - looks for files only
                 
             find ./* -type d

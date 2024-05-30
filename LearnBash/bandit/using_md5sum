@@ -1,0 +1,15 @@
+- we use md5sum to check the validity of a file:
+
+- we can get the md5sum of file using:
+    EG.
+        md5sum filename > filename.md5
+
+            - this will store the checksum.
+
+
+- once stored and want to check the validity of a file.
+- but we need both the file and the .md5 file in the same directory then we run:
+    EG.
+        md5sum -c filename.md5
+
+            - it will show ok if the file is still the same.

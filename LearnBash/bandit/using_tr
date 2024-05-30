@@ -1,0 +1,26 @@
+- the tr command is used to manipulate character sets within text streams.
+
+                    USAGE
+                =================
+1) Convert lowercase to uppercase.
+    EG.
+        echo "hello world" | tr 'a-z' 'A-Z'
+
+
+2) Delete all digits.
+    EG.
+        echo "you number is 12" | tr '[:digit:]' ' '
+
+
+3) Replace spaces with 
+    EG.
+        echo "abcdefg" | tr 'a-e' 'm-q'
+
+            -will replace all instances of a to e with m to q such that a becomes m ,e becomes q, b becomes n so on.
+
+
+    EG.
+        echo "Gur cnffjbeq vf WIAOOSFzMjXXBC0KoSKBbJ8puQm5lIEi" | tr 'a-zA-Z' 'n-za-mN-ZA-M'
+
+            - think of it as replacing n with a, z with m for small and capital values.
+            - its called a caesar cipher with a fixed shift of 13 positions

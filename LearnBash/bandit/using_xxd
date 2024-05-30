@@ -1,0 +1,18 @@
+- The xxd command in Unix-like systems is used for working with binary data. It can:
+    -> Display the hex dump of a file (convert binary data to hexadecimal representation).
+    -> Convert a hex dump format back into binary data.
+
+
+1) display a hexdump
+    EG. 
+        xxd filename
+
+1.5) store a hexdump file
+    EG.
+        xxd filename > hexdump
+
+2) convert a hexdump file back to binary 
+    EG.
+        xxd -r hexdump > binary_data
+
+3) 

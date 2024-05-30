@@ -1,0 +1,7 @@
+- we can put data into a file and also append to a file:
+    EG.
+        date > output.txt
+
+- We can also add data to an existing file using:
+    EG.
+        data >> output.txt
