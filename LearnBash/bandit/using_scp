@@ -1,0 +1,30 @@
+                SCP
+            ============
+- This is a secure copy utility for securely transferring files between hosts on a network.
+- Uses SSH (secure shell) to provide encryption.
+- Common options:
+    -r: Recursively copy entire directories.
+    -P port: Specify the SSH port to use (capital P).
+    -p: Preserves modification times, access times, and modes from the original file.
+    -q: Disables the progress meter.
+    -C: Enables compression.
+
+- Common uses include:
+    1) copy a file from a local system to a remote system.
+        EG.
+            scp ./local_file username@remote_host:path/to/destination
+
+
+    2) copy a file from remote system to a local system
+        EG.
+            scp username@remote_host:path/to/file ./local_machine
+
+
+    3) copy a file between two remote systems
+        EG.
+            scp username1@remotehost1:/path/to/remotefile username2@remotehost2:/path/to/destination
+
+
+    4) copy a directory recursively
+        EG.
+            scp -r localdir username@remotehost:/path/to/destination

@@ -1,0 +1,47 @@
+            TAR
+        =============
+- identified by :  
+    *** the tar, tar.gz, tar.bz2 extension ******
+    *** first two bytes are "75 73 74 61 72" in hexadecimal*********
+
+    - this can be found by running:
+        EG.
+            xxd ./filename | head
+
+                OR
+
+            xxd -l 2 ./filename | grep '425a68' # xxd -l 2 means to print only the first 2 words . 
+                
+                -this will display the first lines of the file.
+
+                OR
+            
+            file ./filename
+                
+                - this will display the compression algorithm used.
+
+
+- compresses data using the:
+    EG.
+        Create: tar -cvf archive.tar filename1 filename2
+
+            OR
+
+        Create with gzip: tar -czvf archive.tar.gz filename1 filename2
+
+            OR
+
+        Create with bzip2: tar -cjvf archive.tar.bz2 filename1 filename2
+
+    
+- decompress data using:
+    EG.
+        Extract: tar -xvf archive.tar
+
+            OR
+
+        Extract with gzip: tar -xzvf archive.tar.gz
+
+            OR
+
+        Extract with bzip2: tar -xjvf archive.tar.bz2

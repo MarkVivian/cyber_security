@@ -15,4 +15,4 @@
     EG.
         xxd -r hexdump > binary_data
 
-3) 
+3) you can identify a hexdump file by having hexadecimal values(0000010 or such)

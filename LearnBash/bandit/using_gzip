@@ -1,0 +1,35 @@
+            GZIP
+        ============
+- identified by :  
+    *** the gz extension ******
+    *** first two bytes are "1f8b" in hexadecimal*********
+
+    - this can be found by running:
+        EG.
+            xxd ./filename | head
+
+                OR
+
+            xxd -l 2 ./filename | grep '1f8b' # xxd -l 2 means to print only the first 2 words . 
+                
+                -this will display the first lines of the file.
+
+                OR
+            
+            file ./filename
+                
+                - this will display the compression algorithm used.
+
+
+- compresses data using the:
+    EG.
+        gzip ./filename
+
+    
+- decompress data using:
+    EG.
+        gunzip ./filename.gz
+
+            OR
+        
+        gzip -d filename.gz

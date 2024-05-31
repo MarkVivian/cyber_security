@@ -1,0 +1,35 @@
+            BZIP2
+        =============
+- identified by :  
+    *** the bz2 extension ******
+    *** first two bytes are "42 5a 68" in hexadecimal*********
+
+    - this can be found by running:
+        EG.
+            xxd ./filename | head
+
+                OR
+
+            xxd -l 2 ./filename | grep '425a68' # xxd -l 2 means to print only the first 2 words . 
+                
+                -this will display the first lines of the file.
+
+                OR
+            
+            file ./filename
+                
+                - this will display the compression algorithm used.
+
+
+- compresses data using the:
+    EG.
+        bzip2 ./filename
+
+    
+- decompress data using:
+    EG.
+        bunzip2 ./filename.bz2
+
+            OR
+        
+        bzip2 -d filename.bz2
