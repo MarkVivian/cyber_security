@@ -32,3 +32,8 @@ echo ${#random_string}
 # length of array
 random_array=("mark" "day" "red")
 echo ${#random_array[@]}
+
+# accessing the first and the last element.
+random_word="Mark"
+first_character_in_word="${random_word:0:1}"
+last_character_in_word="${random_word: -1}"
