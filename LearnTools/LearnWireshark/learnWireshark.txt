@@ -1,10 +1,15 @@
-meNB:: MAKE SURE YOU RUN IT IN SUDO /ROOT USER MODE..
+NB:: MAKE SURE YOU RUN IT IN SUDO /ROOT USER MODE..
+
 
 					USAGE..
-when you open the application, you will see all the networks that are running on your computer like wlp(wlan/internet) and bluetooth just to mention a few.
-now when you select the network you wish to concentrate/monitor on, double click on it and it will show you all the packets moving in and out of your system either through the internet or when you decide to scan a port.
+				================
+Wireshark is an open-source network protocol analyzer. 
+It allows you to capture and interactively browse the traffic running on a computer network. 
+It is widely used for network troubleshooting, analysis, software and protocol development, and education.
+
 
 				WHAT CAN I DO
+			=======================
 filtering -> since wireshark receives packets to and from the network, we recieve soo many packets as they pass through the 
 			network. so we can filter the specific network you wish like:
 				tcp - for tcp connections.
@@ -13,3 +18,21 @@ filtering -> since wireshark receives packets to and from the network, we reciev
 				tcp.port/udp.port - for finding specific ports called by a tcp or udp connection. 
 				frame/tcp contains/matches "String" - search by a specific string.MAKE SURE YOU USE THE DOUBLE QUOTES.
 
+
+Network Troubleshooting ->Identify network issues such as latency, packet loss, and congestion.
+    					  Detect and analyze network misconfigurations.
+
+
+Security Analysis: -> Monitor network traffic for suspicious activity or potential security breaches.
+    				  Capture evidence of attacks like DDoS, Man-in-the-Middle, and unauthorized access.
+
+
+Protocol Analysis: -> Examine the behavior of protocols and how they interact.
+					  Debug protocol implementations.
+
+
+Performance Monitoring -> Analyze network performance and optimize it.
+    					  Measure bandwidth usage and identify bandwidth hogs.
+
+Education -> Learn about network protocols and how they function.
+    		 Study network behavior in real-time.

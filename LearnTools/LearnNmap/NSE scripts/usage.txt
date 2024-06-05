@@ -1,0 +1,129 @@
+            NSE (Nmap Scripting Engine) SCRIPTS
+        =====================
+-This is a powerful feature of Nmap that allows users to automate a wide variety of networking tasks:
+    1) complex network discovery
+    2) vulnerability detection
+    3) exploitation.
+
+- NSE scripts are written in the Lua programming language and can be used to extend Nmap's functionality.
+
+
+                COMMONLY USED NSE SCRIPTS.
+            ===================================
+-sC
+    - Runs a default set of scripts against the target.
+
+        EG.
+            nmap -sC 192.168.1.1
+
+
+http-title:
+    -> Retrieves the title of the web page from the HTTP service.
+    
+        EG.
+             nmap --script=http-title 192.168.1.1
+
+
+ssl-cert:
+
+    -> Retrieves and displays information about the SSL certificate.
+    
+        EG.
+             nmap --script=ssl-cert 192.168.1.1
+
+
+ftp-anon:
+
+    -> Checks for anonymous FTP logins.
+    
+        EG.
+             nmap --script=ftp-anon 192.168.1.1
+
+
+ssh-brute:
+
+    -> Performs brute force password auditing against SSH.
+    
+        EG.
+             nmap --script=ssh-brute 192.168.1.1
+
+
+smb-os-discovery:
+
+    -> Attempts to determine the OS version over SMB.
+    
+        EG.
+             nmap --script=smb-os-discovery 192.168.1.1
+
+
+vulscan:
+
+    -> Runs vulnerability checks against the target.
+    
+        EG.
+             nmap --script=vulscan 192.168.1.1
+
+
+--script-help
+    -> Gives detailed info about a specific script:
+        
+        EG.
+            nmap --script-help=http-title
+
+            - provides detailed info about the http-title script.
+
+
+--script-args
+    -> Some scripts accept arguments to modify their behaviour.
+
+        EG.
+            nmap --script=ssh-brute --script-args userdb=users.txt,passdb=passwords.txt 192.168.1.1
+
+
+            CREATION OF CUSTOM SCRIPTS
+        =================================
+Write the Script:
+    - Create a Lua script that defines the actions you want Nmap to perform. 
+    - Here’s a simple example script, my_custom_script.nse:
+
+        EG.
+            local nmap = require "nmap"
+            local stdnse = require "stdnse"
+            local string = require "string"
+
+            description = [[
+            This is a custom NSE script to demonstrate creating your own scripts.
+            It will simply print a message for each host scanned.
+            ]]
+
+            author = "Your Name"
+
+            license = "Same as Nmap--See https://nmap.org/book/man-legal.html"
+
+            categories = {"discovery"}
+
+            portrule = function(host, port)
+                return port.number == 80
+            end
+
+            action = function(host, port)
+                return "Custom script executed on port 80"
+            end
+
+
+Save the Script:
+    - Save your script with a .nse extension, e.g., my_custom_script.nse.
+
+
+Place the Script in the NSE Script Directory:
+    - Locate the NSE script directory. On Unix-like systems, it's typically /usr/share/nmap/scripts/. On Windows, it might be in C:\Program Files (x86)\Nmap\scripts\.
+
+        EG.
+            sudo cp my_custom_script.nse /usr/share/nmap/scripts/
+
+
+Run the Script with Nmap:
+    - You can now run your custom script using the --script option.
+        
+        EG.
+            nmap --script=my_custom_script 192.168.1.1

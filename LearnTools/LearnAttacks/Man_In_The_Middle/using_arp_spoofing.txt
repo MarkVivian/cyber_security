@@ -1,0 +1,37 @@
+                ARP SPOOFING
+            =====================
+- ARP is used to map IP addresses to MAC addresses. 
+- When a device wants to communicate with another device on the same network, 
+    it sends an ARP request asking "Who has IP address X?" 
+    The device with that IP address replies with its MAC address, 
+    allowing communication to proceed.
+
+ARP spoofing involves sending falsified ARP messages to trick devices on the network into associating the attacker's MAC address with the IP address of another device. 
+This allows the attacker to intercept and modify traffic between the targeted devices.
+
+
+                ARP SPOOFING ATTACKS
+            ===========================
+1) Enable IP Forwarding
+    - This allows your machine to act as a router and forward traffic between the targeted devices.
+
+        EG.
+            sudo sysctl -w net.ipv4.ip_forward=1
+
+
+2) Find target IP Addresses.
+    -Use tools like arp-scan or nmap to discover devices on the network and their IP addresses.
+
+
+3) Run ARP Spoofing.
+    - Use arpspoof to send falsified ARP messages to the target devices.
+
+        EG.
+            sudo arpspoof -i <interface> -t <target_ip> <gateway_ip>
+
+
+                - `-i <interface>` : Specify the network interface to use.
+                - `-t <target_ip>` : Specify the IP address of the target device.
+                - `<gateway_ip>` : Specify the IP address of the gateway/router.
+
+            sudo arpspoof -i wlp2s0 -t 192.168.1.100 192.168.1.1

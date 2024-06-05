@@ -39,6 +39,7 @@ If a port is closed then the server responds with a RST TCP packet. If the port 
 
 In this regard, the two scans are identical: the big difference is in how they handle open ports
 
+
 							QUESTIONS
 1) There are two other names for a SYN scan, what are they? 
 		stealth scans
