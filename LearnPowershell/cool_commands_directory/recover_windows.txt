@@ -2,6 +2,19 @@
 			===========================
 - Boot into safe mode or an account with admin privileges and in the cmd or powershell.
 - to boot into safe mode press f8 when the pc is rebooting.
+- Click the command prompt option in the start-up settings .
+- move to the C:\Windows\System32
+- you do this by first typing C:
+- then cd Windows\System32
+- Then we rename the utilman.exe to utilman1.exe
+- Then we rename the cmd.exe to utilman.exe
+- this is done using :
+	EG.
+		ren utilman.exe utilman1.exe # also works with rename
+			AND
+		rename cmd.exe utilman.exe
+
+- now we restart the machine and when you press the accessibility icon it opens the cmd.exe
 - type the command:
 	EG.
 		net user
