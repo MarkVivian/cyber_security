@@ -1,0 +1,11 @@
+            ERROR ACTIONS
+        ======================
+- Controls how powershell handles errors that occur during command execution.
+- Available options include:
+    > SilentlyContinue: Ignores the error and continues execution.
+    > Stop: Stops execution immediately upon encountering an error.
+    > Continue: Continues execution but records the error.
+    > Inquire: Prompts the user for further action (like retry or skip) upon encountering an error.
+
+        EG.
+            Get-Process -ErrorAction SilentlyContinue  # Ignores any errors during Get-Process

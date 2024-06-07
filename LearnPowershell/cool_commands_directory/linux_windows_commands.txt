@@ -11,3 +11,20 @@ findstr is more case sensetive compared to select-string.
 		--> get-content filename | select-string "certain string here"
 			OR
 		--> get-content filename | findstr "certain string here with case sensitivity"
+
+
+also we can use :
+	Filter
+Used to filter the output of a cmdlet based on specific criteria.
+Accepts various filtering expressions using operators like:
+	 -eq (equal to), 
+	 -ne (not equal to), 
+	 -gt (greater than), 
+	 -lt (less than), 
+	 -like (wildcard matching),
+	 and more.
+
+	 EG.
+	 	Get-Process -Filter { Name -like "notepad*" }  # Filters processes whose names start with "notepad"
+			OR
+		get-childItem C:\ -Recurse -Filter OSPPREARM.EXE
