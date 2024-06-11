@@ -1,0 +1,106 @@
+                    OPEN SSL `S_CLIENT`
+                ============================
+- OpenSSL's s_client is a tool used to debug and test SSL/TLS connections to a remote server. 
+- its just a netcat(nc) without security from the ssl/tls connection, certificates and keys.
+- It is particularly useful for checking:
+    >> certificate chains
+    >> supported cipher suites
+    >> general SSL/TLS handshake issues.
+        EG.
+            openssl s_client -connect hostname:port [options]
+
+certificate (`cert.pem`)
+    - The certificate is a public document that contains information about the server and the server's public key. 
+    - It is used to establish the server's identity and to initiate a secure connection.
+    - establishes the legitimasy of a server.
+
+
+Private key (`key.pem`)
+    - The private key is a secret key that should be kept secure. 
+    - It is used:
+        >> decrypt information 
+        >> encrypted with the corresponding public key (found in the certificate)
+        >> sign data to verify the server’s identity.
+
+    - it encrypts and decrypts the data being transmitted.
+
+
+-quiet option
+    - The -quiet option is used to suppress verbose output.
+    - Without this option, OpenSSL commands:
+        >> produce detailed information about the SSL/TLS handshake process
+        >> connection details, which can be useful for debugging but is unnecessary for simple data transfer operations.
+
+    -  if you wanted to communicate similar to nc we avoid the -quiet.
+
+
+                        COMMON USES
+                    ===================
+- Generate Certificates to create the server.
+    EG.
+        openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -nodes
+
+
+- Start a secure server .
+    EG.
+        openssl s_server -accept 1234 -cert cert.pem -key key.pem -quiet
+
+
+- Connect to a secure server.
+    EG.
+        openssl s_client -connect deviceA_ip:1234 -quiet
+
+
+- Connecting to an HTTPS server.
+    EG.
+        openssl s_client -connect example.com:443
+
+
+- Specifying a particular SSL/TLS Protocol
+    EG.
+        openssl s_client -connect example.com:443 -tls1_2
+
+            - You can specify to force a particular protocol version:
+                >> -tls1
+                >> -tls1_1
+                >> -tls1_2
+                >> -tls1_3
+                >> -ssl3 
+        
+
+- Displaying Server certificate
+    EG.
+        openssl s_client -connect example.com:443 -showcerts
+
+
+- SNI (Server Name Indication) support
+    EG.
+        openssl s_client -connect example.com:443 -servername example.com
+
+
+- Checking for Specific Cipher suites
+    EG.
+        openssl s_client -connect example.com:443 -cipher ECDHE-RSA-AES128-GCM-SHA256
+
+
+- Connecting through a proxy
+    EG.
+        openssl s_client -connect example.com:443 -proxy proxyserver:8080
+
+
+- Verbose Output
+    EG.
+        openssl s_client -connect example.com:443 -debug
+
+
+- Display Protocol version
+    EG.
+        openssl s_client -connect example.com:443 -tls1_2 -state
+
+
+- Show Full Certificate chains
+    EG.
+        openssl s_client -connect example.com:443 -showcerts
+
+
+- 

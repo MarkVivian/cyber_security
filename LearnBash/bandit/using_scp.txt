@@ -28,3 +28,8 @@
     4) copy a directory recursively
         EG.
             scp -r localdir username@remotehost:/path/to/destination
+
+
+    5) specify the port 
+        EG.
+            scp -P 2220 username@remotehost:/file ./local/directory

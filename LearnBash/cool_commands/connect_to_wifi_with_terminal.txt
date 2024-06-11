@@ -3,14 +3,54 @@
 - If you want to search for available networks you use the command:
 	EG.
 		nmcli dev wifi list
+			OR
+		nmcli device wifi list
+
 
 			- it will list all available wifi connection.
+			- dev stands for device..
 
 
 - if you find you want to connect to a network we use:
 	EG.
-		nmcli dev wifi connect <wifi name> password <password goes here>
+		nmcli dev wifi connect <wifi name> password <password goes here> 	 	
 
 			- when writting the passwords and name use the ""
 
-			
+
+- to disconnect from the current network:
+	EG.
+		nmcli dev disconnect wlan0
+
+			- replace wlan0 with your WIFI interface name.
+			- You can find the name of your WIFI interface by running:
+				EG.
+					nmcli device status
+
+
+- to connect to multiple adapters to wifi:
+	EG.
+		nmcli dev wifi connect <wifi name> password <password> ifname <adapter>
+
+
+- to disconnect a specific WIFI adapter:
+	EG.
+		nmcli device disconnect ifname <adapter>
+		
+
+- Show all connections:
+	EG.
+		nmcli connection Show
+
+
+- Delete a saved WIFI connection.
+	EG.
+		nmcli connection delete <SSID>
+
+
+- connect to a previously configured network.
+	EG.
+		nmcli connection up <SSID>
+
+
+- 

@@ -1,0 +1,60 @@
+                        BLUETOOTHCTL
+                    =====================
+we use the bluetoothctl to access our bluetooth adapter.    
+in the terminal we use:
+    1) make sure the bluetooth controller is powered on.
+        EG.
+            power on
+
+
+    2) make the controller discoverable to other devices.
+        EG.
+            discoverable on
+
+
+    3) start scanning for nearby bluetooth devices.
+        EG.
+            scan on
+
+            - you should see a list of nearby devices appearing.
+            - Note the MAC address of the device you want to connect to.
+
+
+    4) pair with the device using its mac address.
+        EG.
+            pair <MAC ADDRESS>
+
+    
+    5) connect to the device after pairing.
+        EG.
+            connet <MAC ADDRESS>
+
+
+    6) Disconnect from the device.
+        EG.
+            disconnect <MAC ADDRESS>
+
+    
+    7) once connected to a device turn off scanning.
+        EG.
+            scan off.
+
+
+    8) exit
+
+
+    9) if you have multiple bluetooth adapters we can list them:
+        EG.
+            list
+
+            - this will display the adapters with their addresses and names.
+
+
+    10) select the desired adapter.
+        EG.
+            select <adapter address>
+
+
+    11) power on the selected adapter.
+        EG.
+            power on.

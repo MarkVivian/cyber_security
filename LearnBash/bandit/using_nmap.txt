@@ -1,0 +1,222 @@
+                    NMAP (NETWORK MAPPER)
+                    =====
+- Nmap is used to scan network and:
+    1. find all devices connected
+    2. find open ports in specific ip's.
+
+- Normally, Nmap sends ICMP echo requests (pings) and other probes (such as TCP SYN to port 443 and TCP ACK to port 80) to determine if a host is up before scanning it.
+
+
+                    OVERVIEW
+                    ======
+- There are three basic types of scans that can be done:
+    1. TCP connection scans (-sT)
+    2. SYN "Half-open" Scans (-sS)
+    3. UDP Scans (-sU)
+
+Additionally there are several less common port scan types, some of which we will also cover (albeit in less detail). These are:
+    1. TCP Null Scans (-sN)
+    2. TCP FIN Scans (-sF)
+    3. TCP Xmas Scans (-sX)
+
+
+
+                                        BASIC COMMANDS
+                                    ======================
+>> UDP Scan : `-sU`
+    -> Scans for open UDP ports. Unlike TCP, UDP is connectionless, so the scanner sends UDP packets and waits for responses.
+    -> If no response is received, the port is assumed open (or filtered). An ICMP "port unreachable" message signifies the port is closed.
+    -> Necessary for scanning UDP services which are common in certain protocols like DNS, SNMP, and DHCP. 
+    -> UDP scanning is slower and can be more challenging due to lack of reliable response.
+
+        EG.
+            nmap -sU <ip address> ----- nmap -sU 192.168.1.1
+
+ 
+ >> TCP Scan : `-sT`
+    -> Used for scanning TCP ports. 
+    -> It completes the TCP three-way handshake (SYN, SYN-ACK, ACK) to establish a connection. 
+    -> Open ports will respond with SYN-ACK, while closed ports respond with RST.
+    -> Used when SYN scan isn't possible. 
+    -> This scan is more detectable and slower than SYN scan.
+
+        EG.
+            nmap -sT <ip address> ---- nmap -sU 192.168.1.1
+
+
+>> Ping Scan : `-sn`
+    -> Used to determine which host are up without scanning for open ports.
+    -> It sends ICMP echo requests and expects ICMP echo replies.
+
+        EG.
+            nmap -sn <ip address/CIDR> --------- nmap -sn 192.168.0.1/24
+
+
+>> SYN Scan : `-sS`
+    -> Also known as half-open scan.
+    -> It sends SYN packets and waits for SYN-ACK(open) or RST(closed) responses.
+    -> It does not complete the TCP handshake, making it stealthier.
+    -> Prefered for most port scans because of its stealthiness and speed.
+    -> It doesn't complete the TCP handshake, so it's less likely to be logged by the target system.
+
+        EG.
+            nmap -sS <ip address> ------- nmap -sS 192.168.1.1
+
+
+>> OS Detection : `-O`
+    -> attempts to determine the operating system of the target by analyzing the responses to various probes.   
+
+        EG.
+            nmap -O 192.168.1.1
+
+
+>> Xmas Scan : `-sX`
+    -> Sends packets with the FIN, PSH and URG flags set (malformed tcp flags).
+    -> Closed ports usually respond with RST, while open or filtered port may not respond.
+    -> Useful for evading some firewalls and packet filtering systems. 
+    -> Can be used to identify open and filtered ports in certain network environments.
+
+        EG.
+            nmap -sX 192.168.1.1
+
+
+>> FIN Scan : `-sF`
+    -> Sends packets with the FIN flag set. Closed ports respond with RST, while open ports usually ignore the packets.
+    -> Similar to Xmas scan, it’s useful for evading some firewalls and intrusion detection systems (IDS). Good for detecting open ports in a stealthy manner.
+
+        EG.
+            nmap -sF 192.168.1.1
+
+
+>> Null Scan : `-sN`
+    -> Sends packets with no flags set. Closed ports respond with RST, while open ports usually ignore the packets.
+    -> Another stealth scan used to evade firewalls and IDS by sending non-standard packets. Useful for identifying open ports in environments where other scans are blocked.
+                
+        EG.
+             nmap -sN 192.168.1.1
+
+
+>> Version Detection : `-sV`
+    -> Attempts to determine the version of the services running on open ports by sending various probes and analyzing the responses.
+                
+        EG.
+             nmap -sV 192.168.1.1
+
+>> Verbose Mode : `-v`
+    -> Increases the verbosity of the output. Provides more details about the scan progress and results.
+                
+        EG.
+             nmap -v 192.168.1.1
+
+>> More Verbose Mode : `-vv`
+    -> Even more detailed output than -v. Useful for troubleshooting or understanding detailed scan processes.
+                
+        EG.
+             nmap -vv 192.168.1.1
+
+
+>> Output in All Formats : `-oA`
+    -> Saves the scan results in three formats: normal, XML, and grepable.
+                
+        EG.
+             nmap -oA scan_results 192.168.1.1
+
+
+>> Normal Output : `-oN`
+    -> Saves the scan results in a human-readable format.
+                
+        EG.
+             nmap -oN scan_results.txt 192.168.1.1
+
+
+>> Grepable Output : `-oG`
+    -> Saves the scan results in a grep-friendly format.
+                
+        EG.
+             nmap -oG scan_results.gnmap 192.168.1.1
+
+
+>> Aggressive Scan : `-A`
+    -> Enables OS detection, version detection, script scanning, and traceroute. Provides comprehensive information about the target.
+                
+        EG.
+             nmap -A 192.168.1.1
+
+
+>> Timing Template : `-T<0-5>`
+    -> Adjusts the timing and performance of the scan. Higher values increase speed but reduce stealth.
+
+        EG.
+             nmap -T4 192.168.1.1
+
+
+>> Port Specification : `-p <port number>`
+    -> Specifies which ports to scan. Can scan individual ports, ranges, or all ports.
+                
+        EG.
+             nmap -p 80 192.168.1.1
+                OR
+             nmap -p 80,433 192.168.1.1
+                
+        EG.
+             nmap -p 100-150 192.168.1.1
+                
+        EG.
+             nmap -p- 192.168.1.1
+
+
+>> No Ping : `-Pn`
+    -> Treats all hosts as online and skips host discovery (ICMP echo requests).
+    -> scanning a network where firewalls block ICMP echo requests and other common host discovery probes.
+    -> ensures that no hosts are missed in your scan, even if they are configured not to respond to pings.
+
+        EG.
+             nmap -Pn 192.168.1.1
+
+
+>> Scan Top Ports : `--top-ports`
+    -> Scans the most commonly used ports. Useful for quick scans of the most likely open ports.
+                
+        EG.
+             nmap --top-ports 100 192.168.1.1
+
+
+>> Script Scan : `-sC`
+    -> Runs default Nmap scripts against the target. Useful for vulnerability detection and additional information gathering.
+                
+        EG.
+             nmap -sC 192.168.1.1
+
+>> Specific Script Scan : `--script <script name>`
+    -> Runs a specific Nmap script against the target.
+                
+        EG.
+             nmap --script http-title 192.168.1.1
+
+
+>> IPv6 Scan : `-6`
+    -> Enables scanning of IPv6 addresses.
+                
+        EG.
+             nmap -6 2001:db8::1
+
+
+>> Idle Scan : `-sI`
+    -> Uses a third-party host (zombie) to send packets, making the scan very stealthy.
+                
+        EG.
+             nmap -sI zombie_host 192.168.1.1
+
+
+>> FTP Bounce Scan : `-b`
+    -> Uses FTP servers to bounce scans off, which can help bypass some firewalls.
+                
+        EG.
+             nmap -b ftp.example.com 192.168.1.1
+
+
+>> Traceroute : `--traceroute`
+    -> Traces the network path to the target.
+                
+        EG.
+             nmap --traceroute 192.168.1.1
