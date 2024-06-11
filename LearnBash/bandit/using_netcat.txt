@@ -1,0 +1,82 @@
+                        NETCAT(nc)
+                    ===============
+- is a versatile networking tool taht can be used for a variety of purposes, including:
+    >> port scanning
+    >> transferring files
+    >> acting as a simple server or client
+
+                
+                    COMMON USES     
+                ==================      
+- When conducting reverse shell attacks we do not connect to a machine we wait for the machine to connect to us. To do this we need to create a listener to listen for a connection to our machine on a certain port that we are going to specify.
+	EG.
+		nc -lnvp 87  -->  nc -lnvp <port number>
+
+			-l :- Listen mode for inbound connects.
+
+			-n :- Numeric-only ip addresses, no dns.
+
+			-v :- verbose. will give us all the info. 
+
+			-p :- local port number.
+
+
+- connect to a remote host:
+    EG. 
+        nc hostname port --> nc example.com 80
+
+
+- Listening for incoming connections.
+    EG.
+        nc -l -p port ----> nc -l -p 1234
+
+
+- Port scanning.
+    EG. [[tcp connection]]
+        nc -zv hostname start_port-end_port ----> nc -zv example.com 80-100
+
+    EG. [[udp connections]]
+        nc -zvu hostname start_port-end_port ----> nc -zvu example.com 80-100
+
+
+- Transferring files from sender to reciever.
+    EG. [[Sender]]
+        nc -l -p port < filename 
+
+            EG.<<transferring file.txt on port 12345>>
+                nc -l -p 12345 < file.txt
+
+    EG. [[Receiver]]
+        nc hostname port > filename
+
+            EG.<<receive file.txt from hostname on port 12345>>
+                nc localhost 12345 > file1.txt
+
+
+- Transferring files from reciever to sender.
+    EG. [[Sender]]
+        nc -l -p port > filename 
+
+            EG.<<transferring file.txt on port 12345>>
+                nc -l -p 12345 > file.txt
+
+    EG. [[Receiver]]
+        nc hostname port < filename
+
+            EG.<<receive file.txt from hostname on port 12345>>
+                nc localhost 12345 < file1.txt
+
+
+- connect to a remote server and send data
+    EG.
+        echo "hello world" | nc example.com 12345
+
+
+- Set a timeout for a connection.
+    EG.
+        nc -w 5 example.com 12345
+
+
+- execute a command 
+    EG.
+        nc -l -p 4440 -e /bin/bash

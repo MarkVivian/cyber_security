@@ -20,4 +20,6 @@ Common comands:
         ssh -i ~/.ssh/id_rsa user@remotehost
         
 
-4) 
+4) we can also run a command after ssh .
+    EG.
+        ssh user@remotehost <command to run> --> ssh user@remotehost ls ~

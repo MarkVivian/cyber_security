@@ -1,0 +1,16 @@
+                    DIFF
+                ============
+this is a command-line utility in Unix-like operating systems that is used to:
+    >> compare the contents of two files line by line 
+    >> display the differences between them.
+
+    EG.
+        diff file1.txt file2.txt
+
+           - we can have two types of outputs:
+                2d1
+                    - where line 2 from file1 has been deleted and should be replaced with line 1 from file2
+
+                2c2
+                    - where line 2 from file1 has been changed from line 2 from file2
+
