@@ -80,3 +80,8 @@
 - execute a command 
     EG.
         nc -l -p 4440 -e /bin/bash
+
+
+- Running netcat in the background:
+    EG.
+        nc -l -p 12345 &

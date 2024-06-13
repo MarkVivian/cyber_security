@@ -1,0 +1,57 @@
+            ELEVATED SCRIPTS.
+        =======================
+- The configuration file for the sudo is /etc/sudoers and should only be edited using visudo.
+- Edit the sudoers File with visudo:
+    EG.
+        sudo visudo 
+
+
+
+            EXAMPLE OF A RULE
+        ======================
+- The general format of a rule is:
+    EG.
+        user host=(runas) command.
+            
+            -user : The user or a group of users who can run the command.
+            -host : The hosts where the user(s) can run the command (usually `ALL` means any host)
+            -runas : The user the command will be run as (typically `ALL` for any user)
+            -command : The command or commands the user can run (can include wildcards)
+
+
+- Add the necessary  line:
+    EG.
+        mark ALL=(ALL) NOPASSWD: /path/to/your_script.sh
+
+            -mark : The user `mark`.
+            -ALL : can run on any host.
+            -(ALL) : Can run the command as any user (`root` or any other user)
+            -NOPASSWD : Does not require a password.
+            -/path/to/script.sh : path to the script that can be run with elevated priveleges without a password.
+
+
+- If you want to make a whole command like shutdown or nmap to run without needing sudo:
+    EG.
+        which <command name> ---> which nmap # locate the path to the command.
+              OR
+        whereis <command name>
+             OR
+        locate <command name>          
+                        OR                     
+        sudo su
+            AND
+        which shutdown                      # if the command requires sudo, go into root then use which.
+
+            -then add the command path to the visudo:
+                EG.
+                    mark ALL=(ALL) NOPASSWD: /usr/bin/nmap
+
+
+- Disabling password requirement for all commands.
+    EG.
+        mark ALL=(ALL) NOPASSWD: ALL
+
+            - allows the user mark to run any command as any user without entering a password.
+
+
+- 

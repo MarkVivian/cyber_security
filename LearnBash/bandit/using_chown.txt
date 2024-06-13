@@ -1,2 +1,106 @@
-                        CHOWN
-                    ===========
+                        OWNERSHIP IN LINUX
+                    ===========================
+- In Linux, every file and directory has an owner and a group associated with it. 
+- The owner is typically the user who created the file, and the group is usually a primary group of that user.
+    >> User(Owner) : The person who owns the file
+    >> Group : A set of users. All users in the group have certain permissions to the file.
+
+
+- You can view the ownership and permissions of a file using:
+    EG.
+        ls -l filename
+
+            - this will output the following:
+                EG.
+                    -rwxr-xr-- 1 user group 4096 Jun 13 12:34 filename
+
+                        `-rwxr-xr--` : indicates the permissions.
+                        `user` : is the owner.
+                        `group` : is the group.
+
+
+                    
+                        CHANGING OWNERSHIP
+                    ==========================
+- To change the ownership of a file:
+    EG.
+        chown newuser filename
+
+
+- To change the group ownership.
+    EG.
+        chown :newgroup filename
+
+
+- To change both owner and group:
+    EG.
+        chown newuser:newgroup filename
+
+
+                PERMISSIONS 
+            =================
+-Permissions determine who can read, write or execute the file:
+    r(read) : Permission to read the file.
+    w(write) : Permission to modify the file.
+    x(execute) : Permission to execute the file.
+
+
+- Permissions are divided into 3 categories:
+    User (owner) permissions.
+    Group permissions.
+    Others permissions.
+
+
+- If the current user is different from the file owner:
+    The user can only perform actions allowed by the group and others' permissions.
+    If the user is not in the group associated with the file, the user's permissions will fall back to the 'others' category.
+
+
+
+                SPECIAL PERMISSIONS (Setuid, Setgid, Sticky bit)
+            ======================================================
+the `s` bit in permissions stands for special permissions:
+
+    * Setuid (`s` for user)
+        - When set on an executable file, it allows the file to be executed with the permissions of the file owner.
+        - EXAMPLE
+            1. File with `setuid` bit set.
+                - owner: `john`
+                - Permissions : `rwsr-xr-x`
+                - User: `mark` (you are in the group that has execution permission)
+
+                    * if mark executes this file, it runs with `john`'s permissions.
+
+                    - to add setuid to a file:        
+                        EG.
+                            chmod u+s filename
+
+    * Setgid (`s` for group)
+        - When set on an executable file, it allows the file to be executed with the permissions of the group owner.
+        - When set on a directory, it means that files created in the directory inherit the group ownership from the directory.
+            EG.
+                chmod g+s directory.
+
+    * Sticky bit (`t`)
+        - When set on a directory, it means that only the owner of a file can delete or rename the file within that directory.
+            EG.
+                chmod +t directory.
+
+
+
+                ADDING USER TO A GROUP
+            =============================
+- To add the current user to a group, use the `usermod` command:
+    EG.
+        sudo usermod -aG groupname username
+
+            - For example, to add the current user `john` to the group `developers`:
+                EG.
+                    sudo usermod -aG developers john.
+
+
+- To get the members in a group we use:
+    EG.
+        getent group groupname  --> getent group mark.
+
+        
