@@ -1,0 +1,29 @@
+                        ALIAS 
+                    ===========
+There are two main ways to create an alias:
+
+    1) setting an alias.
+        EG.
+            Set-Alias  -Name <desired alias name> -Value <command it rep>
+                EG.
+                    Set-Alias -Name list -Value Get-ChildItem
+
+
+    2) getting all alias.
+        EG.
+            Get-Alias.
+
+
+    3) removing an alias.
+        EG.
+            Remove-Alias -Name <command name>
+                EG.
+                    Remove-Alias -Name list. 
+            
+
+    4) to get the command when you have the alias:
+        EG.
+            Get-Alias <command>
+                EG.
+                    Get-Alias wget
+            

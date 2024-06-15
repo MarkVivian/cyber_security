@@ -1,0 +1,32 @@
+                    COUNT
+                ============
+- its used to count the number of object in a directory:
+    EG.
+        (Get-ChildItem).count
+
+
+
+                    MEASURE_OBJECT
+                ====================
+- is a powerfull cmdlet in powershell for summarizing and counting objects.
+
+    1) Counting files and folders.
+        EG.
+            Get-childItem | measure-object.
+
+                - Counting folders/directories.
+                    EG.
+                        Get-ChildItem -Directory .\ | MEASURE_OBJECT
+
+    
+    2) For example, if you have an array of objects with a "Size" property.
+        EG.
+            $myArray = @(
+                @{ Name = "File1.txt"; Size = 1024 },
+                @{ Name = "File2.docx"; Size = 5120 }
+            )
+
+            $myArray | Measure-Object -Property Size -Sum  # Get the total size of all files
+
+
+

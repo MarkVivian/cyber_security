@@ -1,0 +1,14 @@
+                    PSVersionTable
+                ===================
+- this command will output a table containing version details:
+    EG.
+        $PSVersionTable
+
+            - PSVersion: The version of the PowerShell engine.
+            - PSEdition: The edition of PowerShell (e.g., Desktop or Core).
+            - BuildVersion: The build number.
+            - CLRVersion: The version of the Common Language Runtime (CLR).
+            - WSManStackVersion: The version of the WS-Management stack.
+            - PSCompatibleVersions: Versions of PowerShell that are compatible with this version.
+            - SerializationVersion: The serialization version of the PowerShell objects.
+

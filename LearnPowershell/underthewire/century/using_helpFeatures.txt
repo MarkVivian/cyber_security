@@ -1,0 +1,32 @@
+                    HELP FEATURES
+                ===================
+- To list all available commands in your powershell:
+    EG.
+        Get-command
+
+
+- To get detailed help info about a specific command:
+    EG.
+        Get-Help <command name>
+
+            - if you want to include examples:
+                EG.
+                    Get-Help <command name> -Detailed
+
+
+            - if you want examples
+                EG.
+                    Get-Help <command name> -Examples
+
+
+
+                        LISTING MODULES
+                    ======================
+- To list all installed modules, use:
+    EG.
+        Get-Module -ListAvailable
+
+
+- To import a module into your session:
+    EG.
+        Import-Module <module name>

@@ -1,0 +1,26 @@
+                    ENV 
+                ===========
+- Is a special automatic variable that stores environment variables accessible within your PowerShell session.
+- You can access specific environment variables using their names:
+    EG.
+        ${env: } # notation
+
+
+                    COMMON USES
+                ==================
+- Getting the computer name:
+    EG.
+        $env:COMPUTERNAME
+
+
+- Accessing User Profile Path.
+    EG.
+        $env:USERPROFILE
+
+
+- short name of the domain in the system.
+    EG.
+        $env:USERDOMAIN
+
+
+
