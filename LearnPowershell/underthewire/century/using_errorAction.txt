@@ -1,0 +1,30 @@
+                ERROR ACTION
+            ===================
+- a common parameter available for most cmdlets in PowerShell. 
+- It controls how the cmdlet responds to errors that might occur during its execution.
+
+
+- Here are some common settings for ErrorAction:
+    > Stop (Default): 
+        - This is the default behavior. 
+        - If an error is encountered, the cmdlet stops execution and throws an error terminating the script.
+
+
+    Continue: 
+        - The cmdlet continues execution even if errors occur. 
+        - The errors are written to the $Error automatic variable but don't stop the script.
+    
+    
+    SilentlyContinue: 
+        - Similar to Continue, but errors aren't written to the $Error variable either.
+    
+    
+    WriteError: 
+        - Errors are written to the $Error variable and the error stream, but execution continues.
+    
+    
+    Suspend: 
+        - The cmdlet pauses execution and prompts the user for further action.
+
+        EG.
+            Get-Service -ErrorAction SilentlyContinue  # Silently ignore errors during service retrieval

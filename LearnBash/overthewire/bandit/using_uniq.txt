@@ -14,5 +14,8 @@
                 -useful when there is leading space.
                 
 
-    3) 
+    3) we can output the none unique items:
+        EG.
+            sort file.txt | uniq -d
+
 

@@ -1,0 +1,15 @@
+                    NEW-ITEM
+                ==============
+- it is used to create either a new:
+    > file
+        EG.
+            new-item -type file -name test.txt
+                    OR
+            new-item -type file -path .\path\to\test.txt
+                
+    
+    > directory
+        EG.
+            new-item -type directory -name test_folder
+                    OR
+            new-item -type directory -path .\path\to\test_folder

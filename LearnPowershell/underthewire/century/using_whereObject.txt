@@ -1,0 +1,44 @@
+                    WHERE OBJECT
+                ===================
+-  cmdlet is a fundamental tool for filtering objects based on specific criteria in PowerShell. 
+- Its syntax might seem complex at first glance, but it offers great flexibility for various filtering needs.
+
+
+- In most situations when we are using attributes like Name, Length etc we get them using:
+    EG.
+        <process name> | Get-Member
+            EG.
+                Get-ChildItem .\Documents\ | Get-Member
+
+                
+1) Filter processes by name
+    EG.
+        Get-Process | Where-Object {$_.Name -eq "notepad"}
+
+            - This filters running processes and displays only those named "notepad" (case-insensitive).
+            - The name should be exact for it to work.
+
+
+2) Filter with wildcards characters.
+    EG.
+        Get-childItem .\Documents\ | where-object {$_.Name -Like "Wifi*"}
+
+            - Will get any file that has Wifi in it.
+
+            - For the inverse we do.
+                EG.
+                    Get-childItem .\Documents\ | where-object {$_.Name -NotLike "Wifi*"}
+
+
+3) Filter files by size.
+    EG.
+        Get-ChildItem "C:\*.txt" | Where-Object {$_.Length -gt 1024}
+
+            - This filters text files in the C:\ directory and displays only those with a size greater than 1024 bytes.
+
+
+4) selecting object after filter.
+    EG.
+       Get-childItem .\Documents\ | where-object {$_.Name -Like "Wifi*"} | select-object Name 
+
+            - selects the name atribute from the filtered selection.

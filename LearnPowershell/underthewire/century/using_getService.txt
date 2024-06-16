@@ -1,0 +1,47 @@
+                        GET-SERVICE.
+                    ==================
+- The Get-Service cmdlet in PowerShell is used to get the status of services on a local or remote machine. 
+- The -DisplayName parameter allows you to filter services by their display name.
+
+
+- To list all services.
+    EG.
+        Get-Service
+
+            - This command outputs a list of all services, showing their status (Running, Stopped) and other details.
+
+            - Filtering using display name.
+                EG.
+                    Get-Service -DisplayName "*Update*"
+
+                        - This command returns all services whose display names contain the word "Update"
+
+
+- Get service status.
+    EG.
+        Get-Service -DisplayName "Windows Update" NB: pass the service actual name.
+            OR 
+        Get-Service -Name "Windows Update"
+
+
+- Starting a service.
+    EG.
+        Start-Service -DisplayName "Windows Update"
+            OR
+        Stop-Service -Name "Windows Update"
+
+
+
+- Stopping a service.
+    EG.
+        Stop-Service -DisplayName "Windows Update"
+            OR 
+        Stop-Service -Name "Windows Update"
+
+
+
+- Setting start-up time of a service.
+    EG.
+        Set-Service -Name "ServiceName" -StartupType Automatic|Manual|Disabled
+            EG.
+                Set-Service -Name "wuauserv" -StartupType Automatic

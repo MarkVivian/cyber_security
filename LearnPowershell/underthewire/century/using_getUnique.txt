@@ -1,0 +1,6 @@
+                    GET UNIQUE
+                =================
+- To show unique items:
+    EG.
+        Get-Content $filePath | Sort-Object | Get-Unique
+

@@ -8,19 +8,46 @@
 
                     COMMON USES
                 ==================
-- Getting the computer name:
+- if you want to list all the env you can use:
     EG.
-        $env:COMPUTERNAME
+        Get-ChildItem env:
+
+            - if you want to get a specific variable.
+                EG.
+                    Get-ChildItem env:APPDATA
 
 
-- Accessing User Profile Path.
+- To set a new env variable but only for the current session: NB:: for persistency use the $profile powershell script.
     EG.
-        $env:USERPROFILE
+        Set-Item env:<give it a name> -Value <what it will represent>
+            EG.
+                Set-Item env:Script -Value "path/to/script/folder"
 
 
-- short name of the domain in the system.
+- To add a path to the env:Path.
+    > you can use the environment variables gui and add to the paths for persistency.
+    > use the $profile.
+    > from terminal: (not persistent. only affects current powershell session.)
+        EG.
+            $env:PATH += ";C:\path\to\script\folder"
+
+
+- To remove a environment variable .
     EG.
-        $env:USERDOMAIN
+        Remove-Item env:PATH.
 
 
+- we can use $ since it says that the word is a variable thus allowing you to access the variable:
+    - Getting the computer name:
+        EG.
+            $env:COMPUTERNAME
 
+
+    - Accessing User Profile Path.
+        EG.
+            $env:USERPROFILE
+
+
+    - short name of the domain in the system.
+        EG.
+            $env:USERDOMAIN

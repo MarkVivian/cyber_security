@@ -1,0 +1,34 @@
+                          GET WMI(Windows Management Instrumentation) OBJECT.
+                    =======================
+- The Get-WmiObject cmdlet in PowerShell allows you to retrieve information about various aspects of your system by querying the WMI namespace. 
+- WMI provides a unified interface to access and manage hardware, software, and configuration settings on Windows machines.
+
+
+- Basic usage.
+    EG.
+        Get-WmiObject Win32_Process
+
+            - This command retrieves information about all running processes using the Win32_Process WMI class.
+
+
+- specify the wmi class.
+    - You need to know the specific WMI class that represents the data you want to access. 
+    - Common classes include:
+        > Win32_Process: Information about running processes
+        > Win32_Service: Details about Windows services
+        > Win32_LogicalDisk: Properties of physical and logical disks
+        > Win32_ComputerSystem: General information about the computer system
+        > Win32_UserAccount: User account details
+
+    EG.
+        Get-WmiObject -Class Win32_Process
+
+
+- Filtering with WMI Queries (WQL).
+    EG.
+        Get-WmiObject Win32_Service -Filter "State='Running'"
+
+            - This retrieves only running services.
+
+
+- 

@@ -1,0 +1,51 @@
+                    $PROFILE
+                ==============
+- the $profile in PowerShell works similarly to the .bashrc file in Linux. 
+- Both are configuration files that are used to customize the user's shell environment.
+- but the directory structure might not be created yet so you should create it if it doesn't exist.
+- it makes persistency of commands.
+
+- You can view the:
+    1) Current User, Current Host: (most common and usually used.)
+        EG.
+            $PROFILE 
+                OR
+            $PROFILE.CurrentUserCurrentHost
+
+                - mostly in the directory.
+                    `C:\Users\<username>\Documents\PowerShell\Microsoft.PowerShell_profile.ps1`
+
+
+    2) Current User, All Hosts:
+        EG.
+             $PROFILE.CurrentUserAllHosts
+
+
+    3) All Users, Current Host: 
+        EG.
+            $PROFILE.AllUsersCurrentHost
+
+
+    4) All Users, All Hosts: 
+        EG.
+            $PROFILE.AllUsersAllHosts
+
+
+- If the file doesn't not exist.. we can create it:
+    EG.
+        new-item -type directory -path C:\Users\<username>\Documents\PowerShell
+            AND 
+        new-item -type file -path C:\Users\<username>\Documents\PowerShell\Microsoft.PowerShell_profile.ps1
+
+
+- If you want to call a script that will run recursevly:
+    > make sure the script is in a folder included in the env:PATH.
+    > This means the location is accessible by powershell.
+    > this will allow you to call the script by its name.
+
+    > To call the script:
+        EG.
+            & script_name.ps1
+
+                - The & operator here calls the script named SyncTimeWithGoogle.ps1. 
+

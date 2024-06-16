@@ -1,0 +1,60 @@
+                GET-CHILDITEM
+            ====================
+- it allows you to list the directories and files:
+    EG.
+        Get-ChildItem .\path\to\check\
+
+
+> Filter
+    - Allows you to specify a filter for the items you want to list. This is a simple string that supports wildcard characters.
+        EG.
+            Get-ChildItem -Path "C:\Users\Mark\Documents" -Filter "*.txt"
+
+                - This command lists all .txt files in the specified directory.
+
+
+> Recurse
+    - Lists all items in the specified directory and its subdirectories.
+        EG
+            Get-ChildItem -Path "C:\Users\Mark\Documents" -Recurse
+
+
+> Include
+    - Allows you to specify items to include in the list. 
+    - This parameter works with the -Recurse parameter and only has an effect when used with the -Path parameter containing a wildcard character.
+        EG.
+            Get-ChildItem -Path "C:\Users\Mark\Documents\*" -Include "*.txt"
+
+                - This command lists all .txt files in the directory and its subdirectories.
+
+
+> Exclude
+    - Allows you to specify items to exclude from the list.
+        EG.
+            Get-ChildItem -Path "C:\Users\Mark\Documents\*" -Exclude "*.log"
+
+                - This command excludes .log files from the list.
+
+
+> Name
+    - Lists only the names of the items instead of full details.
+        EG.
+            Get-ChildItem -Path "C:\Users\Mark\Documents" -Name
+
+
+> Force
+    - Shows hidden and system files that are not shown by default.
+        EG.
+            Get-ChildItem -Path "C:\Users\Mark\Documents" -Force
+
+
+> File
+    - Lists only files.
+        EG.
+            Get-ChildItem -Path "C:\Users\Mark\Documents" -File
+
+
+> Directory
+    - Lists only directories.
+        EG.
+            Get-ChildItem -Path "C:\Users\Mark\Documents" -Directory

@@ -4,6 +4,8 @@ There are two main ways to create an alias:
 
     1) setting an alias.
         EG.
+            New-Alias -Name <AliasName> -Value <CommandName>
+                    OR
             Set-Alias  -Name <desired alias name> -Value <command it rep>
                 EG.
                     Set-Alias -Name list -Value Get-ChildItem
@@ -26,4 +28,14 @@ There are two main ways to create an alias:
             Get-Alias <command>
                 EG.
                     Get-Alias wget
-            
+
+
+- Aliases created using the above methods only last for the current PowerShell session. 
+- To make an alias persistent across sessions, you need to add it to your PowerShell profile. 
+- The profile is a script that runs automatically whenever you start a new PowerShell session.
+
+- Find the profile location using:
+    EG.
+        $profile
+
+            - it will display the location of the profile path.

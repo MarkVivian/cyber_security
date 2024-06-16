@@ -1,0 +1,38 @@
+                        SORT OBJECT
+                    ================
+- We sort using:
+    EG.
+        Get-Content .\file\path | Sort-Object
+
+            - if you want to sort in reverse we use:
+                EG.
+                    Get-Content $filePath | Sort-Object -Descending
+
+
+- sort by file length numerically:
+    EG.
+        Get-ChildItem $path | Sort-Object { $_.Length -descending }
+
+            -  we sort by file length numerically in descending order. 
+            - You can replace Length with any numeric property of the file object (e.g., LastWriteTime).
+            - The code snippet inside {} defines the sorting criteria.
+
+
+- Sort based on specific column (Space\Tab Delimited)
+    EG.
+        Get-Content $filePath | Select-Object -ExpandProperty { $_ -split ' ' }[1] | Sort-Object
+
+            - This assumes your file is space-delimited. 
+            - It :
+                = reads the content, 
+                = splits each line by spaces, 
+                = selects the second element (index 1) containing the desired column, 
+                = and sorts based on that element. Adjust the delimiter (' ') and index ([1]) based on your actual file structure.
+
+
+- ignore case sensetivity.
+    EG.
+        Get-ChildItem $path | Sort-Object Name -ignorecase
+
+            - This sorts filenames alphabetically while ignoring case sensitivity using -ignorecase.
+

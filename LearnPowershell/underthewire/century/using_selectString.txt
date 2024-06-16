@@ -1,0 +1,77 @@
+                    SELECT-STRING
+                ========================
+- This is the most powerful and recommended built-in cmdlet for text searching in PowerShell. 
+- It offers regular expression support for complex pattern matching and allows searching within files or piped input.
+
+
+1) Basic search
+    EG.
+        Get-Content "C:\file.txt" | Select-String "search_term"
+            OR
+        select-string "p.p" -Path .\path\to\file.txt -RegularExpression
+
+            - the . means there is a character between the p and p.
+
+
+2) Case-Sensitive Search
+    EG.
+        Select-String "ERROR" -Path "C:\Logs\*.log" -CaseSensitive
+
+            - This searches for the text "ERROR" (case-sensitive) within all .log files in the C:\Logs directory.
+
+
+3) Case-Sensitive Search with Context
+    EG.
+        Select-String "ERROR" -Path "C:\Logs\*.log" -CaseSensitive -Context 5
+
+            - This searches for the text "ERROR" (case-sensitive) within all .log files in the C:\Logs directory 
+            - showing 5 lines before and after each match
+
+
+4) simple search.
+    EG.
+        Select-String "the pop" -Path "test.txt" -SimpleMatch
+
+            - This will only display line 2 because "the pop" matches exactly as it is written in the file.
+
+
+5) Shows all occurrences of the search pattern within a line, not just the first one.
+    EG.
+        Select-String "warning" -Path "C:\app\*.txt" -AllMatches
+
+            - This searches for the text "warning" within all .txt files in the C:\app directory 
+            - displays all lines containing "warning"
+            - (including multiple occurrences within a line).
+
+
+6) Regular Expression with Multiple Patterns
+    EG.
+        Select-String "error.*|warn" -Path "C:\app\*.log" -SimpleMatch -AllMatches
+
+            - This searches for lines containing either "error" followed by any characters (.*) or "warn" 
+            - (using a pipe symbol | in the pattern) within all .log files in the C:\app directory
+            -  performing a simple match (not a regular expression) and showing all matches within each line.
+
+
+7) Matching Lines with Additional Text
+    EG.
+        Select-String "error" -Path "C:\app\*.log" -Include "application"
+
+            - This searches for lines containing "error" within all .log files in the C:\app directory 
+            - displays only lines that also contain the word "application".
+
+
+8) Excluding Lines with Specific Text:
+    EG.
+        Select-String "warning" -Path "C:\logs\*.log" -Exclude "deprecated"
+
+            - This searches for the text "warning" within all .log files in the C:\logs directory 
+            - excludes lines that also contain the word "deprecated".
+
+
+9) Context Lines
+    EG.
+        Select-String "exception" -Path "C:\app\*.log" -Context 2
+
+            - This searches for the text "exception" within all .log files in the C:\app directory 
+            - displays each match along with 2 lines before and after the matching line for better context.

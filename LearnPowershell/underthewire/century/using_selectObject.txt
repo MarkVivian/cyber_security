@@ -1,0 +1,32 @@
+                    SELECT OBJECT.
+                =====================
+- The Select-Object cmdlet in PowerShell allows you to choose and display specific properties from objects returned by other cmdlets. 
+- It's a versatile tool for customizing the output you see in the console or for further processing in your scripts.
+
+
+- Basic usage while selecting multiple properties.
+    EG.
+        Get-Process | Select-Object Name, Id
+
+            - This command retrieves all running processes and displays only the Name and Id properties for each process using Select-Object.
+
+
+- wildcard characters.
+    EG.
+        Get-Process | Select-Object Name, *Working*
+
+            - This selects Name and all properties containing "Working" in their name (e.g., CPUWorkingSet, WorkingDirectory).
+
+
+- Excluding Properties.
+    EG.
+        Get-Process | Select-Object -ExcludeProperty Description
+
+            - This selects all properties except Description for each process.
+
+
+-  Format output 
+    EG.
+        Get-Process | Select-Object Name, CPU -Format Table
+
+            - This displays Name and CPU properties of processes in a table format.
