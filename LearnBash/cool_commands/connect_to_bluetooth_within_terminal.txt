@@ -58,3 +58,13 @@ in the terminal we use:
     11) power on the selected adapter.
         EG.
             power on.
+            
+    
+    12) to display all the connected mac addresses.
+        EG.
+            devices.
+            
+            
+    13) to remove a connected device we use :
+        EG.
+            remove <device mac address>

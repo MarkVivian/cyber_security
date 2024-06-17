@@ -22,3 +22,7 @@ value="$1" # the 1 takes the 1 value passed to the script so if you wanted the s
 echo "the value is $value"
 # EG.  
 #       ./scripts.sh value
+
+
+#               PASSING INPUT FROM FILE CALL.
+# If your script uses read to get user input, you can use a here document or echo with a pipe to provide the input.
