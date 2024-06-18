@@ -1,5 +1,0 @@
-                ECHO 
-        =================
-- Sending data without newline:
-    EG.
-        echo -n "your message"

@@ -1,0 +1,22 @@
+                    REV
+                ==============
+- The rev command is used to reverse the order of characters in each line of a file or standard input. 
+- It's a simple but powerful tool that can be useful in various text processing scenarios.
+
+
+1.  Reverse the contents of a file:
+    EG.
+        rev filename.txt
+
+            - This command will reverse each line of filename.txt 
+            - output the result to the standard output.
+
+
+2. Reverse a string from standard input
+    EG.
+        echo "hello" | rev
+
+            - This command will output olleh.
+
+
+3.

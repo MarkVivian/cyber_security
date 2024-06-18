@@ -1,0 +1,94 @@
+                        READ.
+                    =============
+-p (Prompt)
+    - The -p option allows you to specify a prompt to display before reading the input.
+        EG.
+            #!/bin/bash
+            read -p "Enter your name: " name
+            echo "Hello, $name!"
+
+                - In this example, the script prompts the user to enter their name and then greets them.
+
+
+-e (Readline)
+    - The -e option allows the user to edit the input line with Readline's capabilities, which include features like history and autocompletion.
+        EG.
+            #!/bin/bash
+            read -e -p "Enter a command: " command
+            echo "You entered: $command"
+
+                - the user can use the left/right arrow keys, Ctrl + a/e, and other Readline shortcuts while entering the command.
+
+
+-n (Number of Characters)
+    - The -n option limits the input to a specified number of characters. 
+    - The read command will return after reading the specified number of characters.
+        EG.
+            #!/bin/bash
+            read -n 1 -p "Press any key to continue..."
+            echo
+            echo "You pressed a key!"
+
+                - In this example, the script waits for the user to press a single key and then proceeds.
+
+
+-s (Silent)
+    - The -s option makes the input silent, which is useful for passwords.
+        EG.
+            #!/bin/bash
+            read -s -p "Enter your password: " password
+            echo
+            echo "Password read (but not displayed)."
+
+                - This script will prompt the user for a password without showing the typed characters on the screen.
+
+
+-r (Raw Input)
+    - The -r option tells read not to treat backslashes as escape characters.
+        EG.
+            #!/bin/bash
+            read -r -p "Enter a string with backslashes: " input
+            echo "You entered: $input"
+
+                - Without -r, backslashes in the input would be interpreted as escape characters, which might not be desired.
+
+
+-a (Array)
+    - The -a option reads the input into an array.
+        EG.
+            #!/bin/bash
+            echo "Enter words separated by spaces:"
+            read -a words
+            echo "You entered ${#words[@]} words."
+            for word in "${words[@]}"; {
+                echo "$word"
+            }
+
+                - This script reads a line of input and stores each word in an element of the words array.
+
+
+-t (Timeout)
+    - The -t option allows you to specify a timeout for the input.
+        EG.
+            #!/bin/bash
+
+            if read -t 5 -p "Enter your name (you have 5 seconds): " name; then
+                echo "Hello, $name!"
+            else
+                echo
+                echo "Timed out."
+            fi
+
+                - In this example, the script waits for the user to enter their name for up to 5 seconds. 
+                - If the user doesn't provide input within the time limit, the script proceeds.
+
+
+-d (Delimiter)
+    - The -d option allows you to specify a custom delimiter for the input.
+        EG.
+            #!/bin/bash
+
+            read -d ":" -p "Enter some input ending with a colon: " input
+            echo "You entered: $input"
+
+                - This script reads input until it encounters a colon (:).

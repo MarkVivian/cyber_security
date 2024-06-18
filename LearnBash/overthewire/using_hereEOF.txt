@@ -1,0 +1,32 @@
+                    HERE EOF
+                ================
+- This are a way to inject multi-line text into commands within your terminal. 
+- They're useful in shell scripting where you'd need to create a separate file.
+
+
+- Basic syntax.
+    EG.
+        command << EOF 
+            your multiple lines here.
+        EOF
+
+            - command (optional):
+                > This is the command that will receive the content of your here document. 
+                > Common examples include cat, mail, or even custom scripts.
+            <<: 
+                > This redirection operator indicates the start of the here document.
+            EOF (or any unique identifier): 
+                > This is the delimiter that marks the end of the here document. 
+                > It should appear on a new line by itself and shouldn't be indented. 
+
+
+1. Creating Multi-line Text files.
+    - Imagine you want to create a quick text file with some content. 
+    - You can use cat with a here document:
+        EG.
+            cat << EOF << file.txt
+            This is some content.
+            For my new text file.
+            EOF
+
+                - This creates a file named myfile.txt with the specified content.

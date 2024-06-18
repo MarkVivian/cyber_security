@@ -12,3 +12,10 @@ we can also avoid specific characters using:
         grep -v "don't show this" ./file 
         
             - it will show the content of file that doesn't match.
+
+
+we can also get context :
+    EG.
+        grep -A 2 -B 2 "error" system.log
+
+            - This will print the line with "error" and two lines before and after it.

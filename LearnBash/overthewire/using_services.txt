@@ -1,0 +1,154 @@
+                SERVICES
+            ===============
+- Services in Linux, especially on systems using systemd, are managed through unit files that describe how to:
+    > start,
+    > stop,
+    > and manage system daemons and other background processes. 
+- The systemctl and journalctl commands are essential tools for interacting with these services.
+
+
+            SYSTEMCTL COMMANDS
+        ========================
+- systemctl is the primary command for managing systemd services and units. 
+- Here are some common uses with examples:
+
+1. Start a Service.
+    EG.
+        sudo systemctl start my_service.service
+
+
+2. Stop a service.
+    EG.
+        sudo systemctl stop my_service.service.
+
+
+3. Restart a service.
+    EG.
+        sudo systemctl restart my_service.service.
+            
+            - Stops and then starts the specified service. 
+            - Useful when configuration changes have been made.
+
+
+4. Reload a service.
+    EG.
+        sudo systemctl reload my_service.service.
+
+            - Reloads the configuration of the specified service without stopping it. 
+            - Not all services support this.
+
+
+5. Enable a service.
+    EG.
+        sudo systemctl enable my-service.service
+
+            - Configures the service to start automatically at boot time.
+
+
+6. Disable a Service.
+    EG.
+        sudo systemctl disable my-service.service
+            
+            - Prevents the service from starting automatically at boot time.
+
+
+7. Check status of a service.
+    EG.
+        sudo systemctl status my-service.service
+
+            - Displays the: 
+                > current status of the service,
+                > including whether it is running,
+                > its last log entries, and its enabled/disabled state.
+
+
+8. List All Services.
+    EG.
+        systemctl list-units --type=service
+
+            - List all services and their status.
+
+
+9. Reload systemd configuration.
+    EG.
+        sudo systemctl daemon-reload
+
+            - Reloads systemd manager configuration.
+            - Useful after creating or modifying unit files.
+
+
+
+            JOURNALCTL COMMANDS 
+        ==========================
+- journalctl is used for querying and displaying logs from the systemd journal. 
+- Here are some common uses with examples:
+
+1. View logs for a specific service.
+    EG.
+        sudo journalctl -u my_service.service.
+
+            - displays all log entries for the specified service.
+
+
+2. Follow Logs in Real-Time.
+    EG.
+        sudo journalctl -u my-service.service -f
+
+            - Continuously shows new log entries for the specified service as they are written (similar to tail -f)
+
+
+3. View logs since last boot.
+    EG.
+        sudo journalctl -b
+
+            - show all log entries since the last system boot.
+
+
+4. View logs for a specific Time Range.
+    EG.
+        sudo journalctl --since "2024-06-18 00:00:00" --until "2024-06-18 23:59:59"
+
+            - Filters log entries to the specified time range.
+
+
+5. View Kernel logs.
+    EG.
+        sudo journalctl -k.
+
+            - Displays log entries from the kernel.
+
+
+6. show logs with priority.
+    EG.
+        sudo journalctl -p err
+
+            - Displays log entries with a priority of "error" or higher. Priorities range from emerg (0) to debug (7).
+
+
+
+                EXAMPLE SERVICE CONFIGURATION.
+            =======================================
+[Unit]
+Description=My Example Service
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/my-script.sh
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+
+- [Unit]:
+    > Describes the service. 
+    > Description provides a brief description, 
+    > After specifies that the service should start after the network is available.
+
+- [Service]: 
+    > Defines how the service runs. 
+    > ExecStart specifies the command to start the service, 
+    > Restart configures the service to restart on failure.
+
+[Install]: 
+    > Specifies how the service should be installed in the system. 
+    > WantedBy=multi-user.target makes the service start in multi-user mode (normal system operation).

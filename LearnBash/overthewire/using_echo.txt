@@ -1,0 +1,11 @@
+                ECHO 
+        =================
+- Sending data without newline:
+    EG.
+        echo -n "your message"
+
+- The ‘-e’ option with the echo command enables the interpretation of backslash escapes.
+- Backslash escapes are sequences of characters that are interpreted to represent special characters. 
+- For instance, ‘\n’ represents a newline.
+    EG.
+        echo -e "message 1 \n message 2"

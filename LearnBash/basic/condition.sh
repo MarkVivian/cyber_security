@@ -66,6 +66,17 @@ else
     echo "sometimes rebel"
 fi
 
+if [[ $value -gt 10 ]] || [[ $value -lt 0 ]]; then
+    echo "you can't follow instructions, can you? "
+else
+    echo "sometimes rebel"
+fi
+
+if [[ $value -gt 10 ]] && [[ $value -lt 0 ]]; then
+    echo "you can't follow instructions, can you? "
+else
+    echo "sometimes rebel"
+fi
 
 # comparing strings.
 # we use the normal == not the -eq

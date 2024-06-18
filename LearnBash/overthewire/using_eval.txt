@@ -1,0 +1,31 @@
+                    EVAL
+                ===========
+- This is a powerful tool that allows you to dynamically execute strings as shell commands. 
+- It takes a string as its argument and interprets it as a series of Bash commands. 
+- Anything within 
+    > the string,
+    > including variables,
+    > operators,
+    > and other expressions, will be evaluated and executed by the shell.
+
+
+- Constructing Commands dynamically.
+    EG.
+        command_name="ls"
+        argument="-l"
+        eval "$command_name $argument"  # Equivalent to: ls -l
+
+
+- Variable Indirection (Advanced)
+    EG.
+        var_name="my_variable"
+        my_variable="hello"
+        eval "echo \$$var_name"  # Equivalent to: echo hello (prints the value of my_variable)
+
+
+- Expanding a path.
+    EG.
+        var_path="~/script1.sh"
+        eval echo $var_path # expands to /home/mark/script1.sh
+
+

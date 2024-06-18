@@ -1,0 +1,74 @@
+                            CUT
+                        ===========
+- The cut command is a powerful tool for extracting specific parts (fields) from lines of text in files or standard input.
+- It's particularly useful for processing data stored in delimited formats like:
+    > CSV (comma-separated values)
+    > tab-delimited files.
+
+
+- Basic structure is :
+    EG.
+        cut [OPTION]... {DELIMITER} {FIELD_NUMBER(S)} [FILE]
+
+            - OPTION(S): 
+                - Optional flags that modify the behavior of cut.
+                - We'll explore some common options later.
+
+            - DELIMITER: 
+                - (Optional) The character used to separate fields in the input. 
+                - By default, it's a tab character (\t).
+
+            - FIELD_NUMBER(S):
+                - The field(s) to extract. 
+                - You can specify:
+                    > a single field number, 
+                    > a range of fields (e.g., 1-3),
+                    > a comma-separated list of specific fields.
+
+            - FILE: 
+                - (Optional) The file from which to read data. 
+                - If not specified, cut reads from standard input.
+
+
+-d DELIMITER: 
+    - Specify the delimiter character (e.g., -d ',' for comma-separated files).
+
+-c CHARACTER(S): 
+    - Extract characters based on their position (e.g., -c 1-5 for the first five characters).
+
+-f FIELD_NUMBER(S):
+    - Same as specifying fields without the option (e.g., -f 2 is equivalent to 2).
+
+-b BYTE_RANGE: 
+    - Extract bytes based on their position (similar to -c but for bytes).
+
+--complement: 
+    - Extract all fields except the specified ones.
+
+
+1. Extracting the Second Field (Default Tab Delimiter):
+    EG.
+        cat data.txt | cut -f 2
+
+            - This extracts the second field from each line in data.txt and prints it to the terminal.
+
+
+2. Extracting First Three Fields with Comma Delimiter:
+    EG.
+        cut -d ',' -f 1-3 names.csv
+
+            - This extracts fields 1 to 3 (inclusive) from each line in names.csv, assuming commas are the delimiters.
+
+
+3. Extracting Characters 4 to 7:
+    EG.
+        echo "This is a test string" | cut -c 4-7
+
+            - This extracts characters from position 4 to 7 (inclusive) from the provided string and prints "is a".
+
+
+4. Extracting All Fields Except the Second:
+    EG.
+        cut -d ':' --complement -f 2 data.log
+
+            - This extracts all fields except the second one from lines in data.log, assuming colons (':') are the delimiters.

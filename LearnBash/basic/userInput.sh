@@ -11,6 +11,7 @@ echo "your name is $name"
 
 
 #             METHOD 2
+
 read -p "what is your name  " name1
 
 echo "your name is $name1"
@@ -24,5 +25,30 @@ echo "the value is $value"
 #       ./scripts.sh value
 
 
-#               PASSING INPUT FROM FILE CALL.
-# If your script uses read to get user input, you can use a here document or echo with a pipe to provide the input.
+#               PASSING INPUT FROM SCRIPT CALL.
+# If your script uses read to get user input, you can use a here document.
+#  EG.
+#      ./gitPush.sh <<EOF
+#      pushing something random
+#      EOF
+
+
+#             GETTING INPUT FROM SCRIPT CALL.
+# $#: The number of positional parameters passed to the script.
+# $0: The name of the script.
+# $1, $2, ...: The first, second, etc., positional parameters.
+# $@: All positional parameters as separate words.
+# $*: All positional parameters as a single word.
+
+# Check if at least one argument is provided
+if [ "$#" -lt 1 ]; then
+    echo "Usage: $0 num1 [num2 ...]"
+    exit 1
+fi
+
+# Iterate over all arguments
+echo "You provided $# arguments:"
+for arg in "$@"; 
+do
+    echo "$arg"
+done
