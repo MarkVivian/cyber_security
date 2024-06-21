@@ -2,7 +2,7 @@
 					==========================
 - To see all the volumes in your windows we use:
 	EG.
-		Get-Volumes.
+		Get-Volume
 								
 						
 						FORMATTING A DRIVE
