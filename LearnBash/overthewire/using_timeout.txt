@@ -1,0 +1,86 @@
+                TIMEOUT
+            ================
+- The timeout command in Linux is used to run a command with a time limit. 
+- If the command runs longer than the specified duration, timeout terminates it. 
+- This is useful for ensuring that commands or scripts do not hang indefinitely.
+
+
+- Basic Usage.  
+    EG.
+        timeout [OPTION] DURACTION COMMAND [ARG]
+
+            - duration  
+                > the time limit for the command.
+                > it can be specified in various units:
+                    s for seconds.
+                    m for minutes.
+                    d for days.
+
+                    - the default is seconds.
+
+
+- Run a command with a time limit of 2 minutes.
+    EG.
+        timeout 2m command
+
+
+- Run a command with a time limit of 5 seconds.
+    EG.
+        timeout 5 command
+            OR
+        timeout 5s command.
+
+    
+- Handling Exit Status.
+    > The exit status of `timeout` is:
+        124: If timeout itself terminated the command.
+        125: If there was some error invoking timeout.
+        126: If the command was found but could not be invoked.
+        127: If the command could not be found.
+        The exit status of the command: If it finished before the timeout.
+
+            EG.
+                timeout 5 your-command
+                status=$?
+                if [ $status -eq 124 ]; then
+                    echo "Command timed out"
+                elif [ $status -eq 0 ]; then
+                    echo "Command completed successfully"
+                else
+                    echo "Command failed with exit status $status"
+                fi
+
+
+- using the -s option to specify a signal.
+    - By default, timeout sends a SIGTERM signal to terminate the command. 
+    - You can specify a different signal with the -s option.
+        EG.
+            # send a SIGKILL signal after 5 second.
+            timeout -s SIGKILL 5 your-command.
+
+
+- -k duration usage (--kill-after=duration)
+    - Also send a KILL signal if the command is still running this long after the initial signal was sent.
+        EG.
+            timeout -k 10s 5s your_command.
+
+                - This sends a TERM signal after 5 seconds, 
+                - and if the command is still running after another 10 seconds, it sends a KILL signal.
+
+
+- -s signal usage (--signal=SIGNAL)
+    - specify the signal to be sent on timeout.
+        EG.
+            timeout -s SIGKILL 5 your-command
+
+
+- --preserve-status 
+    - Exit with the same status as COMMAND, even when the command times out.
+        EG.
+            timeout --preserve-status 5 your-command
+
+
+- --foreground
+    - When not running timeout directly from a shell prompt, allow COMMAND to read from the TTY and get full job control.
+        EG.
+            timeout --foreground 5 your_command.

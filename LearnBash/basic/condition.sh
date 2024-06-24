@@ -140,6 +140,14 @@ for item in ${items[@]}; do
     echo "items at ${item}"
 done
 
+# iterating through a range of numbers.
+for i in {0..5}; do
+    echo "number $i"
+done
+
+for i in $(seq 1 5); do
+    echo "seq number $i"
+done
 
 # **************************WHILE LOOP ************************************
 current_value=1

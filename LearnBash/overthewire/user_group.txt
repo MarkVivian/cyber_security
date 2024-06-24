@@ -75,6 +75,10 @@ the `s` bit in permissions stands for special permissions:
                         EG.
                             chmod u+s filename
 
+                            - if you want to set the same permission for al files in a directory:
+                                EG.
+                                    chmod -R 777 ./directory/name
+
     * Setgid (`s` for group)
         - When set on an executable file, it allows the file to be executed with the permissions of the group owner.
         - When set on a directory, it means that files created in the directory inherit the group ownership from the directory.

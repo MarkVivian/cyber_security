@@ -1,0 +1,33 @@
+                    MKTEMP
+                ==============
+- The mktemp command is used to create temporary files and directories in a secure manner. 
+- This is especially useful in scripts where you need to create unique temporary files or directories to avoid name collisions or security issues.
+
+
+- basic usage.
+    EG.
+        mktemp [OPTION] [template]
+
+            - Template
+                > A string that includes at least 3 consecutive 'X' characters.
+                > The X will be replaced by a unique combination of letters and numbers.
+                > if no template is provided, it used the default template and places the file in /tmp directory.
+
+
+- Creating a temporary file.
+    EG.
+        mktemp
+
+
+- Creating a temporary directory.
+    EG.
+        mktemp -d
+
+
+- Creating a directory with templates.
+    EG.
+        mktemp -d /tmp/filename.XXXX
+
+            - the XXX will be replaced by unique combination of characters.
+
+

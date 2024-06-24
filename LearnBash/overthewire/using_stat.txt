@@ -1,0 +1,85 @@
+                    STAT
+                ==========
+- The stat command in Linux is used to display detailed information about files and file systems. 
+- This command provides a wealth of information, including:
+    > file size,
+    > ownership,
+    > permissions,
+    > and timestamps, among other attributes.
+
+
+- Basic Usage.
+    EG.
+        stat [OPTION]... FILE...
+
+
+- When you run stat on a file, it outputs detailed information. 
+    EG.
+        stat file.txt
+
+            - it will typically output might look like this.
+                EG.
+                      File: myfile.txt
+                    Size: 12345       Blocks: 24         IO Block: 4096   regular file
+                    Device: 803h/2051d  Inode: 123456      Links: 1
+                    Access: (0644/-rw-r--r--)  Uid: ( 1000/  username)   Gid: ( 1000/  groupname)
+                    Access: 2024-06-18 10:24:18.123456789 +0000
+                    Modify: 2024-06-18 10:24:18.123456789 +0000
+                    Change: 2024-06-18 10:24:18.123456789 +0000
+                    Birth: -
+
+                        - Here's a breakdown of the most important fields:
+                            File: The name of the file.
+                            Size: The size of the file in bytes.
+                            Blocks: The number of 512-byte blocks allocated to the file.
+                            IO Block: The size of the file system blocks.
+                            regular file: The type of file.
+                            Device: The device number the file is on.
+                            Inode: The inode number.
+                            Links: The number of hard links to the file.
+                            Access: The file permissions, user ID (UID), and group ID (GID).
+                            Access: The last access time.
+                            Modify: The last modification time.
+                            Change: The last status change time.
+                            Birth: The file creation time (not supported on all file systems).`
+
+
+- You can use options to display specific info.
+    - `-c` or `--format` : specify the format of the output.
+    - `-t` or `--terse` : output info in a terse form.
+    - `--printf` : Similar to `--format`, but allows you to use `printf` -style formatting.
+
+
+- List of common format specifiers.
+    %a: Access rights in octal.
+    %A: Access rights in human-readable form.
+    %b: Number of blocks allocated.
+    %B: The size in bytes of each block reported by %b.
+    %d: Device number in decimal.
+    %D: Device number in hex.
+    %f: Raw mode in hex.
+    %F: File type.
+    %g: Group ID of owner.
+    %G: Group name of owner.
+    %h: Number of hard links.
+    %i: Inode number.
+    %m: Mount point.
+    %n: File name.
+    %N: Quoted file name with dereference if symbolic link.
+    %s: Total size, in bytes.
+    %t: Major device type in hex.
+    %T: Minor device type in hex.
+    %u: User ID of owner.
+    %U: User name of owner.
+    %x: Time of last access.
+    %y: Time of last modification.
+    %z: Time of last change.
+
+        - Display file size and modification time.
+            EG.
+                stat --format="%s %y" myfile.txt
+
+                    - This will output.
+                        EG.
+                            12345 2024-06-18 10:24:18.123456789 +0000
+

@@ -46,7 +46,7 @@ Additionally there are several less common port scan types, some of which we wil
 
 >> Ping Scan : `-sn`
     -> Used to determine which host are up without scanning for open ports.
-    -> It sends ICMP echo requests and expects ICMP echo replies.
+    -> It sends ICMP echo requests and expects ICMP echo replies.   
 
         EG.
             nmap -sn <ip address/CIDR> --------- nmap -sn 192.168.0.1/24
@@ -56,8 +56,8 @@ Additionally there are several less common port scan types, some of which we wil
     -> Also known as half-open scan.
     -> It sends SYN packets and waits for SYN-ACK(open) or RST(closed) responses.
     -> It does not complete the TCP handshake, making it stealthier.
-    -> Prefered for most port scans because of its stealthiness and speed.
-    -> It doesn't complete the TCP handshake, so it's less likely to be logged by the target system.
+        -> Prefered for most port scans because of its stealthiness and speed.
+        -> It doesn't complete the TCP handshake, so it's less likely to be logged by the target system.
 
         EG.
             nmap -sS <ip address> ------- nmap -sS 192.168.1.1

@@ -68,3 +68,4 @@ in the terminal we use:
     13) to remove a connected device we use :
         EG.
             remove <device mac address>
+
