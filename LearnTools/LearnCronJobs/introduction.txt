@@ -1,0 +1,43 @@
+                    MANAGING CRONTAB FILES.
+                =============================
+- To edit the crontab file for the current user, use:
+    EG.
+        crontab -e
+
+            - This command opens the crontab file in the default text editor.
+
+
+- To list the current user's crontab entries, use:
+    EG.
+        crontab -l
+
+
+- To remove all crontab entries for the current user, use:
+    EG.
+        crontab -r
+
+
+                CRON JOBS
+            =================
+- Cron jobs are scheduled tasks on Unix-like operating systems that run automatically at specified intervals.
+
+
+            BASIC CONCEPTS
+        ====================
+1) Cron Daemon
+    - The background service that runs scheduled tasks.
+
+
+2) Cron Table (crontab)
+    - A configuration file speciying the schedule and commands to run.
+
+
+                ENVIRONMENT VARIABLES.
+            ===========================
+Crontab files can include environment variable definitions:
+    EG.
+        PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+        MAILTO=user@example.com
+        SHELL=/bin/bash
+
+
