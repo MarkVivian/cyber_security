@@ -1,0 +1,28 @@
+                            DELETION
+                        ===============
+x :
+    - Delete the character under the cursor.
+
+
+X : 
+    - Delete the character before the cursor.
+
+
+dw :
+    - Delete from the cursor to the end of the word.
+
+
+dS :
+    - Delete from the cursor to the end of the line.
+
+
+d0 :
+    - Delete from the cursor to the beginning of the line.
+
+
+dd :
+    - Delete the current line.
+
+
+2dd :
+    - Delete two lines (or any number of lines by changing the number).

@@ -1,0 +1,36 @@
+                                SEARCHING AND REPLACING.
+                            ==============================
+        SEARCHING
+    -------------------
+/ :
+    - search forward
+
+
+? :
+    - search backwards
+
+
+press n :
+    -  After searching, pressing n will go to the next occurrence.
+
+
+press N : 
+    -After searching, pressing N will go to the previous occurrence.
+
+
+        REPLACING
+    ---------------------
+:s/old/new : 
+    - Replace the first occurence of "old" with "new" in the current line.
+
+
+:s/old/new/g :
+    - Replace all occurences of "old" with "new" in the current line.
+
+
+:%s/old/new/g :
+    - Replace all occurences of "old" with "new" in the entire file.
+
+
+:%s/old/new/gc :
+    - Replace all occurences of "old" with "new" in the entire file with confirmation.

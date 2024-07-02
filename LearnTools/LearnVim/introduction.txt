@@ -1,0 +1,27 @@
+									STARTING VIM
+								====================
+- to open a file:
+	EG.
+		vim filename.
+
+			OR
+		
+		vim  --> start vim without a file.
+
+
+- saving:
+	EG.
+		:w
+		
+
+- Closing and saving :
+	EG.
+		:wq
+
+
+- Exiting without saving:	
+	EG.
+		:q!
+
+
+

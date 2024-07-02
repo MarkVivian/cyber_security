@@ -1,0 +1,63 @@
+								MODES IN VIM
+							===================
+Normal mode:
+	- This is the default mode where you can navigate and manipulate text.
+		EG.
+			press ESC
+
+
+Insert text :
+	- This is for inserting text.
+		EG.
+			press i (to insert before the cursor)
+
+				OR
+
+			press a (to insert after the cursor)
+
+				OR
+
+			press o (to insert a new line below the cursor)
+
+           		OR
+
+			press O (to insert a new line above the cursor)
+            
+				OR
+
+			press I (to insert at the beginning of the line.)
+
+				OR
+
+			press A (to insert at the end of the line.)
+
+
+
+Visual mode:
+	- This is for selecting text.
+		EG.
+			press v (character wise)
+
+				OR
+
+			press down arrow key (line wise)
+
+				OR
+
+			press ctrl + v (block wise)
+
+
+Command line mode:
+	- This is for executing commands.
+		EG.
+			press : (to enter commands)
+
+				OR
+
+			press / (to search forward)
+
+				OR
+			
+			PRESS ? (to search backwards)
+
+			

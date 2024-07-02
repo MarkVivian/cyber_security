@@ -4,7 +4,8 @@ Core Commands
 ===============
 	msfstart :- starts the metasploit.
 	msfstop :-	stops the metasploit.
-	msfconsole :-	enters the metasploit console.
+	msfconsole :- enters the metasploit console.
+
 
 				LEARN METASPLOIT
 				-----------------
@@ -23,6 +24,7 @@ Core Commands
 
 
 	set <>
+
 
 				EXPLAINING METASPLOIT TERMS
 				----------------------------
@@ -50,9 +52,9 @@ search <exploit> :
 			   =Low: Modules with a lower level of impact. These might be less reliable or have significant limitations.
 
 
-	4) Check :- This column indicates whether the module has an associated "check" or "verification" module. A check module is designed 
+	4) Check : - This column indicates whether the module has an associated "check" or "verification" module. A check module is designed 
 				to determine whether a target is vulnerable to a specific exploit without actually exploiting it.
-			  -In other words it allows the pentester to check if a device or exploit can be done on the target device/network before 
+			   -In other words it allows the pentester to check if a device or exploit can be done on the target device/network before 
 			    actually conducting the exploit.
 
  

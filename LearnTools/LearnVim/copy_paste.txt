@@ -1,0 +1,53 @@
+                    EDITTING COMMANDS
+                =======================
+u: 
+    - Undo the last action
+
+
+Ctrl + r: 
+    -Redo the last undone action
+
+
+                                COPYING AND PASTING
+                            =========================
+yy :
+    - yank(copy) the current line.
+
+
+2yy :
+    - yank two lines (or any number of lines by changing the number).
+
+
+yw :
+    yank a word.
+
+
+yS :
+    - Yank to the end of the line from the current cursor position.
+
+
+y^ : 
+    - Yank to the beginning of the line from the current cursor position.
+
+
+y} :
+    - Yank until the end of the paragraph.
+
+
+p :
+    - Paste after the cursor.
+
+
+P :
+    - Paste before the cursor.
+
+
+        COPYING SPECIFIC TEXT.
+    ---------------------------
+1. Enter into visual mode ensuring the cursor is before the line you wish to copy.
+    EG.
+        v
+
+2. move using w/b or l/k/j/h to the end of the line you wish to copy.
+
+3. press y.
