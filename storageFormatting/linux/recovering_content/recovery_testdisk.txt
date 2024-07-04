@@ -1,0 +1,60 @@
+                                TEST DISK
+                            ==================
+- Purpose:  
+    > Primarly used for recovering lost partitions and making non-booting disk bootable again.
+
+-Features
+    > Can also recover deleted files from FAT, NTFS and ext2 filesystems.
+
+-Installation
+    EG.
+        sudo apt install testdisk
+
+
+            USAGE
+        ==============
+- Run TestDisk.
+    EG.
+        sudo testdisk 
+
+            1. select `create` to create a new log file.
+
+            2. choose the disk where you want to recover partitions or files.
+
+            3. select the partition table type (usually automatically detected)
+
+            4. choose `analyze` to detect partitions.
+
+            5. proceed with `quick search`
+
+            6. Follow on screen instructions to navigate and recover partitions or files.
+
+
+
+                                    PHOTOREC
+                                ==============
+- Purpose:  
+    > Designed to recover lost files including videos, documents and archives from hard disks.
+
+- Features:
+    > Works with numerous file systems including FAT, NTFS, ext2/ext3/ext4.
+
+- Installation:
+    -Usually comes with TestDisk.
+
+
+                USAGE
+            ============
+ 1. Run photorec.
+    EG.
+        sudo photorec
+
+            1. select the disk from which you want to recover the files.
+
+            2. choose the partition type. (EFI/GPT, INTEL/PC )
+ 
+            3. select the filesystem type. (ext2/ext3/ext4 )
+
+            4. choose whether to scan the whole partition or just free space.
+
+            5. Specify the destination for recovered files.

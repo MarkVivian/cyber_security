@@ -1,0 +1,33 @@
+                    UNDERSTANDING DELETION
+                =============================
+- Standard Deletion: 
+    > When you delete a file using standard operating system commands (e.g., rm in Linux or sending a file to the recycle bin in Windows), 
+    > the file's data is not immediately removed from the disk.
+
+        1. File System Metadata: 
+            - The operating system marks the space occupied by the file as available for new data, 
+            - but the actual data remains on the disk until it is overwritten by new data.
+
+        2. Recovery: 
+            - This means that the deleted data can potentially be recovered using specialized software or techniques until it is overwritten.
+
+
+Why Overwriting is Necessary:
+--------------------------------
+1. Prevent Data Recovery: 
+    - To prevent data recovery, the actual data on the disk needs to be overwritten. 
+    -Overwriting replaces the old data with new data, making the original data extremely difficult to recover.
+    
+2. Multiple Passes:
+    - For added security, data is often overwritten multiple times with different patterns (random data, zeroes) to further obscure the original data.
+
+
+How Overwriting works
+------------------------
+1. Single Pass Overwrite: 
+    - Writes new data (e.g., zeroes or random data) over the entire area where the old data was stored.
+
+2. Multiple Pass Overwrite: 
+    - Repeats the overwrite process multiple times with different data patterns to ensure that the old data is thoroughly obfuscated.
+
+

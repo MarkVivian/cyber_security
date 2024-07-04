@@ -1,0 +1,16 @@
+                                MOUNTING
+                            ====================
+Mounting : 
+    -  The process of making a filesystem accessible at a certain point in the directory tree. 
+    - When you mount a device (like a USB drive or a partition), you link it to a directory so that you can access its contents.
+
+
+filesystem :    
+    - The structure and logic rules used to manage the storage and retrieval of data on a disk.
+
+
+mount point :
+    - The directory in the existing filesystem where the device's filesystem is attached (mounted).
+
+
+    
