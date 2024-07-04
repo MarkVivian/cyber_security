@@ -1,0 +1,30 @@
+                    SYMBOLIC LINK
+                ===================
+- The `ln` command in Unix is used to create links between files.  
+- There are two types of links:
+    1) Hard links: 
+        - Point directly to the inode of a file. 
+        - They act like the original file and don’t break if the original file is moved or renamed.
+
+    2) Symbolic (or soft) links:
+        - Point to the name of the file rather than its inode. 
+        - They can span different filesystems and directories, but they break if the target file is moved or deleted.
+
+
+            USAGE
+            ======
+> Creating a hard link.
+    EG.
+        ln source_file target_link
+
+            - only work for files within the same file system.
+
+
+> Creating a symbolic link.
+    EG.
+        ln -s source_file target_link
+
+            - it can span different file systems and directories.
+
+
+> 
