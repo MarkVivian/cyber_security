@@ -1,3 +1,4 @@
 - We can check the amount of time a command takes to execute using:
     EG.
         time <command>
+

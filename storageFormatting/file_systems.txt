@@ -1,0 +1,77 @@
+                        FILE SYSTEM.
+                    ===================
+- A file system defines how data is stored and accessed on a storage device.
+- It organizes data into files and directories, providing a structure and rules for managing that data.
+
+
+Common File Systems in Linux
+------------------------------
+1. Ext4 (Fourth Extended Filesystem)
+
+    Purpose: Default file system for many Linux distributions.
+
+    Features:
+        Journaling: Helps protect against data corruption.
+        Supports large files and volumes.
+        Improved performance and reliability over ext3.
+
+    Use Case: General-purpose use on desktops and servers.
+
+
+2. XFS
+
+    Purpose: High-performance file system.
+
+    Features:
+        Journaling.
+        Efficient handling of large files.
+        Scalable and supports parallel I/O operations.
+
+    Use Case: Enterprise-level applications, large-scale storage systems.
+
+
+3. Btrfs (B-Tree File System)
+
+    Purpose: Modern file system with advanced features.
+
+    Features:
+        Snapshots and rollbacks.
+        RAID support.
+        Data deduplication.
+        Self-healing mechanisms.
+
+    Use Case: Systems requiring advanced data management features, backup solutions.
+
+
+4. FAT32
+
+    Purpose: Simple and widely compatible file system.
+
+    Features:
+        Supported by almost all operating systems.
+        Limited to 4GB maximum file size and 8TB maximum volume size.
+
+    Use Case: USB drives, memory cards, and other removable media for cross-platform compatibility.
+
+
+5. NTFS (New Technology File System)
+
+    Purpose: Default file system for Windows.
+
+    Features:
+        Journaling.
+        Supports large files and volumes.
+        Advanced features like file compression and encryption.
+
+    Use Case: Dual-boot systems with Windows, external hard drives.
+
+
+6. exFAT (Extended File Allocation Table)
+
+    Purpose: Optimized for flash drives.
+
+    Features:
+        Overcomes FAT32 limitations (supports larger files and volumes).
+        Less overhead than NTFS.
+
+    Use Case: USB drives, SD cards, and other portable storage.

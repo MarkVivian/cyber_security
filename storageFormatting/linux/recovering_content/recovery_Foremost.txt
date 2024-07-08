@@ -1,0 +1,21 @@
+                                FOREMOST
+                            ===============
+- Purpose:
+    > A console program to recover files based on their headers, footers, and internal data structures.
+        
+- Installation.
+    EG.
+        sudo apt-get install foremost
+
+
+                USAGE
+            ===========
+1. Run foremost with appropriate options:
+    EG.
+        sudo foremost -i /dev/sdX -o /path/to/output_directory
+
+            -i :
+                > input file or device.
+
+            -o :    
+                > output directory where recovered files will be saved.

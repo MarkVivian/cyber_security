@@ -1,0 +1,27 @@
+                                USING DEV
+                            ====================
+- the /dev directory contains device files.
+- This files represent hardware devices and virtual devices on your system.
+
+            TYPES OF DEVICES.
+        =======================
+1. Block Devices.
+    - These devices read and write data one character at a time.
+        EG.
+            /dev/sda
+            /dev/sdb
+
+
+2. character devices
+    - these devices read and write data one character at a time.
+        EG. 
+            /dev/ttyS0 (a serial port)
+            /dev/input/mice (a mouse)
+
+
+3. special files.
+    - these include files like :
+        EG.
+            /dev/null: Discards all data written to it (acts like a "black hole").
+            /dev/zero: Provides an endless stream of zeroes.`
+            /dev/urandom: Provides an endless stream of random data.`

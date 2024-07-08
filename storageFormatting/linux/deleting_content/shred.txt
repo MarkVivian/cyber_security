@@ -1,0 +1,40 @@
+                            USING SHRED 
+                        ==================
+- shred is used to securely delete files by overwriting them multiple times, ensuring that the data is extremely difficult to recover.
+
+
+            USAGE
+        ===========
+EG.
+    shred [options] <file or device>
+
+        - Options for shred:
+            -n <number>: Specifies the number of overwrite passes (default is 3).
+            -z: Adds a final pass with zeroes to hide the shredding process.
+            -v: Verbose mode, shows progress.
+            -u: Truncate and remove the file after overwriting (useful for files, not devices).
+
+
+- Identify the flash drive
+    EG.
+        lsblk
+
+            1. Use `shred` to overwrite the flash drive.
+                EG.
+                    sudo shred -n 3 -z -v /dev/sdb
+
+                        - overwrite the entire drive with random data multiple times 
+                        - finish with a pass of zeroes.
+
+                        -n 3:
+                            > Overwrite 3 times with random data (the default is 3, but you can increase this number for more security).
+                        
+                        -z: 
+                            >Adds a final overwrite with zeroes to hide the shredding process.
+
+                        -v: 
+                            >Shows progress during the operation.
+
+                        /dev/sdb: 
+                            >Specifies the flash drive to be shredded.
+            
