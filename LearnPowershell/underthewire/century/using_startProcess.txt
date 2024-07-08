@@ -1,0 +1,127 @@
+                            START PROCESS 
+                        ===================
+- The Start-Process cmdlet is used to start one or more processes on the local computer. 
+- It can be used to :
+    > start applications,
+    > scripts,
+    > commands with various options such as:
+        > arguments,
+        > working directory,
+        > and window style.
+
+
+            DETAILED EXPLANATION.
+        ------------------------------
+Start-Process: 
+    - Starts one or more processes on the local computer.
+
+-FilePath:  
+    - Specifies the path to the executable file or script file that starts the process.
+
+-ArgumentList:
+    - Specifies the parameters or arguments to use when starting the process.
+
+-WorkingDirectory:
+    - Specifies the location of the executable file.
+
+-NoNewWindow:
+    - Starts the process in the current console window.
+
+-PassThru:
+    - Returns a process object for each process that is started.
+
+-Verb:
+    - Specifies a verb to use when starting the process. 
+    - Common verbs include RunAs (to start the process with elevated permissions).
+
+-Credential: 
+    - Specifies the user account to use to start the process.
+
+-LoadUserProfile:
+    - Loads the user profile specified by the -Credential parameter.
+
+-Wait:
+    - Waits for the process to exit before running the next command.
+
+-WindowStyle:
+    - Specifies the window style to use for the new process (Normal, Hidden, Minimized, Maximized).
+
+
+            COMMON USES.
+        --------------------
+1) Starting an application.
+    - This example starts Notepad.
+        EG.
+            Start-Process notepad.exe
+
+
+2) Running a script with arguments.
+    - This example runs a powershell script with arguments.
+        EG.
+            $scriptPath = "C:\Path\To\YourScript.ps1"
+            $arguments = "-param1 value1 -param2 value2"
+
+            Start-Process powershell.exe -ArgumentList "-File $scriptPath $arguments"
+
+
+3) Opening a file with default application.
+    - This example opens a PDF file with the default PDF viewer.
+        EG. 
+            $filePath = "C:\Path\To\YourDocument.pdf"
+
+            Start-Process $filePath
+
+
+4)Running a process As Administrator.
+    - This example starts powershell as an administrator.
+        EG.
+            Start-Process powershell.exe -Verb RunAs
+
+
+5) Run a script as admin.
+    EG.
+        # Path to the script to run
+        $scriptPath = "C:\Path\To\YourScript.ps1"
+
+        # Arguments to pass to the script
+        $scriptArguments = "-param1 value1 -param2 value2"
+
+        # Desired execution policy
+        $executionPolicy = "Unrestricted"
+
+        # Start a new PowerShell process with elevated permissions
+        Start-Process powershell.exe -Verb RunAs `
+            -ArgumentList "-NoProfile -ExecutionPolicy $executionPolicy -File `"$scriptPath`" $scriptArguments"
+
+
+            > Start-Process powershell.exe -Verb RunAs:
+                - Starts PowerShell with elevated permissions.
+            
+            > ArgumentList:
+                - Passes the arguments to the new PowerShell process.
+
+                > NoProfile: 
+                    - Prevents loading the user's PowerShell profile, which can help avoid conflicts or unwanted scripts running.
+                
+                > ExecutionPolicy $executionPolicy:
+                    - Sets the execution policy for the session.
+                
+                > File "$scriptPath":
+                    - Specifies the script file to run.
+                    - The backticks and double quotes around $scriptPath are necessary to handle paths with spaces.
+                
+                > $scriptArguments:
+                    - Includes any additional arguments needed for the script.
+
+            > Backticks (`):
+                - Used for escaping characters in PowerShell.
+                - In this example, they are used to handle the quotes around the script path.
+            
+            > Double Quotes ("):
+                - Necessary to encapsulate the script path in case it contains spaces.
+            
+            > NoProfile:
+                - Optional, but useful to avoid loading the user’s profile, making the script run in a cleaner environment.
+            
+            > ExecutionPolicy $executionPolicy:
+                - Ensures that the script runs under the specified execution policy.

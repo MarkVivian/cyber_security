@@ -1,0 +1,18 @@
+                        NEW-OBJECT 
+                    ================
+- Is used to create a new .NET Framework or COM object.
+
+
+1) Creating a COM Object.
+    EG.
+        # Creating a COM object for Internet Explorer
+        $ie = New-Object -ComObject "InternetExplorer.Application"
+        $ie.Visible = $true
+        $ie.Navigate("https://www.microsoft.com")
+
+
+2) Creating a .NET Object.
+    EG.
+        # Creating a .NET object for a date
+        $date = New-Object -TypeName System.DateTime -ArgumentList 2024, 1, 1
+        Write-Host $date

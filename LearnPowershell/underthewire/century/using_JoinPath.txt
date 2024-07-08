@@ -1,0 +1,41 @@
+                            JOIN PATH.
+                        =================
+- The `Join-Path` cmdlet is used to combine muutiple path segments into a single path.
+- Specifically designed for working with file system paths.
+- It combines path segments into a single path, ensuring proper handling of path separators.
+
+
+        COMMON USES.
+    -------------------
+1) Combine two or more path segments.
+    EG.
+        $parentDirectory = "C:\Users\Mark\Desktop\Scripts\powershell"
+        $fileName = "example.ps1"
+        $fullPath = Join-Path -Path $parentDirectory -ChildPath $fileName
+        Write-Host "Full Path: $fullPath"
+
+
+2) Combine Multiple paths.
+    EG.
+        $root = "C:\Users"
+        $user = "Mark"
+        $subDirectory = "Desktop\Scripts\powershell"
+        $fileName = "example.ps1"
+        $fullPath = Join-Path -Path (Join-Path -Path (Join-Path -Path $root -ChildPath $user) -ChildPath $subDirectory) -ChildPath $fileName
+        Write-Host "Full Path: $fullPath"
+
+
+3) Resolves the resulting path to a fully qualified path.
+    EG. 
+        $user = "C:\Users\Mark"
+        $directory = "Desktop\Scripts\powershell"
+        $finalPath = Join-Path -Path $user -ChildPath $directory -Resolve
+        Write-Host "Resolved Path: $finalPath"
+
+
+4) Used when the path contains characters that are interpreted as wildcard characters.
+    EG.
+        $user = "C:\Users\Mark"
+        $directory = "Desktop\Scripts\powershell"
+        $finalPath = Join-Path -Path $user -ChildPath $directory -LiteralPath
+        Write-Host "Literal Path: $finalPath"

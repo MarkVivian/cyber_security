@@ -1,0 +1,30 @@
+                        FOR EACH OBJECT.
+                    =======================
+- `ForEach-Object` processes each item in a collection (pipeline input) by executing a script block.
+
+1) Looping through an Array.
+    EG.
+        $array = 1..5
+        $array | ForEach-Object {
+            Write-Host "Number: $_"
+        }
+
+
+2) Modifying items in a collection.
+    EG.
+        $numbers = 1..5
+        $numbers | ForEach-Object {
+            $_ * 2
+        }
+
+
+3) Using Aliases.
+    - `ForEach-Object` has an alias `%`.
+        EG.
+            $array = 1..5
+            $array | % {
+                Write-Host "Number: $_"
+            }
+
+
+4) 

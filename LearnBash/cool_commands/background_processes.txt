@@ -1,0 +1,6 @@
+                        &
+                    ========
+- In bash, the & is used to run a command in the background.   
+    EG.
+        sleep 30 &
+        

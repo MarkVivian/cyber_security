@@ -1,0 +1,70 @@
+1) TRIM()
+    - removes leading and trailing whitespace characters from a string.
+        EG.
+            $str = "   Hello, World!   "
+            $trimmed = $str.Trim()
+            Write-Host "Trimmed string: '$trimmed'"
+
+
+2) TRIMSTART()
+    - removes leading whitespace characters from a string.
+        EG.
+            $str = "   Hello, World!   "
+            $trimmedStart = $str.TrimStart()
+            Write-Host "String with leading whitespace removed: '$trimmedStart'"
+
+
+3) TRIMEND()
+    - removes trailing whitespace characters from a string.
+        EG.
+            $str = "   Hello, World!   "
+            $trimmedEnd = $str.TrimEnd()
+            Write-Host "String with trailing whitespace removed: '$trimmedEnd'"
+
+
+4) TOUPPER() AND TOLOWER()
+    - ToUpper() converts all characters in a string to uppercase.
+    - ToLower() converts all characters in a string to lowercase.
+        EG.
+            $str = "Hello, World!"
+            $upper = $str.ToUpper()
+            $lower = $str.ToLower()
+
+            Write-Host "Uppercase: $upper"
+            Write-Host "Lowercase: $lower"
+
+
+5) SUBSTRING()
+    - retrieves a substring from a string, starting at a specified position.
+        EG.
+            $str = "Hello, World!"
+            $substring = $str.Substring(7, 5)  # Start at index 7, length 5
+            Write-Host "Substring: $substring"
+
+
+6) SPLIT()
+    - splits a string into substrings based on a delimiter and returns an array of substrings.
+        EG.
+           $str = "apple,banana,orange"
+            $fruits = $str.Split(',')
+            foreach ($fruit in $fruits) {
+                Write-Host "Fruit: $fruit"
+            }
+ 
+
+ 7) REPLACE()
+    - replaces all occurrences of a specified string or character in a strin gwith another string or character.
+        EG.
+            $str = "Hello, World!"
+        $newStr = $str.Replace("Hello", "Hi")
+        Write-Host "Modified string: $newStr"
+
+
+8) PADLEFT() AND PADRIGHT()
+    - PadLeft() and PadRight() methods pad a string with spaces or a specified character to a specified total length.
+        EG.
+            $str = "Hello"
+            $paddedLeft = $str.PadLeft(10, '-')
+            $paddedRight = $str.PadRight(10, '-')
+            Write-Host "Padded left: '$paddedLeft'"
+            Write-Host "Padded right: '$paddedRight'"

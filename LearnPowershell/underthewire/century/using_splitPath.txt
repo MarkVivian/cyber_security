@@ -1,0 +1,146 @@
+                        SPLIT PATH.
+                    ==================
+- The Split-Path cmdlet in PowerShell is used to manipulate paths. 
+- It can extract the parent directory, leaf element (file name), or drive name from a path.
+- It's useful for handling file and directory paths in scripts.
+
+
+        DETAILED EXPLANATION
+    --------------------------
+Split-Path:
+    - Splits a path into its components.
+
+-Path:
+    - Specifies the path to split.
+
+-Leaf: 
+    - Extracts the leaf element (file name).
+
+-Qualifier:
+    - Extracts the drive name.
+
+Set-Location:
+    - Changes the current directory to the specified path.
+
+-NoQualifier:
+    - Removes the drive name from the path.
+
+- Extensioin:
+    - Returns the extension of the path.
+
+- IsAbsolute:
+    - Checks if the path is absolute.
+
+
+        COMMON USES.
+    --------------------
+1) Extracting the parent Directory.
+    - This example extracts the parent directory from a given path.
+        EG. 
+            $filePath = "C:\Users\Mark\Desktop\Scripts\powershell\installing_office.ps1"
+            $parentDirectory = Split-Path -Path $filePath -Parent
+
+            Write-Host "Parent Directory: $parentDirectory"
+
+
+2) Extracting the leaf element(file name)
+    - This example extracts the file name from a given file path.
+        EG.
+            $filePath = "C:\Users\Mark\Desktop\Scripts\powershell\installing_office.ps1"
+            $fileName = Split-Path -Path $filePath -Leaf
+
+            Write-Host "File Name: $fileName"
+
+
+3) Extracting the drive name.  
+    - This example extracts the drive name from a given file path.
+        EG.
+            $filePath = "C:\Users\Mark\Desktop\Scripts\powershell\installing_office.ps1"
+            $driveName = Split-Path -Path $filePath -Qualifier
+
+            Write-Host "Drive Name: $driveName"
+
+
+4) Combining with other commands.
+    - This example combines `split-path` with other commands to change the cuurrent directory to the parent directory of a specified file.
+        EG.
+            $filePath = "C:\Users\Mark\Desktop\Scripts\powershell\installing_office.ps1"
+            $parentDirectory = Split-Path -Path $filePath
+
+            Set-Location -Path $parentDirectory
+
+            Write-Host "Changed current directory to: $parentDirectory"
+
+
+5) Using split-path -parent with $MyInvocation.MyCommand.Path.
+    - Let's say you have a script located at C:\Users\Mark\Desktop\Scripts\powershell\example.ps1 and you want to get the directory of this script.
+        EG.
+            # Get the directory of the current script
+            $scriptDirectory = Split-Path -Parent $MyInvocation.MyCommand.Path
+
+            Write-Host "Script Directory: $scriptDirectory"
+
+                > $MyInvocation.MyCommand.Path: 
+                    - This automatic variable contains the full path of the script or function being executed.
+
+                > Split-Path -Parent:   
+                    - This extracts the parent directory from the given path.
+
+
+6) Referencing files relative to the script.
+    - Consider you have a script that needs to reference a configuration file located in the same directory as the script.
+        EG.
+            # EXAMPLE DIRECTORY STRUCTURE.
+            C:\Users\Mark\Desktop\Scripts\powershell\
+            example.ps1
+            config.json
+
+            # Script Content (`example.ps1`)
+            # Get the directory of the current script
+            $scriptDirectory = Split-Path -Parent $MyInvocation.MyCommand.Path
+
+            # Path to the configuration file
+            $configFilePath = Join-Path -Path $scriptDirectory -ChildPath "config.json"
+
+            # Output the configuration file path
+            Write-Host "Configuration File Path: $configFilePath"
+
+            # Now you can load or manipulate the configuration file
+            # Example: Import JSON content from the configuration file
+            $configContent = Get-Content -Path $configFilePath | ConvertFrom-Json
+
+            Write-Host "Configuration Content:"
+            Write-Output $configContent
+
+
+                > $scriptDirectory:
+                    - Holds the directory of the current script.
+
+                > Join-Path:
+                    - Combines the script directory with the file name to get the full path of the configuration file.
+                
+                > Get-Content:
+                    - Reads the content of the configuration file.
+                
+                > ConvertFrom-Json:
+                    - Converts the JSON content to a PowerShell object.
+
+
+7) Get the extension.
+    EG.
+        $extension = Split-Path -Path $path -Extension
+        Write-Host "Extension: $extension"
+
+
+8) Check if the path is Absolute.  
+    EG.
+        $isAbsolute = Split-Path -Path $path -IsAbsolute
+        Write-Host "Is Absolute: $isAbsolute"
+
+
+NB::
+    > Dynamic Path Reference: 
+        - Using $MyInvocation.MyCommand.Path ensures that your script can dynamically determine its own location, making it portable and robust.
+    
+    > Relative file access.
+        -  By combining Split-Path and Join-Path, you can easily reference files relative to the script's location.

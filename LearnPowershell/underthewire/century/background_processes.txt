@@ -1,0 +1,6 @@
+                        START-JOB.
+                    =================
+- in powershell the `start-job ` command is used to run in the background.
+    EG.
+        # Running a command in the background
+        Start-Job -ScriptBlock { Start-Sleep -Seconds 30 }

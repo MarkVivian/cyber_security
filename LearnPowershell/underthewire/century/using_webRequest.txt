@@ -1,0 +1,72 @@
+                        INVOKE WEB REQUEST 
+                    =========================
+- The `invoke-WebRequest` cmdlet is used to send HTTP and HTTPS requests to a web page or web service.
+- This cmdlet can be used to download content from a web page, post data to a web service, and more.
+
+
+            DETAILED EXPLANATION
+        -----------------------------
+- Invoke-WebRequest:
+    - Sends an HTTP/HTTPS request to the specified URI.
+
+- Uri: 
+    - Specifies the URI of the web request.
+
+- OutFile: 
+    - Specifies the path and file name to save the response content.
+
+- Method:
+    - Specifies the HTTP method to use (GET, POST, etc.). Default is GET.
+
+- Body:
+    - Specifies the data to send to the web service.
+
+- ContentType:
+    - Specifies the media type of the data being sent (e.g., application/json).
+
+-Headers: 
+    - Specifies custom headers for the request.
+
+-Credential: 
+    - Specifies user credentials to use for the web request.
+
+-UseBasicParsing:
+    - Uses basic HTML parsing (useful when Internet Explorer components are not installed).
+
+
+            COMMON USES.
+        ---------------------
+1) Downloading a file.
+    - This example shows how to download a file from a given URL and save it to a specified location.
+        EG.
+            $url = "https://download.microsoft.com/download/2/7/A/27AF1BE6-DD20-4CB4-B154-EBAB8A7D4A7E/officedeploymenttool_17531-20046.exe"
+            $output = "C:\Users\YourUsername\Downloads\officedeploymenttool_17531-20046.exe"
+
+            Invoke-WebRequest -Uri $url -OutFile $output
+
+            Write-Host "File downloaded to $output"
+
+
+2) Fetching Web Page Content.
+    - This example fetches the HTML content of a web page.
+        EG.
+            $url = "https://www.microsoft.com/en-us/download/details.aspx?id=49117"
+            $response = Invoke-WebRequest -Uri $url
+
+            $htmlContent = $response.Content
+
+            Write-Host "HTML content fetched"
+
+
+3) Sending Data to a Web Service.
+    - This example sends a json payload to a web service using the POST method.
+        EG.
+            $url = "https://example.com/api/data"
+            $data = @{
+                Name = "John Doe"
+                Age = 30
+            } | ConvertTo-Json
+
+            $response = Invoke-WebRequest -Uri $url -Method Post -Body $data -ContentType "application/json"
+
+            Write-Host "Response received: $($response.StatusCode)"

@@ -1,0 +1,73 @@
+                        SET EXECUTION POLICY
+                    ==========================
+- execution policies determine the conditions under which PowerShell loads configuration files and runs scripts. 
+- Execution policies help prevent the execution of malicious scripts.
+
+
+            TYPES OF EXECUTION POLICIES.
+        -----------------------------------
+- Restricted:
+    > Does not load configuration files or run scripts. This is the default setting on Windows client computers.
+
+- AllSigned:
+    > Requires that all scripts and configuration files be signed by a trusted publisher, including scripts written on the local computer.
+ 
+- RemoteSigned:
+    > Requires that all scripts and configuration files downloaded from the Internet be signed by a trusted publisher.
+
+- Unrestricted: 
+    > Loads all configuration files and runs all scripts. 
+    > If you run an unsigned script that was downloaded from the Internet, you are prompted for permission before it runs.
+
+- Bypass:
+    > Nothing is blocked and there are no warnings or prompts.
+
+- Undefined:
+    > Removes the currently assigned execution policy from the current scope. 
+    > If the execution policy in all scopes is set to Undefined, the effective execution policy is Restricted.
+
+
+                SETTING EXECUTION POLICY.
+            -------------------------------
+1) Setting execution policy to RemoteSigned
+    EG.
+        Set-ExecutionPolicy -ExecutionPolicy RemoteSigned
+
+
+2) Checking execution Policy.
+    EG.
+        Get-ExecutionPolicy
+
+
+3) get the execution policy for all scopes.
+    EG.
+        Get-ExecutionPolicy -List
+
+            > The Scopes include:
+                - MachinePolicy:
+                    - Set by a Group Policy for all users of the computer.
+                
+                - UserPolicy:
+                    - Set by a Group Policy for the current user of the computer.
+                
+                - Process:
+                    - Affects only the current PowerShell session.
+                
+                - CurrentUser:
+                    - Affects only the current user.
+                
+                - LocalMachine:
+                    - Affects all users on the current computer.
+
+
+4) Change the execution policy temporarily.
+    EG.
+        Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
+
+
+5) Running a script with a specific execution policy.
+    EG.
+        Start-Process powershell.exe -ArgumentList "-ExecutionPolicy Bypass -FilePath C:\path\to\your\script.ps1" -Verb RunAs
+
+
+6) 

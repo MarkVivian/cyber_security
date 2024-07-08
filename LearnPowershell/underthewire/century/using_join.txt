@@ -1,0 +1,11 @@
+                        JOIN
+                    ===========
+- -join is an operator used to concatenate elements of an array into a single string, separated by a specified delimiter. 
+- It is not specific to file system paths.
+
+    EG.
+        $parts = @("C:", "Users", "Mark", "Desktop", "Scripts", "powershell")
+        $joinedPath = $parts -join "\"
+        Write-Host "Joined Path: $joinedPath"
+
+            - Using `-Join` to concatenate array elements.
