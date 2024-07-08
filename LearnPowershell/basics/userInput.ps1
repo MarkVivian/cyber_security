@@ -18,3 +18,6 @@ if ($user_data -ge 11){
 }else{
     Write-Host "i thought you would be a free thinker"
 }
+
+# to skip line we use:
+Write-Host "this is on line `n this is on line 2"

@@ -61,4 +61,15 @@ for ($i = 0; $i -lt $myString.Length; $i++) {
 }
 
 
+#**************TRIM() METHOD****************************
+# .Trim(): Removes all leading and trailing whitespace characters from the string.
+
+$string = " "
+
+if ($string.Trim() -eq "") {
+    Write-Host "The string is empty or only contains spaces."
+} else {
+    Write-Host "The string is not empty and contains non-space characters."
+}
+
 

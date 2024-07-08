@@ -74,3 +74,19 @@ last_character_in_word="${random_word: -1}"
 #           echo "all arguments : $*"
 
 
+
+# ****************XARGS METHOD *****************
+# xargs: Trims leading and trailing whitespace characters from the string when used with echo -n.
+#!/bin/bash
+
+string=" "
+
+# Trim leading and trailing whitespace
+trimmed_string=$(echo -n "$string" | xargs)
+
+if [[ -z $trimmed_string ]]; then
+    echo "The string is empty or only contains spaces."
+else
+    echo "The string is not empty and contains non-space characters."
+fi
+

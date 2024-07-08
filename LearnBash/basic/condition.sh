@@ -171,3 +171,48 @@ while [[ $current_state ]]; do
         echo "stop this already"
     fi
 done
+
+
+#*********************SWITCH STATEMENTS.**************
+
+#   BASIC STRUCTURE
+
+# case "$variable" in
+#     pattern1) statements1 ;;
+#     pattern2) statements2 ;;
+#     *) statements3 ;; # default case
+# esac
+
+day="Tuesday"
+
+case "$day" in
+    "Monday")
+        echo "Today is Monday"
+        ;;
+    "Tuesday")
+        echo "Today is Tuesday"
+        ;;
+    "Wednesday")
+        echo "Today is Wednesday"
+        ;;
+    *)  
+        echo "Today is another day"
+        ;;
+esac
+
+input="B"
+
+case $input in
+    "A")
+        echo "Value is A"
+        ;;
+    "B")
+        echo "Value is B"
+        ;;
+    "C")
+        echo "Value is C"
+        ;;
+    *)
+        echo "Value is not A, B, or C"
+        ;;
+esac
