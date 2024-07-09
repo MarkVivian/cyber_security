@@ -1,0 +1,42 @@
+                        CURL
+                    ==========
+- This is a command line tool for transferring data using various protocols.
+
+        USAGE
+    -------------
+1) Download a File.
+    EG.
+        #!/bin/bash
+
+        url="https://download.microsoft.com/download/2/7/A/27AF1BE6-DD20-4CB4-B154-EBAB8A7D4A7E/officedeploymenttool_17531-20046.exe"
+        output="officedeploymenttool_17531-20046.exe"
+
+        curl -o $output $url
+
+
+2) Making a GET Request.
+    EG.
+        #!/bin/bash
+
+        url="https://api.example.com/data"
+        response=$(curl -s $url)
+        echo $response
+
+            > -s : Silent mode. It makes the curl output less verbose.
+            > $url : The URL to which the GET request is sent.
+            > $response : Stores the response from the server.
+
+
+3) Making a POST Request.
+    EG.
+        #!/bin/bash
+
+        url="https://api.example.com/data"
+        data='{"key1":"value1","key2":"value2"}'
+        response=$(curl -s -X POST -H "Content-Type: application/json" -d "$data" $url)
+        echo $response
+
+            > -X POST : Specifies the request method as POST.
+            > -H "Content-Type: application/json" : Sets the content type of the request.
+            > -d "$data" : Specifies the data to be sent in the request body.
+

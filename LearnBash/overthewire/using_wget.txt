@@ -1,0 +1,30 @@
+                    WGET
+                ===========
+- used for non-interactive download of files from the web.
+
+
+        USAGE
+    -------------
+1) Downloading a file.
+    EG.
+        #!/bin/bash
+
+        url="https://download.microsoft.com/download/2/7/A/27AF1BE6-DD20-4CB4-B154-EBAB8A7D4A7E/officedeploymenttool_17531-20046.exe"
+        output="officedeploymenttool_17531-20046.exe"
+
+        wget -O $output $url
+
+            > -O $output : Specifies the output file name.
+            > $url : The URL from which to download the file.
+
+
+2) Making a GET Request.
+    EG.
+        #!/bin/bash
+
+        url="https://api.example.com/data"
+        response=$(wget -q -O - $url)
+        echo $response
+
+            > -q : Quiet mode. It makes the wget output less verbose.
+            > -O - : Outputs the response to standard output.
