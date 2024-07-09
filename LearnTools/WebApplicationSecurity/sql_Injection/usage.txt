@@ -1,0 +1,13 @@
+                            MYSQL INJECTION.
+                        =====================
+            BASICS
+        ---------------
+- In sql the ' represents a string and the rest is the query.
+- The query is executed when the string is not closed.
+    EG.
+        select * from users where username='admin' AND password='password'
+
+            - the 'admin' and 'password' are strings.
+
+
+- 
