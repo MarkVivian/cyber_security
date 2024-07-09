@@ -1,0 +1,55 @@
+                        BASH -C
+                    =============
+-  command in Linux is used to run commands from a string.
+
+
+            BASIC SYNTAX
+        ==================
+bash -c "command"
+
+
+            COMMON USES.
+        ==================
+1) Running a simple command.
+    EG.
+        bash -c "ls -l"
+
+
+2) Running a command with variables.
+    EG.
+        directory="/path/to/directory"
+        bash -c "ls -l $directory"
+
+
+3) Running a Script from a string.
+    EG.
+        script='
+        echo "Hello, World!"
+        date
+        '
+        bash -c "$script"
+
+
+4) Running commands with arguments.
+    EG.
+        command="ls"
+        arguments="-l /path/to/directory"
+        bash -c "$command $arguments"
+
+
+5) Using variables from the Current Shell
+    EG.
+        name="John Doe"
+        bash -c 'echo "Hello, $name"' -- "$name"
+
+            > bash -c 'command': 
+                - Executes the command provided in quotes.
+
+            > -- "$name":
+                - Passes the variable to the command string. 
+                - This is useful for preventing issues with special characters and spaces.
+
+
+6) Running a command in the background.
+    EG.
+        bash -c "sleep 10 &"

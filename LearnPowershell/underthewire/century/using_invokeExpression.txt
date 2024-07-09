@@ -1,0 +1,74 @@
+                    INVOKE EXPRESSION
+                ========================
+- This is a powerful cmdlet in PowerShell that executes a string as a command. 
+- This can be useful for dynamically constructing and running commands. 
+- However, due to the potential security risks associated with executing arbitrary strings, it should be used with caution.
+
+
+        BASIC SYNTAX
+    ----------------------
+Invoke-Expression -Command "command string"
+
+
+            USAGE
+        ------------
+1) Running a Simple Command.
+    EG.
+        $command = "Get-Process"
+        Invoke-Expression -Command $command
+
+
+2) Running a command with variables.
+    EG.
+        $processName = "powershell"
+        $command = "Get-Process -Name $processName"
+        Invoke-Expression -Command $command
+
+
+3) Running a script from a string.
+    EG.
+        $script = @"
+        Write-Output "Hello, World!"
+        Get-Date
+        "@
+
+        Invoke-Expression -Command $script
+
+
+4) Running a Command with Arguments.
+    EG.
+        $directory = "C:\"
+        $command = "Get-ChildItem -Path $directory"
+        Invoke-Expression -Command $command
+
+
+5) Combining `start-job` and `invoke-expression`
+    EG.
+        $executionPolicy = "Bypass"
+        $scriptPath = "C:\path\to\your\script.ps1"
+        $scriptArguments = "argument1 argument2"
+
+        $command = "Start-Process powershell.exe -Verb RunAs -ArgumentList `"-NoProfile -ExecutionPolicy $executionPolicy -File `"$scriptPath`" $scriptArguments`""
+
+        $job = Start-Job -ScriptBlock {
+            param ($command)
+            Invoke-Expression -Command $using:command
+        } -ArgumentList $command
+
+        # Wait for the job to complete
+        Wait-Job -Id $job.Id
+
+        # Retrieve job results
+        Receive-Job -Id $job.Id
+
+        # Clean up
+        Remove-Job -Id $job.Id
+
+
+6) Handling Script output.
+    EG.
+        $command = "Get-Process | Select-Object -First 5"
+        $output = Invoke-Expression -Command $command
+
+        # Display output
+        $output | ForEach-Object { Write-Output $_ }

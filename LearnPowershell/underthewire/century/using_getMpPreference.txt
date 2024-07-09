@@ -1,0 +1,76 @@
+                        SET-MpPREFERENCE
+                    ========================
+- Used to configure various settings for windows defender, Microsoft's built-in antivirus software.
+- Allows you to adjust preferences :
+    > Scanning options.
+    > Exclusion paths.
+    > and more.
+
+
+            COMMON USES.
+        ==================
+1) Setting Exclusion paths
+    - You can exclude specific paths, file extensions, and processes from being scanned by Windows Defender.
+        EG.
+            # Exclude a folder.
+            Set-MpPreference -ExclusionPath "C:\MyFolder"
+
+            # exclude a file extension.
+            Set-MpPreference -ExclusionExtension ".log"
+
+            # exclude a process
+            Set-MpPreference -ExclusionProcess "notepad.exe"
+
+
+2) Configuring Real-Time Protection.
+    - You can enable or disable the real-time protection.
+        EG.
+            # Enable real-time protection.
+            Set-MpPreference -DisableRealtimeMonitoring $false
+
+            # disable real-time protection
+            Set-MpPreference -DisableRealtimeMonitoring $true
+
+
+3) Setting Cloud Protection levels.
+    EG.
+        # Enable Cloud Protection
+        Set-MpPreference -MAPSReporting Advanced
+
+        # Disabled Cloud Protection
+        Set-MpPreference -MAPSReporting Disabled
+
+
+4) Disabling Windows Defender.
+    EG.
+        # Disable Windows defender.
+        Set-MpPreference -DisableRealtimeMonitoring $true
+        Set-MpPreference -DisableBehaviorMonitoring $true
+        Set-MpPreference -DisableIOAVProtection $true
+        Set-MpPreference -DisablePrivacyMode $true
+        Set-MpPreference -DisableIntrusionPreventionSystem $true
+        Set-MpPreference -DisableScriptScanning $true
+
+
+5) Enabling PUA 
+    - Potentially Unwanted Application (PUA) protection helps block potentially unwanted software.
+        EG.
+            # Enable PUA protection
+            Set-MpPreference -PUAProtection Enabled
+
+
+6) Scheduling a scan.
+    - You can schedule daily quick scans or full scans.
+        EG.    
+            # Schedule a Daily Quick Scan
+            Set-MpPreference -ScanScheduleQuickScanTime 02:00
+
+            Schedule a Daily Full Scan
+            Set-MpPreference -ScanScheduleDay Everyday -ScanScheduleTime 03:00
+
+
+7) Checking Current Preferences
+    - To check the current settings, you can use the Get-MpPreference cmdlet.
+        EG.
+            Get-MpPreference
+
