@@ -1,0 +1,98 @@
+                         SOFTWARE REPOSITORY.
+                    ==========================
+- A software repository in Linux is a storage location from which your system retrieves and installs software packages. 
+- These repositories contain precompiled packages that you can install and update using package management tools like apt.
+
+
+            HOW REPOSITORIES WORK.
+        -----------------------------
+1) Configuration : 
+    - Your Linux system is configured to know where to find repositories. 
+    - This configuration is usually done through files located in:
+        > /etc/apt/sources.list 
+            OR
+        > /etc/apt/sources.list.d/ (for Debian-based systems like Ubuntu).
+
+
+2) Updating package lists : 
+    - When you run sudo apt update, your system updates its list of available packages from the repositories. 
+    - This command fetches the latest package information from the repositories.
+
+
+3) Installing Packages:
+    - After updating the package list, you can install software using commands like sudo apt install <package_name>. 
+    - This command downloads the package from the repository and installs it on your system.
+
+
+4) Upgrading Packages:
+    - You can upgrade all the installed packages to their latest versions using sudo apt upgrade.
+
+
+
+                    EXAMPLE OF REPOSITORIES
+                ================================
+1) Default Repositories: 
+    - When you install a Linux distribution, it comes with a set of default repositories. 
+    - For example, on Ubuntu, you have:
+
+        > Main: Officially supported free and open-source software.
+        > Universe: Community-maintained free and open-source software.
+        > Restricted: Proprietary drivers for devices.
+        > Multiverse: Software that is not free.
+
+
+2) Adding a New Repository:
+    - Sometimes, you might need software that is not available in the default repositories. 
+    - You can add a new repository. Here’s how you can do it:
+
+        EG:- Adding a PPA (Personal Package Archive) for a specific software:
+            sudo add-apt-repository ppa:some/ppa
+            sudo apt update
+
+        
+        EG:- Adding a repository directly:
+            echo "deb http://repository.url/ubuntu bionic main" | sudo tee /etc/apt/sources.list.d/newrepo.list
+            sudo apt update
+
+
+3) Removing a repository.
+    - you can remove it using the --remove option.
+        EG.
+            sudo add-apt-repository --remove ppa:some/ppa
+
+    - If the repository was added manually, you'll need to delete the relevant entry from the configuration files.
+
+        > Edit /etc/apt/sources.list:
+            - Open the file in a text editor and remove the line corresponding to the repository you want to remove.
+                EG.
+`                   sudo nano /etc/apt/sources.list
+`
+            - Find the line with the repository URL and delete it, then save and exit (in Nano, press Ctrl+O to save and Ctrl+X to exit).
+
+
+        > Edit files in /etc/apt/sources.list.d/:
+            - Repositories are often added as separate files in this directory. Find and delete the specific repository file.
+                EG.
+                    sudo rm /etc/apt/sources.list.d/repository-name.list
+
+
+
+                COMMON COMMANDS
+            =====================
+- Update Package List:
+    > sudo apt update
+
+Upgrade Packages: 
+    > sudo apt upgrade
+
+Install a Package:
+    > sudo apt install <package_name>
+
+Remove a Package:
+    > sudo apt remove <package_name>
+
+Add a Repository: 
+    >sudo add-apt-repository <repository_name>
+
+Remove a Repository:
+    > Manually delete the entry in /etc/apt/sources.list or /etc/apt/sources.list.d/
