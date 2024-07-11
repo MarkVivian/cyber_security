@@ -1,0 +1,176 @@
+                        SCHEDULED TASK.
+                    =======================
+- It provides a set of cmdlets to create, delete, configure and manage scheduled tasks.
+- This module helps automate recurring tasks or run specific scripts at defined times.
+
+
+            OVERVIEW
+        ===================
+1) Creating and Registering Tasks
+    > New-ScheduledTaskAction
+    > New-ScheduledTaskTrigger
+    > New-ScheduledTaskPrincipal
+    > New-ScheduledTaskSettingsSet
+    > Register-ScheduledTask
+
+2) Managing Tasks
+    > Get-ScheduledTask
+    > Set-ScheduledTask
+    > Start-ScheduledTask
+    > Stop-ScheduledTask
+    > Unregister-ScheduledTask
+    > Enable-ScheduledTask
+    > Disable-ScheduledTask
+
+3) Viewing Task Information
+    > Get-ScheduledTaskInfo
+    > Get-ScheduledTaskTrigger
+
+
+            USAGE
+        -------------
+1. Creating and registering a task.
+    - To create a task we need to define:
+        i) Actions.
+        ii) Triggers.
+        iii) principals.
+        iv) settings.
+
+    > New-ScheduledTaskAction.
+        - Define the action to be performed by the task.
+            EG.
+                $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-File C:\Scripts\MyScript.ps1"
+
+                    -Execute : specifies the program to run.
+                    -Argument : specifies the arguments for the programs.
+
+
+    >New-ScheduledTaskTrigger.
+        - Defines when the task will run.
+            EG.
+                $trigger = New-ScheduledTaskTrigger -AtStartup 
+
+                    -AtStartup: Runs the task at startup.
+                    Other options include -Daily, -Weekly, -AtLogon, etc.
+
+            EG. (for daily trigger.)
+                $trigger = New-ScheduledTaskTrigger -Daily -At "6:00AM"
+
+
+    >New-ScheduledTaskPrincipal.
+        - Defines the user context under which the task runs.
+            EG.
+                 $principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
+
+                    -UserId : Specifies the user account.
+                    -LogonType: Specifies the logon type. Common options include:
+                        - ServiceAccount: The task will run under a service account.
+                        - Interactive: The task will run interactively.
+                    -RunLevel: Specifies the privileges for the task. Options include:
+                        LeastPrivilege: Runs with the least privileges.
+                        Highest: Runs with the highest privileges available to the user account.
+
+
+    > New-ScheduledTaskSettingsSet
+        - Defines additional settings for the ScheduledTask
+            EG.
+                $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
+
+                    -AllowStartIfOnBatteries : Allows the task to start if teh computer is running on battery power.
+                    -DontStopIfGoingOnBatteries : Prevents the task from stopping if the computer switches to battery power.
+                    -StartWhenAvailable : Starts the task as soon as possible after a scheduled start is missing.
+
+
+    > Register-ScheduledTask.
+        - Registers a new scheduled task in Task Scheduler.
+            > -TaskName : Specifies the name of the task.
+            > -Action : Specifies the action for the task.
+            > -Trigger : Specifies the trigger for the task.
+            > -principal : Specifies the principal for the task.
+            > -settings : Specifies the settings for the task.
+                EG.
+                    Register-ScheduledTask -TaskName "DailyBackupTask" -Action $action -Trigger $trigger -Principal $principal -Settings $settings
+
+
+
+2) Managing tasks.
+    > Get-ScheduledTask
+        -Retrieves the scheduled tasks.
+            EG.
+                Get-ScheduledTask -TaskName "DailyBackupTask"
+
+                    -TaskName: Specifies the name of the task to retrieve.
+
+            EG.(Gets all the tasks.)
+                Get-ScheduledTask
+
+
+    > Set-ScheduledTask
+        - Modifies an existing scheduled task.
+        EG.
+            Set-ScheduledTask -TaskName "DailyBackupTask" -Trigger $trigger
+
+                -TaskName: Specifies the name of the task to modify.
+                -Trigger: Specifies the new trigger for the task.
+                -Action: Specifies the new action for the task.
+                -Principal: Specifies the new principal for the task.
+                -Settings: Specifies the new settings for the task.
+
+
+    > Unregister-ScheduledTask
+        - Deletes a scheduled task.
+            EG.
+                Unregister-ScheduledTask -TaskName "DailyBackupTask" -Confirm:$false
+                            
+                    -TaskName: Specifies the name of the task to delete.
+                    -Confirm: Suppresses the confirmation prompt.
+
+                    
+    > Disable-ScheduledTask
+        - Disables a scheduled task.
+            EG.
+                Disable-ScheduledTask -TaskName "DailyBackupTask"
+                    
+                    -TaskName: Specifies the name of the task to disable.
+
+
+
+    > Enable-ScheduledTask
+        - Enables a scheduled task.
+            EG.
+                Enable-ScheduledTask -TaskName "DailyBackupTask"
+
+                    -TaskName: Specifies the name of the task to enable.
+
+
+
+    > Start-ScheduledTask
+        - Starts a scheduled task immediately.
+            EG.
+                Start-ScheduledTask -TaskName "DailyBackupTask"
+
+                    -TaskName: Specifies the name of the task to start.
+
+
+
+    > Stop-ScheduledTask
+        - Stops a running scheduled task.
+          EG.
+            Stop-ScheduledTask -TaskName "DailyBackupTask"
+                -TaskName: Specifies the name of the task to stop.
+
+
+
+3) Viewing task information.
+    > Get-ScheduledTaskInfo
+        - Retrieves detailed information about a task, including the status and the last run time.
+            EG.
+                Get-ScheduledTaskInfo -TaskName "DailyScriptTask"
+
+    
+    > Get-ScheduledTaskTrigger.
+        - Retrieves the triggers for a scheduled task.
+            EG.
+                Get-ScheduledTaskTrigger -TaskName "DailyScriptTask"
+
+

@@ -14,6 +14,12 @@
             Get-ChildItem | Out-File -Append file_list.txt
 
 
+2) using write ouput 
+    - Outputs to the pipeline, can be captured by Out-File or redirection operators.
+        EG.
+            Write-Output "Please stop ... come on" | Out-File ".\test.txt"
+
+
 2) Encoding Control.
     - By default, Out-File uses the system's default encoding
     - You can specify the desired encoding using -Encoding to ensure proper handling of special characters

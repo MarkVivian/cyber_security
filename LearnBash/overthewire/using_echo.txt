@@ -9,3 +9,32 @@
 - For instance, ‘\n’ represents a newline.
     EG.
         echo -e "message 1 \n message 2"
+
+
+        Adding Colors
+    -------------------------
+To add colors, you use ANSI escape codes.
+    EG.
+        echo -e "\e[32mHello, World!\e[0m"  # Green text
+            
+            > Explanation of ANSI Escape Codes
+                \e[: Starts the escape sequence.
+                32m: Sets the text color to green.
+                \e[0m: Resets the text color to default.
+
+
+            > Available Colors
+                Text Colors: 30 (Black), 31 (Red), 32 (Green), 33 (Yellow), 34 (Blue), 35 (Magenta), 36 (Cyan), 37 (White).
+                Background Colors: 40 (Black), 41 (Red), 42 (Green), 43 (Yellow), 44 (Blue), 45 (Magenta), 46 (Cyan), 47 (White).
+
+                    EG.
+                        echo -e "\e[31mError: Operation failed!\e[0m"  # Red text
+                        echo -e "\e[33mWarning: Disk space low!\e[0m"  # Yellow text
+                        echo -e "\e[32mSuccess: Operation completed!\e[0m"  # Green text
+
+
+            > Combining Colors and Formatting
+                You can combine colors and add formatting like new lines (\n), tabs (\t), and more.
+                    EG.
+                        echo -e "\e[34mHello,\nWorld!\e[0m"  # Blue text with a new line
+                        echo -e "Tab\tCharacter"  # Text with a tab character

@@ -1,0 +1,31 @@
+                            WRITE=HOST.
+                        =================
+- It writes customized output to the console.
+- This output is usually not captured by other cmdlets like Out-File or Redirect.
+
+
+            USAGE
+        ------------
+EG.
+    Write-Host "Hello, world!"
+
+
+1) Adding Colors
+    - You can change the text color and background color using the -ForegroundColor and -BackgroundColor parameters.
+        EG.
+            Write-Host "Hello, World!" -ForegroundColor Green -BackgroundColor Black
+
+                - Available Colors
+                    > ForegroundColor and BackgroundColor options: Black, DarkBlue, DarkGreen, DarkCyan, DarkRed, DarkMagenta, DarkYellow, Gray, DarkGray, Blue, Green, Cyan, Red, Magenta, Yellow, White.
+                        EG.
+                            Write-Host "Warning: Disk space low!" -ForegroundColor Yellow
+                            Write-Host "Error: Operation failed!" -ForegroundColor Red
+                            Write-Host "Success: Operation completed!" -ForegroundColor Green
+
+
+2) Combining Colors and Formatting
+    - You can combine colors and use formatting like new lines (n), tabs (t), and escape characters.
+        EG.
+            Write-Host "Hello,`nWorld!" -ForegroundColor Blue
+            Write-Host "Tab`tCharacter" -ForegroundColor Cyan
+
