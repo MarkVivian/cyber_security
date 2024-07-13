@@ -1,0 +1,59 @@
+                                XRANDR
+                            ==============
+- XRANDR is used for configuring screen resolution, orientation and various display settings in X Window System.
+
+                
+            USAGE
+        -----------
+1) Display current screen configuration.
+    EG.
+        xrandr
+
+            - this command displays info about your connected displays, their resolutions and available refresh rates.
+
+
+2) Changing Screen Resolution.
+    EG.
+        xrandr --output <output-name> --mode 1920x1080
+
+            - Replace <Output-name> with the name of your output device.
+            (eDP-1 for laptops)
+            (DP-1 for pc's)
+
+
+            - Adding a new resolution mode.
+                EG.
+                    xrandr --newmode "1920x1080_60.00"  173.00  1920 2048 2248 2576  1080 1083 1088 1120 -hsync +vsync
+                    xrandr --addmode <output-name> 1920x1080_60.00
+                    xrandr --output <output-name> --mode 1920x1080_60.00
+
+
+3) Adjusting brighness.
+    EG.
+        xrandr --output <output-name> --brighness 0.8
+
+            - To adjust brightness using xrandr, you typically need to use the --brightness option. 
+            - Note that this may not work on all systems, depending on hardware and driver support.
+            - Replace <output-name> with your display output identifier and 0.8 with the desired brightness level (where 1.0 is full brightness).
+
+
+4) Rotating the screen orientation.
+    EG. 
+        xrandr --output <output-name> --rotate left
+
+            - Replace `left` with `right`, `inverted` or `normal` as needed.
+
+
+5) Setting primary display.
+    EG.
+        xrandr --output <primary-output> --primary
+
+            - Replace <primary-output> with the output name ofo your primary display.
+
+
+6) Resetting display settings.
+    EG. 
+        xrandr --auto
+
+            - To revert all changes and reset to default.
+            - it will restore all connected outputs to their default settings.
