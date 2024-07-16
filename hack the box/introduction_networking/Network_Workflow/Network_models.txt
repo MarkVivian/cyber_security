@@ -73,11 +73,23 @@ For eg, ICMP (Internet Control Message Protocol) or UDP (User Datagram Protocol)
 - After that, the application finally uses the data.
 - This process continues until all data has been sent and received.
 
-                        | PACKET TRANSFER.  |
-                        ----------------------
+                                                    | PACKET TRANSFER.  |
+                                                    ----------------------
+                            
+                                       (Sender)                             (Receiver)
+                                            |                                 |   
+                            | H | | DATA |  |                                 |   | DATA | | H |
+                            | H | | DATA |  |                                 |   | DATA | | H |
+                            | H | | DATA |  |                                 |   | DATA | | H |
+                          | TCP | | DATA |--|---- sequences/dataframes.-------|-- | DATA | | TCP |
+                    | IP | | TCP + DATA  |--|----- packets. ------------------|-- | TCP + DATA | | IP |
+             | MAC | |  TCP + IP + DATA  |--|------ frames  ------------------|-- | TCP + IP + DATA | | MAC |
+| Binary Transmission - 100110011000111..|--|------ bits ---------------------|-- | BINARY TRANSMISSION - 100110011000111... |
+                                            |                                 |
+                                            |----------->Ethernet ------------|
 
-                            | H | | DATA |
-                          | TCP | | DATA |
-                    | IP | | TCP + DATA  |
-             | MAC | |  TCP + IP + DATA  |
-| Binary Transmission - 100110011000111..|
+- For us, as penetration testers, both reference models are useful.
+- With TCP/IP, we can quickly understand how the entire connection is established, and with ISO, we can take it apart piece by piece and analyze it in detail.
+- This often happens when we can listen to and intercept specific network traffic.
+- We then have to analyze this traffic accordingly, going into more detail in the Network Traffic Analysis module.
+- Therefore, we should familiarize ourselves with both reference models and understand and internalize them in the best possible way.
