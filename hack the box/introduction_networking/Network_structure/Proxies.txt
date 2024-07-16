@@ -1,9 +1,0 @@
-                                PROXIES.
-                            ==============
-- proxies will almost always operate at Layer 7 of the OSI Model. There are many types of proxy services, but the key ones are:
-    > Dedicated Proxy / Forward Proxy
-    > Reverse Proxy
-    > Transparent Proxy
-
-
-    1) DEDICATED PROXY / FORWARD PROXY.

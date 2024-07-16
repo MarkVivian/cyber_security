@@ -53,4 +53,6 @@
 		nmcli connection up <SSID>
 
 
-- 
+- viewing connected Wifi networks.
+	EG.
+		nmcli connection show --active
