@@ -51,6 +51,9 @@ IPv4                1100 0000       1010 1000    0000 1100       10|10 0000     
 Subnet mask.        1111 1111       1111 1111    1111 1111       11|00 0000       255.255.255.192
 Bits.                /8               /16           /24            /32
 
+NB :: since the CIDR is /26 that means network address are 26 bits and the 6 bits are the host address.
+   :: thats why in the bottom conversion we only convert the last 6 bits to either 0 or 1 since they are the host bit.
+   :: if it was a /24 we would convert the entire 8 bits .
 
                     NETWORK ADDRESS.
                 ----------------------
@@ -62,7 +65,36 @@ Subnet mask 	1111 1111 	1111 1111 	1111 1111 	11|00 0000 	255.255.255.192
 Bits 	            /8 	        /16 	 /24 	        /32 
 
 
-                    BROADCAST ADDRESS.
+                    DEFAULT GATEWAY VS NETWORK ADDRESS.
+                -------------------------------------------
+Default Gateway :
+    - Purpose: Used by a device (Device A) to communicate with devices outside its own subnet. If Device A wants to send data to another device that is not within the same subnet, it sends the data to the default gateway. The default gateway then forwards the data to the appropriate destination.
+
+    - Typically its assigned to the first usable IP Address in a subnet... (network ip plus 1)
+
+Network Address :
+    Purpose: The network address is primarily used by networking equipment (like routers and switches) to determine the subnet to which an IP address belongs. It helps the device (and networking equipment) know if a destination IP address is within the same subnet or a different one.
+
+
+HOW IT WORKS.
+-------------------
+
+    Device-Level Determination:
+        When Device A wants to send data to another device, it checks the destination IP address against its own subnet.
+        It does this by using its own IP address and subnet mask to determine its network address.
+        It then compares the network address of the destination IP to see if it is within the same subnet.
+
+    Same Subnet Communication:
+        If the destination IP address is within the same subnet, Device A sends the data directly to the destination device.
+        The network address helps Device A and networking equipment identify that both devices are on the same subnet.
+
+    Different Subnet Communication:
+        If the destination IP address is in a different subnet, Device A sends the data to the default gateway.
+        The default gateway routes the data to the correct destination outside the local subnet.
+
+
+
+                    BROADCAST ADDRESS.   
                 -------------------------
 - If we set all bits in the host part of the IPv4 address to 1, we get the broadcast address.
 
@@ -76,7 +108,7 @@ Bits 	            /8 	        /16 	    /24 	   /32
 
 Hosts 	                IPv4
 Network Address 	192.168.12.128
-First Host 	        192.168.12.129
+First Host 	        192.168.12.129 (convectionally the default gateway.)
 Other Hosts 	        ...
 Last Host 	        192.168.12.190
 Broadcast Address 	192.168.12.191
@@ -120,11 +152,11 @@ Hosts 	Math 	Subnets 	Host range for each subnet
 - So we know how big each subnet will be.
 - From now on, we start from the network address given to us (192.168.12.128) and add the 16 hosts 4 times:
 
-Subnet No. 	Network Address 	First Host 	Last Host 	Broadcast Address 	CIDR
-1 	192.168.12.128 	192.168.12.129 	192.168.12.142 	192.168.12.143 	192.168.12.128/28
-2 	192.168.12.144 	192.168.12.145 	192.168.12.158 	192.168.12.159 	192.168.12.144/28
-3 	192.168.12.160 	192.168.12.161 	192.168.12.174 	192.168.12.175 	192.168.12.160/28
-4 	192.168.12.176 	192.168.12.177 	192.168.12.190 	192.168.12.191 	192.168.12.176/
+Subnet No. 	Network Address 	First Host 	    Last Host 	    Broadcast Address 	CIDR
+1 	        192.168.12.128 	    192.168.12.129 	192.168.12.142 	192.168.12.143 	    192.168.12.128/28
+2 	        192.168.12.144 	    192.168.12.145 	192.168.12.158 	192.168.12.159 	    192.168.12.144/28
+3 	        192.168.12.160 	    192.168.12.161 	192.168.12.174 	192.168.12.175 	    192.168.12.160/28
+4 	        192.168.12.176 	    192.168.12.177 	192.168.12.190 	192.168.12.191 	    192.168.12.176/
 
 
                 MENTAL SUBNETTING.
@@ -165,8 +197,38 @@ Remainder 	Number 	Exponential Form 	Division Form
 
 
 
+                                QUIZES.
+                            ----------------
+1) Split the network 10.200.20.0/27 into 4 subnets and submit the network address and broadcast address of the 3rd and 2nd subnet as the answer respectively.
+    ANSWER.
+-------------
+for 4 subnets = 2 ^ 2.
+so the cidr is 27 + 2 = /29
 
+the network and broadcast of 10.200.20.0/27 were.
+    network = 10.200.20.0
+    broadcast = 10.200.20.31
 
+    meaning available ips were = 30.
+
+so for the 10.200.20.0/29 :
+    30 / 4 = 7
+
+    1st subnet.
+    10.200.20.0 = network ip.
+    10.200.20.7 = broadcast ip.
+
+    2nd subnet.
+    10.200.20.8 = network ip.
+    10.200.20.15 = broadcast ip.
+
+    3rd subnet.
+    10.200.20.16 = network ip.
+    10.2000.20.23 = broadcast ip.
+
+    4th subnet.
+    10.200.20.24 = network ip.
+    10.200.20.31 = broadcast ip.
 
 
 

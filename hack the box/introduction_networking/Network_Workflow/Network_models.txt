@@ -73,6 +73,7 @@ For eg, ICMP (Internet Control Message Protocol) or UDP (User Datagram Protocol)
 - After that, the application finally uses the data.
 - This process continues until all data has been sent and received.
 
+
                                                     | PACKET TRANSFER.  |
                                                     ----------------------
                             
