@@ -1,0 +1,82 @@
+                                    USING CMOS / PASS.
+                                =========================
+    Resetting BIOS Password and Settings
+    ---------------------------------------
+                    Difference Between CLR_CMOS and PASS/PSWD Jumpers
+                    ---------------------------------------------------
+> CLR_CMOS: Used to reset all BIOS settings to their defaults, including passwords.
+> PASS/PSWD: Specifically used to reset or bypass the BIOS password without affecting other BIOS settings.
+
+    Steps to Reset Using Jumpers
+------------------------------------
+                Using CLR_CMOS Jumper   
+            -----------------------------
+> Power Off: Turn off your computer and unplug it from the power source.
+> Locate CLR_CMOS Jumper: Find the jumper labeled "CLR_CMOS" on your motherboard.
+> Move the Jumper:
+    > Three-pin Jumper: Move the jumper from the default position (usually pins 1 and 2) to the reset position (pins 2 and 3).
+    > Two-pin Jumper: Place a jumper cap on both pins to short them.
+
+> Wait: Leave the jumper in the reset position for about 10 seconds.
+> Restore Jumper: Move the jumper back to the default position.
+> Power On: Plug in the computer and turn it on. The BIOS settings, including the password, should be reset to default.
+
+                Using PASS/PSWD Jumper
+            -------------------------------
+    Power Off: Turn off your computer and unplug it from the power source.
+    Locate PASS/PSWD Jumper: Find the jumper labeled "PASS" or "PSWD" on your motherboard.
+    Move the Jumper:
+        Three-pin Jumper: Move the jumper from the default position (usually pins 1 and 2) to the reset position (pins 2 and 3).
+        Two-pin Jumper: Place a jumper cap on both pins to short them.
+    Wait: Leave the jumper in the reset position for about 10 seconds.
+    Restore Jumper: Move the jumper back to the default position.
+    Power On: Plug in the computer and turn it on. The BIOS password should be reset or bypassed, but other BIOS settings will remain unchanged.
+
+Using a Dedicated CMOS Reset Button
+
+    Power Off: Turn off your computer and unplug it from the power source.
+    Locate the Button: Find the button labeled "CMOS," "CLR_CMOS," or similar.
+    Press and Hold: Press and hold the button for 5-10 seconds.
+    Release and Wait: Release the button and wait a few seconds.
+    Power On: Plug in the computer and turn it on. The BIOS should be reset to default settings, including any passwords.
+
+Removing the CMOS Battery
+
+    Power Off: Turn off your computer and unplug it from the power source.
+    Locate the CMOS Battery: Find the CMOS battery on your motherboard (a small, round, silver battery).
+    Remove the Battery: Gently remove the battery from its socket.
+    Wait: Leave the battery out for about 5-10 minutes to ensure the CMOS memory is cleared.
+    Reinsert the Battery: Put the battery back into its socket.
+    Power On: Plug in the computer and turn it on. The BIOS settings, including the password, should be reset to default.
+
+Summary of Procedures
+Two-pin Jumper
+
+    Power off and unplug the PC.
+    Place a jumper cap on both pins to short them.
+    Wait for about 10 seconds.
+    Remove the jumper cap.
+    Power on the PC to reset the BIOS settings or password.
+
+Three-pin Jumper
+
+    Power off and unplug the PC.
+    Move the jumper from the default position (pins 1 and 2) to the reset position (pins 2 and 3).
+    Wait for about 10 seconds.
+    Move the jumper back to the default position (pins 1 and 2).
+    Power on the PC to reset the BIOS settings or password.
+
+CMOS Reset Button
+
+    Power off and unplug the PC.
+    Press and hold the CMOS reset button for 5-10 seconds.
+    Release the button and wait a few seconds.
+    Power on the PC to reset the BIOS settings, including any passwords.
+
+Removing the CMOS Battery
+
+    Power off and unplug the PC.
+    Remove the CMOS battery.
+    Wait for 5-10 minutes.
+    Reinsert the CMOS battery.
+    Power on the PC to reset the BIOS settings, including any passwords.

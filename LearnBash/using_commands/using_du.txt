@@ -7,3 +7,10 @@
         EG.
             du -h <filename> --> du -h data
                 
+    2) to get the size of all the contents of a folder we use:
+        EG.
+            du -sh <directory_name> --> du -sh data/
+
+    3) to get the size of all subdirectories we use:
+        EG.
+            du -ah <directory_name> --> du -ah data/
