@@ -1,0 +1,56 @@
+                                START SLEEP.
+                            ====================
+- Is a powershell cmdlet that pauses the execution of a script for a specified period of time.
+
+
+                SYNTAX.
+            -----------------
+EG.
+    Start-Sleep [-Seconds] <Double>
+    Start-Sleep [-Milliseconds] <Int32>
+
+
+                PARAMETERS.
+            ------------------
+> -seconds: 
+    - Specifies the number of seconds to pause the script.
+
+> -Milliseconds:
+    - Specifies the number of milliseconds to pause the script
+
+
+                    EXAMPLES.
+                -----------------
+1) Pausing for a Few Seconds
+    - Pause the script for 5 seconds:
+        EG.
+            Start-Sleep -Seconds 5
+
+
+2) Pausing for a Fraction of a Second
+    - Pause the script for 500 milliseconds (0.5 seconds):
+        EG.
+            Start-Sleep -Milliseconds 500
+
+
+3) Using in a Loop
+    - Introduce a delay between iterations of a loop:
+        EG.
+            for ($i = 1; $i -le 5; $i++) {
+                Write-Output "Iteration $i"
+                Start-Sleep -Seconds 2
+            }
+
+                - This will output the iteration number and pause for 2 seconds between each iteration.
+                - Combining with Other Cmdlets
+
+
+4) Use Start-Sleep to wait before performing another action, such as checking for a process:
+    EG.
+        while (-not (Get-Process -Name notepad -ErrorAction SilentlyContinue)) {
+            Write-Output "Waiting for Notepad to start..."
+            Start-Sleep -Seconds 5
+        }
+        Write-Output "Notepad is running!"
+
+            - This script checks if Notepad is running every 5 seconds and outputs a message when it starts.

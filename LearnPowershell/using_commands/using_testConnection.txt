@@ -1,0 +1,86 @@
+                            TEST CONNECTION.
+                        =======================
+- It is used to test network connectivity between your computer and another device .
+- it is similar to ping command but more functionality and flexibility.
+
+
+                BASIC USAGE.
+            -----------------
+EG.
+    Test-Connection [-ComputerName] <String[]> [-Count <Int32>] [-Delay <Int32>] [-Source <String[]>] [-Quiet] [<CommonParameters>]
+
+
+            COMMON PARAMETERS AND VARIANTS.
+        -------------------------------------
+> ComputerName.
+    - Specifies the target computer or device.
+    - This can be a hostname, IP address, or a fully qualified domain name (FQDN).
+
+> Count.
+    - Specifies the number of echo requests to send (default is 4).
+
+> Delay.    
+    - Specifies the interval between echo requests in seconds.
+
+> Source.
+    - Specifies the source address from which the test connection is sent.
+    - This is useful in multi-homed environments where a machine has multiple network interfaces.
+    
+> Quiet.
+    - If specified, returns a boolean value indicating success or failure rather than detaileld output.
+
+
+            EXAMPLES.
+        ---------------
+1) Basic ping.
+    - Ping a single computer or device.
+        EG.
+            Test-Connection -ComputerName google.com
+
+                - This will send 4 echo requests to `google.com`
+
+
+2) Specifying the number of echo requests.
+    - Ping a computer with a specified number of echo requests.
+        EG.
+            Test-Connection -ComputerName google.com -Count 10
+
+                - This will send 10 echo requests to `google.com`.
+
+
+3) Continuous Ping with delay.
+    - Ping a computer continuously with a delay between each request.
+        EG.
+            while ($true) {
+                Test-Connection -ComputerName google.com -Count 1 -Delay 5
+            }
+
+                - This sends a single echo request every 5 seconds to `google.com` until you stop the script.
+
+
+4) Ping Multiple Computers.
+    - Ping multiple Computers at once.
+        EG.
+            Test-connection -ComputerName google.com, microsoft.com, yahoo.com 
+
+                 - This sends 4 echo requests to each specified computer and displays the results.
+
+
+5) Using quiet mode.
+    - Check if a computer is reachable, returning only a boolean value.
+        EG.
+            if (Test-Connection -ComputerName google.com -Quiet) {
+                Write-Host "google.com is reachable."
+            } else {
+                Write-Host "google.com is not reachable."
+            }
+
+                - This will output a message indicating whether `google.com` is reachable.
+
+
+6) Using Source Parameter.
+    - specify theh source address for the echo request.
+        EG.
+            Test-Connection -ComputerName google.com -Source "192.168.1.2"
+
+                - This sends the echo request from the specified source IP address `192.168.1.2`.
