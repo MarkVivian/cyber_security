@@ -1,0 +1,31 @@
+                                MKDIR
+                            ==============
+- mkdir is a command-line utility used to create a new directory(folders).
+
+        BASIC USAGE.
+    --------------------
+- the basic layout. 
+    EG.
+        mkdir directory_name.
+
+            - this will create a directory named directory_name in your current working directory.
+
+
+- Creating multiple directories.
+    EG.
+        mkdir directory1 directory2 directory3.
+
+
+- Creating directories with paths.
+    EG.
+        mkdir /home/user/new_directory.
+
+            - will create a directory in the /home/user called new_directory if the path exists else error.
+
+
+- The -p option.
+    EG.
+        mkdir /home/user/new_directory.
+
+            - will create the directory and also the paths if it doesn't exists.
+            - this means home, /home/user and /home/user/new_directory will be created if they don't exist.

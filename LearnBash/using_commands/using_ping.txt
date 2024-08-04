@@ -1,0 +1,71 @@
+                                PING
+                            ==========
+- It is used to test the reachability of a host on an IP network and measure the round-trip time for messages sent from the originating host to a destination computer.
+
+
+                BASIC USAGE.
+            ------------------
+EG.
+    ping [hostName or IP Address]
+    
+
+                COMMON OPTIONS.
+            -----------------------
+> `-c count` :
+    - Stop after sending (and receiving) `count` packets.
+
+> `-i interval` :
+    - Wait `interval` seconds betweeen sending each packet. The default is 1 second.
+
+> -W timeout : 
+    - Time to wait for a response, in seconds.
+
+> -s packetsize : 
+    -  Specify the number of data bytes to be sent.
+
+> -t ttl : 
+    - Set the IP Time to Live.
+
+> -q :  
+    - Quiet output. Only displays the summary of the ping results.
+
+> -v : 
+    - Verbose output. Provides more detailed information.
+
+
+                    EXAMPLE
+                ----------------
+1) Ping with a specific count.
+    - Ping a host and stop after sending 4 packets.
+        EG.
+            ping -c 4 google.com
+
+
+2) Ping with a specific Interval.
+    - Ping a host with a 2 second interval between packets.
+        EG.
+            ping -i 2 google.com 
+
+
+3) Ping with a timeout.
+    - Ping a host with a 5 second timeout for each packet.
+        EG.
+            ping -W 5 google.com 
+
+
+4) Quiet Ping.
+    - Ping a host quietly and only show the summary.
+        EG.
+            ping -c 4 -q google.com 
+
+
+5) ping with packet size.
+    - Send ping packets with a specified size of 100 bytes.
+        EG.
+            ping -s 100 google.com 
+
+
+6) Ping with Time to Live.
+    - Send ping packets with a TTL of 10.
+        EG.
+            ping -t 10 google.com 

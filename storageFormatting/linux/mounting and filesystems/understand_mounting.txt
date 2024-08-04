@@ -29,8 +29,8 @@ MOUNTING A DEVICE
         - Use lsblk or fdisk -l to list all block devices and their partitions.
             EG.
                 sudo lsblk
+                    OR
                 sudo fdisk -l
-
 
     2. Create a Mount Point:
         - Choose or create a directory where you want to mount the device.
@@ -44,7 +44,6 @@ MOUNTING A DEVICE
                 sudo mount /dev/sdXn /mnt/mydevice
 
                     - Replace /dev/sdXn with the appropriate device identifier (e.g., /dev/sda1).
-
 
     4. Access the Mounted Filesystem:
         - Once mounted, you can access the files on the device through the mount point directory.

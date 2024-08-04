@@ -1,0 +1,44 @@
+                            /DEV/NULL.
+                        =================
+- /dev/null and 2>&1 are used to manage input/output redirection and handle error messages.
+- it discards all data written to it. Also referred to as `null device` or `bit bucket`.
+- It is used to suppress unwanted output.
+
+
+                REDIRECTION OPERATORS.
+            ----------------------------
+`>` : Redirects the standard output (stdout) to a file or another location.
+`2>` : Redirects the standard error (stderr) to a file or another location.
+`&>` : Redirects both stdout and stderr to a file or another location (in some shell like `bash`).
+`>>` : Appends the standard output to a file.
+
+
+                EXAMPLES.
+            ----------------
+1) Suppressing all output.
+    - If you want to suppress all output (both stdout and stderr), you can redirect both to /dev/null.
+        EG.
+            command > /dev/null 2>&1
+
+                command : The command you are running.
+                > /dev/null : Redirects stdout to `/dev/null` (discards standard output).
+                2>&1 : Redirects stderr to stdout (which is /dev/null).
+
+
+2) Suppressing only error messages.
+    - If you only want to suppress error messages and not standard output.
+        EG.
+            command 2 > /dev/null
+
+                - This command redirects stderr to /dev/null, discarding only the error messages.
+
+
+3) Redirecting both stdout and stderr to a file.
+    - If you want to capture both stdout and stderr in a file.
+        EG.
+            command > output.log 2>&1
+
+                - This command redirects stdout and stderr to `output.log`.
+
+
+                
