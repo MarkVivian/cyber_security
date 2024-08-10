@@ -1,0 +1,85 @@
+                            SET
+                        ===============
+- The set command in batch scripting is used to create, modify, and display environment variables.
+    EG.
+        Setting a Variable
+        ------------------------
+            @echo off
+            set myVar=Hello, World!
+            echo %myVar%
+            pause
+
+                set myVar=Hello, World! :  creates a variable myVar with the value "Hello, World!".
+                echo %myVar% : prints the value of myVar.
+
+
+        Displaying All Environment Variables
+        --------------------------------------
+            @echo off
+            set
+            pause
+
+                - set without any parameters displays all environment variables and their values.
+
+
+        Arithmetic Operations
+        ---------------------------
+            Performing Calculations
+            -----------------------------
+                @echo off
+                set /a sum=5+3
+                set /a product=5*3
+                set /a difference=5-3
+                set /a quotient=15/3
+                echo Sum: %sum%
+                echo Product: %product%
+                echo Difference: %difference%
+                echo Quotient: %quotient%
+                pause
+
+                    - set /a performs arithmetic operations.
+                    - The result of the operations is stored in the specified variables.
+
+
+        Substring Extraction
+        ----------------------
+            Extracting Substrings
+            ------------------------
+                @echo off
+                set myVar=Hello, World!
+                echo %myVar:~0,5%
+                echo %myVar:~7,5%
+                pause
+
+                    %myVar:~0,5% extracts the first 5 characters ("Hello").
+                    %myVar:~7,5% extracts 5 characters starting from the 8th character ("World").
+
+
+        Replacing Substrings
+        ---------------------
+            Replacing Parts of Strings
+            ----------------------
+                @echo off
+                set myVar=Hello, World!
+                echo %myVar:World=Batch Scripting%
+                pause
+
+                    %myVar:World=Batch Scripting% replaces "World" with "Batch Scripting".
+
+
+        Delayed Variable Expansion
+        ----------------------------
+            Using Delayed Expansion
+            ----------------------------
+                @echo off
+                setlocal enabledelayedexpansion
+                set myVar=10
+                for /l %%i in (1,1,5) do (
+                    set /a myVar=!myVar!+1
+                    echo !myVar!
+                )
+                endlocal
+                pause
+
+                    setlocal enabledelayedexpansion enables delayed expansion.
+                    !myVar! is used to get the updated value inside the loop.

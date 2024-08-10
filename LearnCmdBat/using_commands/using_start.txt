@@ -1,0 +1,126 @@
+                        START
+                    ===================
+- The start command is used to run programs or commands in a new window or to open files with their associated programs.
+    EG.
+        Running Notepad
+        --------------------
+            @echo off
+            start notepad.exe
+            echo Notepad started.
+            pause
+
+                - start notepad.exe opens Notepad.
+
+
+        Opening a File with Default Program
+        -------------------------------------
+            @echo off
+            start example.txt
+            echo Text file opened.
+            pause
+
+                - start example.txt opens the file example.txt with the default text editor.
+
+
+        Running Programs with Arguments
+        -------------------------------------
+            @echo off
+            start notepad.exe example.txt
+            echo Notepad opened with example.txt.
+            pause
+
+                start notepad.exe example.txt opens Notepad and loads example.txt.
+
+
+        Running Commands in a New Command Prompt
+        -----------------------------------------
+            Opening a New Command Prompt
+            -------------------------------
+                @echo off
+                start cmd.exe /k "echo Hello from new window & pause"
+                echo New command prompt started.
+                pause
+
+                    - start cmd.exe /k "commands" opens a new command prompt and executes the specified commands.
+                    - pause ensures the new window stays open until a key is pressed.
+
+
+        Running Programs Minimally or Maximally
+        -------------------------------------------
+            @echo off
+            start /min notepad.exe
+            start /max notepad.exe
+            pause
+
+                - start /min notepad.exe opens Notepad minimized.
+                - start /max notepad.exe opens Notepad maximized.
+
+
+        Waiting for a Process to Complete
+        -----------------------------------
+            @echo off
+            start /wait notepad.exe
+            echo Notepad closed, continuing script.
+            pause
+
+                start /wait notepad.exe waits for Notepad to close before continuing with the script.
+
+
+        Opening PowerShell or Command Prompt as Administrator
+        -------------------------------------------------------
+            OPENING POWERSHELL AS ADMINISTRATOR.
+            --------------------------------------
+                @echo off
+                echo Running PowerShell as Administrator...
+                powershell -Command "Start-Process PowerShell -Verb RunAs"
+                pause
+
+                    powershell -Command "Start-Process PowerShell -Verb RunAs" runs PowerShell as an administrator.
+
+
+            Opening Command Prompt as Administrator
+            -----------------------------------------
+                @echo off
+                echo Running Command Prompt as Administrator...
+                powershell -Command "Start-Process cmd -Verb RunAs"
+                pause
+
+                    powershell -Command "Start-Process cmd -Verb RunAs" runs Command Prompt as an administrator.
+
+
+        Passing Commands to an Opened PowerShell or Command Prompt
+        -----------------------------------------------------------
+            Passing Commands to PowerShell
+            ----------------------------------
+                @echo off
+                powershell -Command "Start-Process PowerShell -ArgumentList '-NoExit -Command \"echo Hello from PowerShell\"' -Verb RunAs"
+                pause
+
+                    powershell -Command "Start-Process PowerShell -ArgumentList '-NoExit -Command \"echo Hello from PowerShell\"' -Verb RunAs" opens PowerShell as an administrator and runs the echo Hello from PowerShell command.
+
+            
+            passing Multiple Commands to PowerShell
+            -----------------------------------------
+                @echo off
+                powershell -Command "Start-Process PowerShell -ArgumentList '-NoExit -Command \"echo Hello from PowerShell; Get-Process; pause\"' -Verb RunAs"
+                pause
+
+                    - Separate multiple commands with a semicolon (;).
+
+
+            Passing a Single Command to Command Prompt
+            --------------------------------------------
+                @echo off
+                powershell -Command "Start-Process cmd -ArgumentList '/k echo Hello from Command Prompt' -Verb RunAs"
+                pause
+
+                    powershell -Command "Start-Process cmd -ArgumentList '/k echo Hello from Command Prompt' -Verb RunAs" opens Command Prompt as an administrator and runs the echo Hello from Command Prompt command.
+
+
+            Passing Multiple Commands to Command Prompt
+            --------------------------------------------------
+                @echo off
+                powershell -Command "Start-Process cmd -ArgumentList '/k echo Hello from Command Prompt && dir && pause' -Verb RunAs"
+                pause
+
+                    Separate multiple commands with && (logical AND).

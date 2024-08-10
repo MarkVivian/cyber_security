@@ -1,0 +1,21 @@
+                            LABELS AND GOTO STATEMENTS.
+                        =====================================
+Labels (`:label`)
+--------------------------------
+- Labels are used to mark positions in the script where execution can jump to using the goto statement.
+- A label is defined by starting a line with a colon followed by the label name, like :loop.
+    EG.
+        @echo off
+        set /a count=0
+
+        :loop
+        echo Count is %count%
+        set /a count+=1
+        if %count% LSS 5 goto loop
+
+        echo Loop has ended.
+        pause
+
+            :loop - marks theh beginning of a loop.
+            goto loop - sends execution back to the :loop label.
+
