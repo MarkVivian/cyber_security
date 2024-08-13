@@ -1,0 +1,91 @@
+                            PASSWD.
+                        ===============
+-The passwd command in Linux is used to change user passwords. It allows users to set or update their own passwords, and administrators can set or update passwords for other users.
+
+
+            DIFFERENCE BETWEEN /SHADOW AND /PASSWD.
+        ============================================
+- The /etc/passwd and /etc/shadow files are both critical for user account management in Linux, but they serve different purposes:
+
+        /etc/passwd
+    --------------------
+- Purpose: Contains basic user account information.
+- Structure: Each line represents a user and is formatted as follows:
+    EG.
+        username:x:UID:GID:comment:home_directory:shell
+
+            username: User's login name.
+            x: Placeholder for the password field (passwords are stored in /etc/shadow for security).
+            UID: User ID.
+            GID: Group ID (primary group).
+            comment: Additional information (often used for the user's full name).
+            home_directory: Path to the user's home directory.
+            shell: The user's default shell.
+
+                EG.
+                    mark:x:1001:1001:Mark User,,,:/home/mark:/bin/bash
+
+
+        /etc/shadow
+    -------------------
+- Purpose: Contains hashed passwords and additional account information related to authentication.
+- Structure: Each line corresponds to a user and is formatted as follows:
+    EG.
+        username:hashed_password:last_change:min_age:max_age:warning:inactive:expire
+
+            username: User's login name.
+            hashed_password: The hashed password (or a special character like ! or * indicating the account is locked).
+            last_change: Last password change date (in days since January 1, 1970).
+            min_age: Minimum number of days between password changes.
+            max_age: Maximum number of days before a password must be changed.
+            warning: Number of days before password expiration to warn the user.
+            inactive: Number of days after password expiration until the account is disabled.
+            expire: Date when the account expires.
+
+                EG.
+                    mark:$6$abc123$...:18000:0:99999:7:::
+
+
+            USAGE
+        ---------------
+1) Locking an account 
+    EG.
+        sudo passwd -l username --> sudo passwd -l hacker 
+
+            - This action disables the user’s ability to log in by modifying the user’s password entry to a locked state. 
+            -Effect : The user's account is locked, so they cannot log in. If the user tries to log in, they will be denied access. However, they are not logged out if they are currently logged in.
+
+            - You can unlock a users account.
+                EG.
+                    sudo passwd -u [username] --> sudo passwd -u steve 
+
+                        - The -u (unlock) option re-enables a previously locked user account, allowing the user to log in again.
+                        
+
+2) Changing your own password.
+    EG.
+        passwd 
+
+
+3) Changing another user's password.
+    EG.
+        sudo passwd [username] --> sudo passwd mark 
+
+
+4) Setting a password Expiry date.
+    EG.
+        sudo passwd -x [days] [username] --> sudo passwd -x 30 steve 
+
+            - he -x option sets the maximum number of days the password is valid before expiration.
+            - After this period, the user will be required to change their password.
+
+
+5) Forcing a user to change password on next login.
+    EG.
+        sudo passwd -e [username] --> sudo passwd -e steve 
+
+            - The -e option forces the user to change their password the next time they log in.
+
+
+
+

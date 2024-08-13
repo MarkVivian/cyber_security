@@ -40,11 +40,27 @@
                         OR                     
         sudo su
             AND
-        which shutdown                      # if the command requires sudo, go into root then use which.
+        which shutdown ------> # if the command requires sudo, go into root then use which.
 
             -then add the command path to the visudo:
                 EG.
                     mark ALL=(ALL) NOPASSWD: /usr/bin/nmap
+
+                        - if you still can't use the command after you have added the path to visudo ..
+                            1) make sure the path is accessible by the user by typing.
+                                EG.
+                                    echo $PATH 
+
+                                        - if it doesn't exist then add it and remove it from visudo since the path was the issue.
+
+                            2) For better understanding.. before adding a script to the visudo .
+                                > make sure you don't need sudo just because the path of the command your running is not present in the default mode .
+
+                                > if the command is asking for sudo access then you should use visudo on the command itself
+                                
+                    - for multiple commands.
+                        EG.
+                            username ALL=(ALL) NOPASSWD: /sbin/shutdown, /usr/bin/nmap
 
 
 - Disabling password requirement for all commands.
@@ -54,4 +70,7 @@
             - allows the user mark to run any command as any user without entering a password.
 
 
-- 
+- Allow a group to run a specific command without `sudo`.
+    EG. 
+        %developers ALL=(ALL) NOPASSWD: /usr/bin/nmap
+        

@@ -91,8 +91,44 @@ the `s` bit in permissions stands for special permissions:
                 chmod +t directory.
 
 
+                    USER MANAGEMENT.
+                ======================
+- To create a new user.
+    EG.
+        sudo adduser username --> sudo adduser steve.
 
-                ADDING USER TO A GROUP
+
+- To change the password of a user or give password to a user.
+    EG.
+        sudo passwd username --> sudo passwd steve 
+
+        - All this is possible because the sudo allows us to be in root.
+        - the root acts as admin thus allowing us to change all this.
+        - if you don't want a user to have this access then you can remove sudo group from the username.
+            EG.
+                sudo gpasswd -d steve sudo.
+
+
+- To remove a user.
+    EG.
+        sudo deluser username --> sudo deluser steve 
+
+
+- To remove the home directory so that its hard to find.
+    EG.
+        sudo deluser --remove-home steve 
+
+            - you can also create a user without the home directory.
+                EG.
+                    sudo useradd -M hacker
+
+
+- Checking all the users on a machine.
+    EG.
+        cut -d: -f1 /etc/passwd    
+
+
+                USERS AND GROUPS
             =============================
 - To add the current user to a group, use the `usermod` command:
     EG.
@@ -102,9 +138,57 @@ the `s` bit in permissions stands for special permissions:
                 EG.
                     sudo usermod -aG developers john.
 
+            - if you want to make the user steve to become root 
+                EG.
+                    sudo usermod -aG root steve 
+
+
+- To remove a user from a group , use the gpasswd .
+    EG.
+        sudo gpasswd -d username groupname 
+
+            - for example, to remove the user steve from sudo.
+                EG.
+                    sudo gpasswd -d steve sudo 
+
+                        - this action will disallow the user steve from being able to use sudo and its relative commands.
+
+
+- To get all the groups available on your system.
+    EG.
+        getent group 
+            OR 
+        cat /etc/group 
+
 
 - To get the members in a group we use:
     EG.
-        getent group groupname  --> getent group mark.
+        getent group groupname  --> getent group sudo.
 
-        
+
+- To check all the group a user is in.
+    EG.
+        groups username.  ----> groups mark                         
+
+            - if you want to check all the groups the current logged in user is a member of: 
+                EG.
+                    groups 
+                      OR 
+                    id 
+
+
+            Manual Removal of a User
+        -----------------------------------
+1. Removing a User from /etc/passwd
+    - Impact: If you remove a user entry from /etc/passwd, the system no longer recognizes that user. They cannot log in, and their home directory and files might become inaccessible (if not removed). However, if the corresponding entry still exists in /etc/shadow, some parts of the system might still retain certain information about the user.
+        EG.
+            sudo sed -i '/markv/d' /etc/passwd
+
+    - What Happens: The user markv will no longer have any valid login information, and they will be unable to access the system. If their entry is removed from /etc/passwd, but still exists in /etc/shadow, you might encounter inconsistencies or errors related to authentication.
+
+2. Removing a User from /etc/shadow
+    - Impact: Removing a user from /etc/shadow removes their password and related authentication information. If the entry is removed while the user entry still exists in /etc/passwd, the user will have no valid password and will not be able to authenticate using the password.
+        EG.
+            sudo sed -i '/markv/d' /etc/shadow
+
+    - What Happens: The user markv will have no valid password and cannot log in using a password. If their entry is removed from /etc/shadow but still exists in /etc/passwd, their account will appear to exist, but they cannot access it because there’s no valid authentication method.

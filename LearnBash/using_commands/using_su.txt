@@ -1,0 +1,54 @@
+                                SU 
+                            ========
+- The su command (short for "substitute user" or "switch user") is used to switch to another user account in a Unix-like operating system.
+
+
+            USAGE
+        -----------------
+1) switch between users in a machine.
+    EG.
+        sudo su username --> sudo su steve 
+
+            - You'll be prompted for steve's password.
+            - Once authenticated you will be switched to steve's user environment.
+
+
+2) Switching to root user.
+    EG.
+        su 
+
+            - you will be prompted for the root password.
+            - After authentication, you will have root privileges.
+
+
+3) Switching with `-` option.
+    EG.
+        # to switch to user `steve` with steve's environment.
+        su - steve 
+
+            - The - option (or --login) simulates a full login as the specified user.
+            - It starts a new login shell with the environment variables and settings of that user.
+            - It also changes to the user’s home directory.
+
+
+4) Switching to Root with full login.
+    EG.
+        su -
+
+            - This will give you the root user’s environment, which includes root’s home directory and environment variables.
+
+
+5) Running a command as another user.
+    EG.
+        su -c 'command' [username] 
+            EG.
+                 # To list the contents of Steve’s home directory.
+                 su -c 'ls /home/steve' steve 
+
+                    - The -c option allows you to run a specific command as the specified user without starting a full login shell.
+
+        - switching to root and running a command.
+            EG.
+                su -c 'apt update'
+
+                    - This runs the apt update command as root without starting an interactive root shell.
