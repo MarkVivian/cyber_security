@@ -1,0 +1,44 @@
+                                        UPOWER
+                                    ==============
+- This is a powerful command-line utility in Linux for monitoring power sources like batteries. 
+
+
+            USAGE.
+        -----------------
+1) List all the power devices.
+    - To see all the devices managed by `power`.
+        EG.
+            upower -e
+
+                - This command lists all power sources, including batteries, AC adapters, and other related devices. 
+                    EG.
+                        /org/freedesktop/UPower/devices/line_power_AC
+                        /org/freedesktop/UPower/devices/battery_BAT0
+
+
+2) Get detailed information about the device.
+    - To get detailed information about a specific device, use the -i option followed by the device path. 
+        EG.
+            upower -i /org/freedesktop/UPower/devices/battery_BAT0
+                    OR
+            upower -i $(upower -e | grep BAT)
+
+
+3) Monitor battery status in real-time.
+    - You can watch the battery status in real-time by running:
+        EG. 
+            watch -n 5 upower -i $(upower -e | grep BAT)
+
+
+4) Summary of all power sources.
+    EG.
+        upower -d
+
+
+5) Understanding battery health.
+    - Battery health can be estimated by comparing the `energy-full` with the `energy-full-design`.
+        EG.
+            upower -i $(upower -e | grep BAT) | grep "energy-full"
+            upower -i $(upower -e | grep BAT) | grep "energy-full-design"
+
+        
