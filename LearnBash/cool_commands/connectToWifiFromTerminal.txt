@@ -56,3 +56,8 @@
 - viewing connected Wifi networks.
 	EG.
 		nmcli connection show --active
+
+
+- a qr code of the connected wifi.
+	EG.
+		nmcli dev wifi show
