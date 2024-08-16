@@ -1,0 +1,92 @@
+                                        RANDOM
+                                    ================
+- this is a utility that generates a random interger between 0 and 32767.
+
+        BASIC USAGE.
+    -------------------
+EG.
+    echo $RANDOM 
+
+        - every time you access $RANDOM, it returns a new random number.
+
+
+                USAGES.
+            -------------
+1) Generate a random number within a specific range.
+    EG.
+        random_number=$(( (RANDOM % 100) + 1 ))
+        echo "Random number between 1 and 100: $random_number"
+
+            - `RANDOM % 100` generates a number between 0 and 99
+            - Adding `1` shifts the range to 1-100.
+
+
+2) Generate a random number between Two Values.
+    EG.
+        MIN=50
+        MAX=150
+        random_number=$(( RANDOM % (MAX - MIN + 1) + MIN ))
+        echo "Random number between $MIN and $MAX: $random_number"
+
+            - `(MAX - MIN + 1 )` calculates the range size.
+            - Adding `MIN` shifts the range to the desired minimum.
+
+
+3) Generate multiple random numbers.
+    EG.
+        for i in {1..5}; do
+            random_number=$(( RANDOM % 100 + 1 ))
+            echo "Random number $i: $random_number"
+        done
+
+            - The loop runs 5 times, generating and printing a random number between 1 and 100 each time.
+
+
+4) Random Selection from a List
+    EG.
+        choices=("apple" "banana" "cherry" "date" "elderberry")
+        random_choice=${choices[$RANDOM % ${#choices[@]}]}
+        echo "Random fruit: $random_choice"
+
+            - ${#choices[@]} gives the number of items in the choices array.
+            - $RANDOM % ${#choices[@]} ensures the index is within the bounds of the array.
+
+
+6. Seeding $RANDOM for Reproducibility
+    EG
+        RANDOM=42
+        for i in {1..5}; do
+        echo $RANDOM
+        done
+
+            - Setting $RANDOM to a specific value (like 42) seeds the generator.
+            - The sequence of numbers will be the same each time this code is run with the same seed.
+
+
+7. Random Delay Example
+    EG.
+        delay=$(( RANDOM % 10 + 1 ))
+        echo "Sleeping for $delay seconds..."
+        sleep $delay
+        echo "Done!"
+
+            - sleep $delay pauses the script for a random number of seconds between 1 and 10.
+
+
+8. Generating Random File Names
+    EG.
+        temp_file="tempfile_$RANDOM.txt"
+        echo "Creating a temporary file named $temp_file"
+        touch $temp_file
+
+            - $RANDOM is appended to tempfile_ to create a unique file name.
+
+
+9. Random Password Generation
+    EG.
+        password=$(echo $RANDOM | md5sum | head -c 8)
+        echo "Generated password: $password"
+
+            - md5sum generates an MD5 hash of the random number.
+            - head -c 8 truncates the hash to the first 8 characters.
+            

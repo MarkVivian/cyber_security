@@ -37,6 +37,11 @@
         chown newuser:newgroup filename
 
 
+- To change for multiple files in a folder. 
+    EG.
+        chown newuser:newgroup folder -R 
+
+
                 PERMISSIONS 
             =================
 -Permissions determine who can read, write or execute the file:
