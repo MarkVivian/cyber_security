@@ -19,3 +19,56 @@ we can also get context :
         grep -A 2 -B 2 "error" system.log
 
             - This will print the line with "error" and two lines before and after it.
+
+
+Ignore case with `-i`:
+    EG.
+        grep -i "hello" file.txt
+
+            - This searches for "hello" in `file.txt`, ignoring case.
+
+
+Count matches with `-c`:
+    EG.
+        grep -c "hello" file.txt
+
+            - This counts the number of lines containing "Hello" in file.txt.
+
+
+Show line numbers with `-n`:
+    EG.
+        grep -n "Hello" file.txt
+
+            - This displays matching lines along with their line numbers.
+
+
+Recursive search with `-r`:
+    EG.
+        grep -r "Hello" /path/to/directory
+
+            - This searches for Hello in all files within the specified directory and its subdirectories.
+
+
+quiet or silent mode `-q`:
+    EG.
+        grep -q "pattern" file.txt
+        if [ $? -eq 0 ]; then
+            echo "Pattern found."
+        else
+            echo "Pattern not found."
+        fi
+
+            - This option tells grep not to output anything to the terminal, even if it finds a match.
+            - Instead of printing the matching lines, grep -q returns a status code (stored in $?):
+                - 0 if a match is found.
+                - 1 if no match is found.
+
+
+fixed string search.
+    EG.
+        echo "hello world" | grep -F "hello"
+
+            - This option tells grep to treat the pattern as a fixed string rather than a regular expression.
+            - It’s faster when you’re searching for simple strings that don’t involve regex.
+
+

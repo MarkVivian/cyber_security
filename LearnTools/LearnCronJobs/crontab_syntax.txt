@@ -70,3 +70,4 @@ f) run multiple commands.
 - We can check the status of cron using:
     EG.
         systemctl status cron
+

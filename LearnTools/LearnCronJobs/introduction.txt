@@ -17,6 +17,22 @@
         crontab -r
 
 
+- Specify a different User's crontab: `crontab -u user`
+    EG.
+        crontab -u username -l
+
+            - This lists the crontab for the specified user.
+            - You need to have the appropriate permissions to view or modify another user’s crontab.
+
+- load a crontab from standard input(stdin).
+    EG.
+        (crontab -l 2>/dev/null; echo "@reboot bash ~/Documents/Scripts/bash/background_switcher.sh") | crontab -
+
+            - crontab -l 2>/dev/null: Lists current cron jobs, or outputs nothing if there are no cron jobs.
+            - echo "@reboot bash ~/Documents/Scripts/bash/background_switcher.sh": Adds a new cron job.
+            - | crontab -: Takes the combined output (existing cron jobs + new job) and installs it as the new crontab.
+
+
                 CRON JOBS
             =================
 - Cron jobs are scheduled tasks on Unix-like operating systems that run automatically at specified intervals.

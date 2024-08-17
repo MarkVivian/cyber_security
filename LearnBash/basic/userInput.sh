@@ -39,6 +39,19 @@ echo "the value is $value"
 # $1, $2, ...: The first, second, etc., positional parameters.
 # $@: All positional parameters as separate words.
 # $*: All positional parameters as a single word.
+# $?: The exit status of the most recent command.
+    # Exit status values.
+        # 0: Successful execution.
+        # 1- 255: The command failed. The exact value can vary depending on the command.
+        # Example 1: Successful command
+        ls
+        echo $?  # Outputs 0 if `ls` was successful
+
+        # Example 2: Failed command
+        ls nonexistentfile
+        echo $?  # Outputs a non-zero value (e.g., 2) because `ls` failed
+
+
 
 # Check if at least one argument is provided
 if [ "$#" -lt 1 ]; then
