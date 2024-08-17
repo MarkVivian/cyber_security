@@ -129,6 +129,16 @@ else
     fi
 fi
 
+# check if the current user is root.
+#   - The root user has an EUID of 0. You can use $EUID to check if a script is being run as root.
+if [ "$EUID" -ne 0 ]; then
+    echo "Please run as root"
+    exit
+fi
+    # "$EUID" -ne 0 checks if the EUID is not equal to 0 (not root).
+    # If the user is not root, it prints a message and exits.
+
+
 # ************************* FOR LOOP ****************************
 for (( i=0; i<5; i++)); do
     echo "iteration : $i"

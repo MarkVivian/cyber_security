@@ -1,1 +1,0 @@
-to check who has run the script either sudo , or a specific owner etc

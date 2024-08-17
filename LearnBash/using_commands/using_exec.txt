@@ -1,0 +1,108 @@
+                                    EXEC
+                                ==========
+- The exec command in Linux is used to replace the current shell process with a different command or script. 
+- When you use exec, the command you specify takes over the current shell process, and no new process is created.
+- This can be particularly useful in scripts for various purposes, such as optimizing resource usage, controlling script behavior, or ensuring a process runs directly without spawning additional shells.
+
+
+                BASIC USAGE.
+            -----------------
+EG.
+    exec command [arguments]
+
+        - This replaces the current shell with the specified command.
+
+
+            USAGE.
+        -------------
+1. Using `exec` to Replace the shell with another command.
+    EG.
+        exec ls
+
+            - if you use exec to run ls, the shell will be replaced with the ls command, and when ls completes, the terminal session will end because the shell has been replaced.
+            - After the executing `ls`, there's no shell left to return to, so your terminal session will close.
+
+
+2. Using `exec` in Scripts.
+    EG.
+        #!/bin/bash
+
+        # Some initial setup
+        echo "Starting script"
+
+        # Replace the script with another command
+        exec echo "This is the only command that will run"
+
+            - After exec runs the echo command, the script is replaced by that echo command. Any further commands in the script are not executed because the shell running the script is replaced by the echo process.
+
+
+3. Using `exec` to Redirect File Descriptors.
+    - exec can also be used to redirect file descriptors. For example, you can use it to redirect standard input, output, or error:
+        EG. ----> (REDIRECTING STANDARD OUTPUT)
+            #!/bin/bash
+
+            # Redirect standard output to a file
+            exec > output.log
+
+            # Now all output goes to the file instead of the terminal
+            echo "This will go to output.log"
+            ls
+
+                - In this script, all output is redirected to output.log after the exec > output.log line.
+                - The echo and ls commands’ output will be saved in output.log.
+
+        EG. --------> (REDIRECTING STANDARD ERROR)
+            #!/bin/bash
+
+            # Redirect standard error to a file
+            exec 2> error.log
+
+            # This error message will be written to error.log
+            ls non_existent_file
+                
+                - In this script, any errors that occur after the exec 2> error.log command will be written to error.log.
+
+
+4. Using `exec` to open and close file descriptors
+    EG. ---------> (Opening a file descriptor)
+        #!/bin/bash
+
+        # Open file descriptor 3 for writing to a file
+        exec 3> myfile.txt
+
+        # Write to file descriptor 3
+        echo "Hello, world!" >&3
+
+        # Close file descriptor 3
+        exec 3>&-
+
+            - In this script, file descriptor 3 is opened for writing to myfile.txt.
+            - The echo command writes to file descriptor 3, which sends the output to myfile.txt, and then the file descriptor is closed.
+
+
+5. Using `exec` to replace the shell with a script
+    - If you use exec to run a script, the current shell will be replaced by the script, similar to how it works with commands:
+    - Suppose you have a script newscript.sh:
+        EG.      
+            #!/bin/bash
+            echo "This is the new script"
+
+    -You can use exec to replace your current shell with this script:
+        EG.
+           exec ./newscript.sh
+
+    - When you run this command, the current shell will be replaced by newscript.sh, and when newscript.sh finishes, the terminal session will end.
+
+
+6. Using `exec` to Run a command with different environment variables.
+    - exec can be used to replace the shell with a command that runs under different environment variables:
+        EG.
+            #!/bin/bash
+
+            # Set an environment variable
+            export VAR="Hello"
+
+            # Replace shell with a command that uses the environment variable
+            exec bash -c 'echo $VAR'
+            
+                - In this script, exec replaces the current shell with a new shell (bash -c), and runs the echo command under the environment variable VAR.

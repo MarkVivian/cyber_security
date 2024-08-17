@@ -1,0 +1,93 @@
+                                TEE.
+                            ============
+- The tee command in Linux is used to read from standard input and write to both standard output and one or more files simultaneously.
+- It's useful when you want to view the output of a command while also saving it to a file.
+
+
+                        USAGE.
+                    ------------
+1. Basic Usage of tee
+    EG.
+        command | tee [options] file_name
+
+            - This command reads the output of command, displays it on the terminal (standard output), and writes it to file_name.
+                EG.
+                    echo "Hello, World!" | tee output.txt
+
+                        - This command will display:
+                            EG.
+                                Hello, World!
+
+                                    - And it will also write "Hello, World!" to the file output.txt.
+
+
+2. Writing to Multiple Files
+    - You can use tee to write to multiple files simultaneously by specifying more than one file name.
+        EG.
+            echo "Hello, again!" | tee file1.txt file2.txt
+
+                - This command will display "Hello, again!" on the terminal and write it to both file1.txt and file2.txt.
+
+
+3. Appending to Files
+    - By default, tee overwrites the content of the files. If you want to append to the files instead of overwriting them, use the -a option.
+        EG.
+            echo "Appending this line" | tee -a output.txt
+
+                - This command appends "Appending this line" to the output.txt file instead of overwriting it.
+
+
+4. Combining tee with Other Commands
+    - You can use tee with other commands in pipelines to save the output at different stages.
+        EG.----> (Saving Intermediate Output)
+            - Suppose you want to list the contents of a directory, sort them, and save the sorted list to a file while also displaying it on the terminal:
+            
+            ls -l | tee unsorted.txt | sort | tee sorted.txt
+
+                ls -l lists the directory contents and sends them to tee.
+                tee unsorted.txt saves the unsorted output to unsorted.txt and passes it to sort.
+                sort sorts the output and passes it to another tee.
+                tee sorted.txt saves the sorted output to sorted.txt.
+
+
+5. Using tee to Log Command Output and Errors
+    - You can capture both standard output and standard error using tee along with file descriptor redirection.
+        EG: Logging Output and Errors
+            { ls -l; invalid_command; } 2>&1 | tee logfile.txt
+
+                { ls -l; invalid_command; } runs both a valid and an invalid command.
+                2>&1 redirects standard error (file descriptor 2) to standard output (file descriptor 1), so both are captured by tee.
+                tee logfile.txt saves everything to logfile.txt while displaying it on the terminal.
+
+
+6. Silent Mode with tee -s
+    - The -s or --silent option suppresses the output to the terminal, meaning the output is only written to the file(s).
+        EG.
+            echo "This will not show on terminal" | tee -s output.txt
+
+                - In this case, nothing will be displayed on the terminal, but "This will not show on terminal" will be written to output.txt.
+
+
+7. Combining tee with sudo
+    - Sometimes, you need to write to files that require elevated privileges, and you can use sudo with tee to do this.
+        EG
+            echo "New config setting" | sudo tee -a /etc/someconfig.conf
+
+                - This command appends "New config setting" to /etc/someconfig.conf, a file that requires sudo privileges.
+
+
+8. Using tee with Scripts
+    - You can also use tee within scripts to log outputs or handle multiple output streams.
+        EG.-----> ( Script Logging with tee)
+            #!/bin/bash
+
+            # A script to log output
+            echo "Starting script" | tee script.log
+            echo "Running some commands..." | tee -a script.log
+            ls -l | tee -a script.log
+            echo "Script finished" | tee -a script.log
+
+                - In this script, all output is logged to script.log while also being displayed on the terminal.
+
+
+                
