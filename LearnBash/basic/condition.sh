@@ -35,6 +35,17 @@
 # -lt : Less than
 # -ge : Greater than or equal to
 # -le : Less than or equal to
+# ^[0-9]+$ : check if a value is a digit
+
+# Check if both are integers
+after=10
+wantedBy="hello world"
+if ! [[ "$after" =~ ^[0-9]+$ ]] || ! [[ "$wantedBy" =~ ^[0-9]+$ ]]; then
+    echo "Error: Both after and wantedBy must be integers."
+    exit 1
+else
+    echo "both are numbers"
+fi
 
 # ****************** SINGLE BRACKETS AND DOUBLE BRACKETS.***********************
 # For simple checks like file existence or basic string comparisons, single brackets suffice.

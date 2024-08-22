@@ -1,0 +1,75 @@
+                                            SED.
+                                        ==========
+- This is a powerful stream editor that reads input, applies specified edits, and writes the results to standard output.
+
+
+            BASIC SYNTAX.
+        -------------------
+    EG.
+        sed [options] 'command' input_file.
+                OR
+        echo "content" | sed [options] 'command'
+
+            - options : optional flags to modify sed's behaviour.
+            - commands : The editing command to apply.
+            - input_file : The file to process. If ommitted , sed reads from standard input.
+                
+                -n: Suppresses automatic printing of pattern space.
+                -e: Allows multiple editing commands on one line.
+                -i: Edits the input file in-place (use with caution).
+
+
+            USAGE.
+        --------------
+1. Substitution (s).
+    EG. -------> Replace "old" with "new" in a file.
+        sed 's/old/new/g' input_file
+
+            - The g flag replaces all occurrences on a line.
+            - Syntax : s/pattern/replacement/flags 
+            - Flags : g (global), i (ignore case), n (newline)
+
+
+2. Deletion (d)
+    EG. -----> Delete lines containing "error".
+        sed '/error/d' input_file 
+
+            - syntax : /word/d 
+
+
+3. Adding lines (a)
+    EG.-----> Add a line after lines matching "pattern".
+        sed '/pattern/a\This is a new line' input_file
+
+            - Syntax: /pattern/a\text 
+            - Append text after the current line.
+
+
+4. Inserting Lines (i)
+    EG. --------> insert a line before lines matching "pattern".
+        sed '/pattern/i\this is a new line' input_file.
+
+            - syntax : /pattern/i\text.
+            - inserts text before the current line. 
+
+
+5. Changing Lines (c)   
+    EG.----------> Replace all lines with "new content"
+        sed 'c\new content' input_file.
+
+            - Syntax: c\text
+            - Replaces the current line with text.
+
+
+6. Printing Lines (p)
+    EG.------------> Print lines containing "match"
+        sed -n '/match/p' input_file
+
+
+7. Address Ranges.
+    EG. --------> Delete lines from line 3 to line 5.
+        sed '3,5d' input_file 
+
+            - start_line,end_line: Applies the command to lines from start_line to end_line.
+            - /pattern1/,/pattern2/: Applies the command to lines from the first occurrence of pattern1 to the first occurrence of pattern2.
+

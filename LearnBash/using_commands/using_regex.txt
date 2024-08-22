@@ -1,0 +1,31 @@
+                                REGULAR EXPRESSION (REGEX)
+                            ==================================
+- This are powerful tool for pattern matching and text manipuulation.
+- They provide a concise and flexible way to describe and search for text pattern within strings.
+
+
+                PATTERN BREAKDOWN.
+            -------------------------
+- Lets take ^[0-7*]$
+
+    ^ : Matches the beginning of the string.
+    [0-7*] : matches any single character from the set: 0,1,2,3,4,5,6,7 or the asterisk (*).
+    $ : Matches the end of the string.
+
+    - The ^[0-7*]$ pattern specifically checks if a string:
+        - starts with a character from 0 to 7.
+        - Contains any number of characters from 0 to 7 or asterisks in between.
+        - Ends with a character from 0 to 7.
+
+
+- Lets take ^[0-9]+$
+
+    ^: matches the beginning of the string.
+    [0-9]: matches any single digit from 0 to 9.
+    + : matches one or more occurrences of the preceding element ([0-9]).
+    $ : matches the end of the string.
+
+    - The ^[0-9]+$ pattern effectively checks if a string:
+        - Starts with a digit.
+        - Contains one or more digits.
+        - Ends with a digit.

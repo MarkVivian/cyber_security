@@ -125,6 +125,24 @@
             - Displays log entries with a priority of "error" or higher. Priorities range from emerg (0) to debug (7).
 
 
+7. Delete old logs of a service.
+    EG.
+        sudo journalctl --vacuum-files=1 --unit=service_name
+
+            - This will remove older logs, leaving only the most recent file. 
+            
+8. If you want to clear all the logs:
+    EG.
+        sudo journalctl --rotate
+        sudo journalctl --vacuum-time=1s
+
+            - This will rotate the current logs (moving them to a new file) and then vacuum (remove) logs older than 1 second.
+
+
+9. Deleting all the logs of a service.
+    EG.
+        sudo journalctl --unit=service_name --vacuum-time=1s
+
 
                 EXAMPLE SERVICE CONFIGURATION.
             =======================================
@@ -135,6 +153,7 @@ After=network.target
 [Service]
 ExecStart=/usr/bin/my-script.sh
 Restart=on-failure
+Environment="USER=mark"
 
 [Install]
 WantedBy=multi-user.target
@@ -148,6 +167,7 @@ WantedBy=multi-user.target
     > Defines how the service runs. 
     > ExecStart specifies the command to start the service, 
     > Restart configures the service to restart on failure.
+    > Environment defines a variable.
 
 [Install]: 
     > Specifies how the service should be installed in the system. 
