@@ -1,0 +1,102 @@
+                            HEAD AND TAIL.
+                        =====================
+            TAIL.
+        -----------
+- The head command is used to display the beginning of a file. By default, it shows the first 10 lines of the file.
+
+            Basic Syntax:
+        -------------------------
+EG.
+    head [options] [file...]
+
+  
+        Examples:
+    ------------------
+> Show the First 10 Lines of a File:
+    EG.
+        head filename.txt
+
+            - This command displays the first 10 lines of filename.txt.
+
+
+> Show a Specific Number of Lines:
+    EG.
+        head -n 20 filename.txt
+
+            - To display a different number of lines, use the -n option:
+            -  This shows the first 20 lines of filename.txt.
+
+
+> Show the First Few Bytes:
+    EG.
+        head -c 50 filename.txt
+
+            - You can also display a specific number of bytes using the -c option:
+            - This shows the first 50 bytes of filename.txt.
+
+
+> Read from Standard Input:
+    EG.
+        echo -e "line1\nline2\nline3\nline4\nline5" | head -n 3
+
+            - This shows the first 3 lines of the piped input.
+            - You can use head to read from standard input (e.g., piped data):
+
+
+            TAIL.
+        ------------
+- The tail command is used to display the end of a file. By default, it shows the last 10 lines of the file.
+
+        Basic Syntax:
+    ----------------------
+EG.
+    tail [options] [file...]
+
+        Examples:
+    ---------------
+- Show the Last 10 Lines of a File:
+    EG.
+        tail filename.txt
+
+            > This displays the last 10 lines of filename.txt.
+
+
+- Show a Specific Number of Lines:
+    EG.
+        tail -n 20 filename.txt
+
+            > Use the -n option to specify the number of lines:
+            > This shows the last 20 lines of filename.txt.
+
+
+- Show the Last Few Bytes:
+    EG.
+        tail -c 50 filename.txt
+
+            > This shows the last 50 bytes of filename.txt.
+            > To display a specific number of bytes, use the -c option:
+
+
+- Follow a File in Real Time:
+    EG
+        tail -f /var/log/syslog
+
+            > The -f option allows you to follow a file in real-time, which is useful for monitoring log files:
+            > This shows new lines added to /var/log/syslog as they are written.
+
+
+- Follow Multiple Files:
+    EG.
+        tail -f file1.log file2.log
+
+            > This will display updates from both file1.log and file2.log.
+            > You can follow multiple files at once:
+
+
+- Using head and tail Together
+    EG
+        head -n 20 filename.txt | tail -n 10
+
+            > You can use head and tail together to view specific sections of a file. For example, to view lines 11 to 20 of a file:
+            > head -n 20 filename.txt extracts the first 20 lines.
+            > tail -n 10 then extracts the last 10 lines from the output of head, giving you lines 11 to 20.
