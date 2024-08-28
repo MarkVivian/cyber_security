@@ -24,14 +24,36 @@ To add colors, you use ANSI escape codes.
 
 
             > Available Colors
-                Text Colors: 30 (Black), 31 (Red), 32 (Green), 33 (Yellow), 34 (Blue), 35 (Magenta), 36 (Cyan), 37 (White).
-                Background Colors: 40 (Black), 41 (Red), 42 (Green), 43 (Yellow), 44 (Blue), 45 (Magenta), 46 (Cyan), 47 (White).
+                Text Colors: 
+                    30 (Black),
+                    31 (Red),
+                    32 (Green),
+                    33 (Yellow),
+                    34 (Blue),
+                    35 (Magenta),
+                    36 (Cyan), 
+                    37 (White).
+                    0 Default(Reset)
 
-                    EG.
-                        echo -e "\e[31mError: Operation failed!\e[0m"  # Red text
-                        echo -e "\e[33mWarning: Disk space low!\e[0m"  # Yellow text
-                        echo -e "\e[32mSuccess: Operation completed!\e[0m"  # Green text
+                        EG.
+                            echo -e "\e[31mError: Operation failed!\e[0m"  # Red text
+                            echo -e "\e[33mWarning: Disk space low!\e[0m"  # Yellow text
+                            echo -e "\e[32mSuccess: Operation completed!\e[0m"  # Green text
 
+
+            > Background Colors:
+                    40 (Black), 
+                    41 (Red), 
+                    42 (Green), 
+                    43 (Yellow), 
+                    44 (Blue), 
+                    45 (Magenta), 
+                    46 (Cyan), 
+                    47 (White).
+
+                        EG.
+                            echo -e "\e[31;43mWarning!\e[0m" # To print "Warning!" with yellow text on a red background
+                            echo -e "\e[37;41mError: File not found!\e[0m" # This command will print "Error: File not found!" with white text on a red background.
 
             > Combining Colors and Formatting
                 You can combine colors and add formatting like new lines (\n), tabs (\t), and more.
