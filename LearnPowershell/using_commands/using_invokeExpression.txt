@@ -72,3 +72,12 @@ Invoke-Expression -Command "command string"
 
         # Display output
         $output | ForEach-Object { Write-Output $_ }
+
+
+7) Running multiple commands.
+    EG.
+        # Run the commands.
+        $cscript_command="cscript.exe `'$vbs_script`' /sethst:kms.03k.org"           
+        $cscript_activation="cscript.exe `'$vbs_script`' /act"
+            
+        $Output = Invoke-Expression -Command "$cscript_command; $cscript_activation" 2>&1

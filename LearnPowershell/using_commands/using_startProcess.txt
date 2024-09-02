@@ -93,6 +93,8 @@ Start-Process:
         Start-Process powershell.exe -Verb RunAs `
             -ArgumentList "-NoProfile -ExecutionPolicy $executionPolicy -File `"$scriptPath`" $scriptArguments"
 
+                 - The `"$scriptPath`" allows the script to be executed even with spaces in the path name. (usage of `"`").
+                 - If you have used double quotes use single quotes with the `.
 
             > Start-Process powershell.exe -Verb RunAs:
                 - Starts PowerShell with elevated permissions.
@@ -125,3 +127,26 @@ Start-Process:
             
             > ExecutionPolicy $executionPolicy:
                 - Ensures that the script runs under the specified execution policy.
+
+
+6. Run a command.
+
+    > Run command and wait for command to complete before continuing.
+        EG.
+            start-process Powershell -ArgumentList "-Command ""Write-Host 'hello world'""" -Wait
+            
+                - -Wait: Makes the script wait until the PowerShell process completes.
+
+    > Run command and stop powershell from closing after the command has completed
+        EG.
+            start-process powershell -ArgumentList "-NoExit",  "-Command ""Write-Host 'hello world'""" -Wait
+
+                -NoExit: Prevents the new PowerShell window from closing after running the command. 
+                - We must use 2 double quotes for the command as in before Write-Host so that the commadn is taken as is.
+
+    > Run multiple commands.
+        EG.
+            $cscript_command="cscript.exe `'$vbs_script`' /sethst:kms.03k.org"
+            $cscript_activation="cscript.exe `'$vbs_script`' /act"
+
+            Start-Process Powershell -Verb RunAs -ArgumentList "-Command $cscript_command; $cscript_activation" -Verbose -Wait 

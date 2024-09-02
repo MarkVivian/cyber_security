@@ -1,0 +1,20 @@
+                                        WINDOWS FILE TRANSFER METHODS.
+                                =========================================
+- The Windows operating system has evolved over the past few years, and new versions come with different utilities for file transfer operations. 
+- Understanding file transfer in Windows can help both attackers and defenders. 
+- Attackers can use various file transfer methods to operate and avoid being caught. 
+- Defenders can learn how these methods work to monitor and create the corresponding policies to avoid being compromised. 
+- Let's use the Microsoft Astaroth Attack blog post as an example of an advanced persistent threat (APT).
+
+- The blog post starts out talking about fileless threats. 
+- The term fileless suggests that a threat doesn't come in a file, they use legitimate tools built into a system to execute an attack. 
+- This doesn't mean that there's not a file transfer operation. 
+- As discussed later in this section, the file is not "present" on the system but runs in memory.
+
+- The Astaroth attack generally followed these steps: A malicious link in a spear-phishing email led to an LNK file. 
+- When double-clicked, the LNK file caused the execution of the WMIC tool with the "/Format" parameter, which allowed the download and execution of malicious JavaScript code. 
+- The JavaScript code, in turn, downloads payloads by abusing the Bitsadmin tool.
+
+- All the payloads were base64-encoded and decoded using the Certutil tool resulting in a few DLL files. 
+- The regsvr32 tool was then used to load one of the decoded DLLs, which decrypted and loaded other files until the final payload, Astaroth, was injected into the Userinit process. 
+- Below is a graphical depiction of the attack.
