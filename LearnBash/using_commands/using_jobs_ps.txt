@@ -1,0 +1,117 @@
+                        BACKGROUND PROCESSES (&)
+                    ===============================
+- You can use & to run a process in the background, allowing the terminal to be used for other tasks.
+
+             
+             BASIC USAGE.
+            -----------------
+    EG.
+        my_script.sh &
+
+            - his runs my_script.sh in the background.
+            - The terminal will immediately be available for other commands.
+            - You’ll get a job number and a process ID (PID) like this:
+                EG.
+                    [1] 12345
+
+                        > [1] is the job number.
+                        > 12345 is the process ID.(PID)
+
+
+1. viewing background jobs.
+    EG.
+        jobs
+
+            - This will show :
+                EG.
+                    [1]+  Running    ./my_script.sh &
+
+                        - The job number can be used to reference the job in other commands like fg, bg, and kill.
+
+
+2. Bringing jobs back to foreground.
+    EG.
+        fg %<job_number>
+
+            EG.
+                fg %1
+
+                    - This brings the job back to the foreground, where it will occupy the terminal until it finishes.
+
+
+3. Sending jobs to the background.
+    - If you want to send a running job to the background, you first suspend it using Ctrl + Z and then move it to the background with:
+        EG.
+            ctrl + z 
+                &
+            bg %<job_number>
+
+            
+4. Stop or kill a background job.
+    - To stop a job, you can suspend it with Ctrl + Z or send it a termination signal using kill:
+        EG.
+            kill %<job_number>
+
+            - To forcefully kill the job.
+                EG.
+                    kill -9 <PID>
+
+
+5. Redirect output.
+    - background processes may still write to your terminal. You can redirect their output to a file for better control.
+
+        > Standard Output (stdout) redirection.
+            EG.
+                ./my_script.sh > output.log &
+
+                    - This redirects the script’s output to output.log.
+
+        > Error output (stderr) redirection.
+            EG.
+                ./my_script.sh 2> error.log &
+
+                    - This sends only error output to error.log.
+
+        > Redirecting Both stdout and stderr:
+            EG.
+                ./my_script.sh > output.log 2>&1 &
+
+                    - This will redirect the output to a similar file.
+
+                ./my_script.sh > output.log 2> error.log &
+
+                    - This will redirect the output to different files.
+
+
+6. Displaying all background running processes, along with their PIDs.
+    EG.
+        ps aux 
+
+            - This will display info like.
+                EG.
+                    USER       PID   %CPU  %MEM   VSZ   RSS  TTY   STAT  START   TIME  COMMAND
+                    mark      1234   0.1    2.5   5552  2700 pts/1  S    10:32   0:00  ./my_script.sh
+
+            - If you know the process name , you can directly get the pid.
+                EG.
+                    pgrep my_script.sh
+
+            - Lists all processes owned by the specified user
+                EG.
+                    ps -u mark
+
+            - Shows processes running on a specific terminal.
+                EG.
+                    ps -t <tty>
+
+                        EG.
+                            ps -t pts/1
+
+            - Shows all processes running on the system.
+                EG.
+                    ps -e
+
+
+
+
+
