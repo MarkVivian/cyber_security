@@ -32,7 +32,9 @@
 # Check if File is a Directory:
 #   EG.
 #        Test-Path $directoryPath -PathType Container
-
+                # OR
+#       (Get-Item -Path $folder_name).PSIsContainer     
+   
 # Check if File is not a Directory:
 #   EG.
 #         Test-Path $filePath -PathType Leaf

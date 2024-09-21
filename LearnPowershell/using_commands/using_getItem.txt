@@ -1,0 +1,137 @@
+                            GET ITEM.
+                        ================
+- Get-Item is a versatile PowerShell cmdlet used to retrieve an item at a specified location.
+- It works with files, directories, registry keys, and other item types supported by PowerShell providers.
+
+
+                BASIC USE CASES.
+            =====================
+1. Basic syntax
+    EG.
+        Get-Item [-Path] <String[]> [-Credential <PSCredential>] [-Stream <String>] [<CommonParameters>]
+
+
+2. Retrieve a file.
+    - This command retrieves information about a file, such as its name, size, attributes, etc.
+        EG.
+            # Retrieves the file "example.txt" from the current directory
+            Get-Item -Path ".\example.txt"
+
+
+3. Retrieve a directory (folder)
+    - This retrieves information about a directory, such as its name, attributes, and whether it contains subitems.
+        EG.
+            # Retrieves the directory "Documents" from the user's home directory
+            Get-Item -Path "$HOME\Documents"
+
+
+4. Retrieve a registry key.
+    - You can use Get-Item to access registry keys, which can be thought of as special kinds of directories.
+        EG.
+            # Retrieves the registry key for the current version of PowerShell
+            Get-Item -Path "HKLM:\SOFTWARE\Microsoft\PowerShell\3\PowerShellEngine"
+
+
+5. Retrieve an Alias, Function, or Variable
+    - Get-Item can also retrieve PowerShell aliases, functions, and variables.
+        EG.
+            # Retrieves the alias for the "ls" command
+            Get-Item -Path Alias:ls
+
+            # Retrieves a built-in function, such as "Get-Help"
+            Get-Item -Path Function:Get-Help
+
+            # Retrieves the value of a variable, such as "PSHome"
+            Get-Item -Path Variable:PSHome
+
+
+6. Using Wildcards to Retrieve Multiple Items
+    - Get-Item can use wildcards, but note that it will not recurse into directories.
+    - It will only retrieve items that match the pattern at the specified location.
+        EG.
+            # Retrieves all .txt files in the current directory
+            Get-Item -Path ".\*.txt"
+
+
+7. Retrieving Items Using a Pipeline
+    - Get-Item can accept paths from the pipeline, making it useful for scripting.
+        EG.
+            # Retrieves multiple items passed from the pipeline
+            "example.txt", "sample.csv", "document.pdf" | Get-Item
+
+
+8. Retrieve a Stream from a File (Alternate Data Streams)
+    - Files can have alternate data streams (ADS). Get-Item can be used to access these streams.
+        EG.
+            # Create a file with an alternate data stream
+            Set-Content -Path ".\test.txt" -Value "Main stream data"
+            Set-Content -Path ".\test.txt:stream1" -Value "Alternate stream data"
+
+            # Retrieve the alternate data stream
+            Get-Item -Path ".\test.txt" -Stream "stream1"
+
+
+9. Working with Credentials
+    - You can use the -Credential parameter to specify a user account that has permission to access the item.
+        EG.
+            # Prompt for credentials and use them to get an item
+            $credential = Get-Credential
+            Get-Item -Path "\\server\share\file.txt" -Credential $credential
+
+
+10. Using the -Force Parameter
+    - The -Force parameter allows you to access hidden or system files and directories.
+        EG.
+            # Retrieve a hidden file
+            Get-Item -Path "C:\hiddenfile.txt" -Force
+
+
+11. Retrieving a Non-FileSystem Item
+    - Get-Item can retrieve items from various PowerShell providers, such as certificates or environment variables.
+        EG.
+            # Retrieves a certificate from the personal store
+            Get-Item -Path "Cert:\CurrentUser\My\{certificate-thumbprint}"
+
+            # Retrieves the "TEMP" environment variable
+            Get-Item -Path "Env:TEMP"
+
+
+        EXAMPLE IN CONTEXTS.
+    ============================
+1. Using Get-Item with Files and Directories
+    EG.
+        # Get the size and last write time of a file
+        $file = Get-Item -Path "C:\example.txt"
+        $file.Length         # Size in bytes
+        $file.LastWriteTime  # Last modification date
+
+        # Get the attributes of a directory
+        $directory = Get-Item -Path "C:\MyFolder"
+        $directory.Attributes
+
+
+2. Getting and Displaying Registry Values
+    EG.
+        # Get registry key properties and values
+        $registryKey = Get-Item -Path "HKCU:\Software\MyApp"
+        $registryKey.Property       # Lists all properties (values) in the key
+        $registryKey.GetValue("SettingName")  # Gets the value of a specific property
+
+3. Checking for Item Existence Before Retrieving
+    - It's often good practice to check if an item exists before attempting to retrieve it.
+        EG.
+            # Check if a file exists before getting it
+            $path = "C:\example.txt"
+            if (Test-Path $path) {
+                $item = Get-Item -Path $path
+                Write-Output "Item exists: $($item.FullName)"
+            } else {
+                Write-Output "Item does not exist."
+            }
+
+
+4. Combining Get-Item with Other Cmdlets
+    - Get-Item can be combined with other cmdlets for more complex operations.
+        EG.
+            # Get a list of files and then copy them to a new location
+            Get-Item -Path "C:\source\*.txt" | Copy-Item -Destination "C:\destination\"

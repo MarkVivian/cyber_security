@@ -1,0 +1,78 @@
+                            RESOLVE PATH.
+                        ====================
+- Resolve-Path is used to convert a path with wildcards or relative paths into an absolute, fully qualified path. 
+
+
+            SYNTAX
+        ============
+EG.
+    Resolve-Path [-Path] <String[]> [-Relative] [-Credential <PSCredential>] [-UseTransaction] [<CommonParameters>]
+
+
+            BASIC USES.
+        ====================
+1. Resolving a Relative Path to an Absolute Path
+    EG.
+        # Resolves the current directory (.) to its absolute path
+        Resolve-Path -Path "."
+
+            OUTPUT.
+                Path
+                ----
+                C:\Users\YourUsername\CurrentDirectory
+
+
+
+2. Resolving a path with wildcards.
+    EG.
+        # Resolves the wildcard path to absolute paths of matching items
+        Resolve-Path -Path "C:\Windows\System32\*.exe"
+
+            OUTPUT.
+                Path
+                ----
+                C:\Windows\System32\cmd.exe
+                C:\Windows\System32\notepad.exe
+                ...
+
+
+3. Resolving a Path to a File or Directory
+    EG.
+        # Resolves a path to a specific file or directory
+        Resolve-Path -Path "C:\Program Files"
+
+            OUTPUT.
+                Path
+                ----
+                C:\Program Files
+
+
+4.  Using -Relative Parameter
+    - If you want to get the relative path from a certain directory, you can use the -Relative parameter.
+        EG.
+            # Resolves the path relative to the current directory
+            Resolve-Path -Path "C:\Windows\System32\notepad.exe" -Relative
+
+                OUTPUT.
+                    ..\..\Windows\System32\notepad.exe
+
+
+5. Resolving Multiple Paths
+    - You can resolve multiple paths in one command by passing an array of paths.
+        EG.
+            # Resolves multiple paths in one go
+            Resolve-Path -Path "C:\Windows\*", "C:\Program Files\*"
+
+
+6. Resolving Symbolic Links
+    - Resolve-Path will resolve the actual target of symbolic links or junctions.
+        EG.
+            # Resolves the target of a symbolic link or junction
+            Resolve-Path -Path "C:\SymlinkFolder"
+
+
+7. Using with Environment Variables
+    - Resolve-Path can resolve paths with environment variables.
+        EG.
+            # Resolves a path with an environment variable
+            Resolve-Path -Path "$env:ProgramFiles\*" 

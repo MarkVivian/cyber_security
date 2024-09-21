@@ -1,0 +1,84 @@
+                            ENVIRONMENT VARIABLES.
+                        ==============================
+1. Accessing environment variables.
+    EG.
+        # List all environment variables
+        Get-ChildItem Env:
+
+        # Get a specific environment variable, e.g., PATH
+        $env:PATH
+
+        # Get a user-specific environment variable, e.g., TEMP
+        $env:TEMP
+
+    > Handling the path variables.
+        - Since the PATH variable is a semicolon-separated string of paths, managing it can be a bit tricky. Here are some useful techniques:
+            EG.
+                # Split the PATH variable into an array
+                $pathArray = $env:PATH -split ";"
+
+                # Check if a path is already in the PATH variable
+                $targetPath = "C:\NewPath"
+                $pathArray -contains $targetPath
+
+                # Remove a path from the PATH variable
+                $targetPath = "C:\NewPath"
+                $pathArray = $pathArray | Where-Object { $_ -ne $targetPath }
+                $env:PATH = $pathArray -join ";"
+
+                # Check if a path exists before adding it to avoid duplicates.
+                $targetPath = "C:\NewPath"
+                if (-not ($pathArray -contains $targetPath)) {
+                    $env:PATH += ";$targetPath"
+                }
+
+
+
+2. Modifying Environment variables.
+    i. Adding to the path variable.
+        EG.
+            # Add a new path to the end of the current user's PATH for the current session.
+            $env:PATH += ";C:\NewPath"
+
+            # Adding to the system PATH variable (requires admin privileges)
+            [System.Environment]::SetEnvironmentVariable("Path", $env:Path + ";C:\NewPath", [System.EnvironmentVariableTarget]::Machine)
+
+            # Adding to the user PATH variable
+            [System.Environment]::SetEnvironmentVariable("Path", $env:Path + ";C:\NewPath", [System.EnvironmentVariableTarget]::User)
+
+    ii. Adding / modifying a user Environment variable.
+        EG.
+            # Adding a user environment variable
+            [System.Environment]::SetEnvironmentVariable("MyVariable", "MyValue", [System.EnvironmentVariableTarget]::User)
+
+            # Modifying the user PATH variable
+            $oldUserPath = [System.Environment]::GetEnvironmentVariable("Path", [System.EnvironmentVariableTarget]::User)
+            $newUserPath = $oldUserPath + ";C:\NewUserPath"
+            [System.Environment]::SetEnvironmentVariable("Path", $newUserPath, [System.EnvironmentVariableTarget]::User)
+
+    iii. Adding/Modifying a System Environment Variable
+        EG.
+            # Adding a system environment variable
+            [System.Environment]::SetEnvironmentVariable("MySystemVariable", "MySystemValue", [System.EnvironmentVariableTarget]::Machine)
+
+            # Modifying the system PATH variable
+            $oldSystemPath = [System.Environment]::GetEnvironmentVariable("Path", [System.EnvironmentVariableTarget]::Machine)
+            $newSystemPath = $oldSystemPath + ";C:\NewSystemPath"
+            [System.Environment]::SetEnvironmentVariable("Path", $newSystemPath, [System.EnvironmentVariableTarget]::Machine)
+
+                    - Requires elevated privileges.
+
+
+3. Removing a system Environment variable
+    i. Removing a User Environment Variable 
+        EG.
+            # Removing a user environment variable
+            [System.Environment]::SetEnvironmentVariable("MyVariable", $null, [System.EnvironmentVariableTarget]::User)
+
+    ii. Removing a System Environment Variable
+        EG.
+            # Removing a system environment variable
+            [System.Environment]::SetEnvironmentVariable("MySystemVariable", $null, [System.EnvironmentVariableTarget]::Machine)
+
+                - Requires elevated privileges.
+

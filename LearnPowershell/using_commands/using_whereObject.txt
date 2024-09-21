@@ -14,6 +14,9 @@
 1) Filter processes by name
     EG.
         Get-Process | Where-Object {$_.Name -eq "notepad"}
+                OR
+        
+        Get-Process | Where-Object {$_.Name -match "notepad"} # if the name notepad is sorounded by other words eg. /files/notepad
 
             - This filters running processes and displays only those named "notepad" (case-insensitive).
             - The name should be exact for it to work.

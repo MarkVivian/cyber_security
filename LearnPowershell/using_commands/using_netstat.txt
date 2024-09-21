@@ -1,0 +1,46 @@
+                                NETSTAT.
+                            =============
+- This is a command-line utility that provides information about network connections, as well as statistics about incoming and outgoing packets.
+- It's invaluable for troubleshooting network issues, monitoring network activity, and understanding how applications are communicating.
+
+
+                    COMMON USES FOR NETSTAT.
+                ==============================
+1. Checking active connections.
+    EG.
+        netstat
+
+            - Displays a list of all active TCP and UDP connections.
+
+
+2. Viewing listening ports.
+    EG.
+        netstat -a
+
+            - Shows all listening TCP and UDP ports on your system.
+
+
+3. Display network statistics.
+    EG.
+        netstat -s
+
+            - Provides statistics about incoming and outgoing packets, including segments received, packets dropped, and retransmissions.
+
+
+4. Filter by protocols.
+    EG.
+        netstat -p tcp
+
+
+5. Filter by address.
+    EG.
+        netstat -f inet
+
+            - Filters connections based on the address family (e.g., IPv4, IPv6).
+
+
+6. Check for specific connections.
+    EG.
+        netstat -n | findstr 192.168.1.100
+
+            -  Searches for connections involving a specific IP address or port number.

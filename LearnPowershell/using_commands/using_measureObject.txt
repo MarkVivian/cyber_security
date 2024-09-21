@@ -1,0 +1,87 @@
+                            MEASURE OBJECT.
+                        ===================
+- Measure-Object is used to calculate properties of objects, such as counting the number of objects, summing, finding averages, and more.
+
+        SYNTAX.
+    =============
+    EG.
+        Measure-Object [[-Property] <String[]>] [-Sum] [-Minimum] [-Maximum] [-Average] [-StandardDeviation] [-Line] [-Character] [-Word] [-InputObject <PSObject>] [<CommonParameters>]
+
+
+            BASIC USAGE.
+        ==================
+1. Counting Objects in a Collection
+    EG.
+        # Counts the number of files in the current directory
+        Get-ChildItem | Measure-Object
+
+        OUTPUT.
+            Count    : 10
+
+
+2. Summing the size of files.
+    EG.
+        # Sums the sizes of all .txt files in a directory
+        Get-ChildItem -Path "C:\Files\*.txt" | Measure-Object -Property Length -Sum
+
+        OUTPUT.
+            Count    : 5
+            Sum      : 10240  # Total size in bytes
+
+
+3. Finding Minimum, Maximum, and Average Values
+    EG.
+        # Calculates min, max, and average file sizes
+        Get-ChildItem -Path "C:\Files\*.txt" | Measure-Object -Property Length -Minimum -Maximum -Average
+
+        OUTPUT.
+            Count    : 5
+            Average  : 2048
+            Sum      : 10240
+            Maximum  : 4096
+            Minimum  : 512
+
+
+4. Counting Lines, Words, and Characters in Text Files
+    EG.
+        # Counts lines, words, and characters in a text file
+        Get-Content -Path "C:\Files\example.txt" | Measure-Object -Line -Word -Character
+
+        OUTPUT.
+            Lines     : 50
+            Words     : 500
+            Characters: 2500
+
+
+5. Measuring the Length of Strings
+    - You can use Measure-Object to calculate the total length of strings in an array.
+        EG.
+            # Measures the total length of all strings in an array
+            @("PowerShell", "is", "awesome!") | Measure-Object -Property Length -Sum
+
+            OUTPUT.
+                Count    : 3
+                Sum      : 20
+
+
+6. Standard Deviation Calculation
+    - You can calculate the standard deviation of numeric properties.
+        EG.
+            # Calculates standard deviation of file sizes
+            Get-ChildItem -Path "C:\Files\*.txt" | Measure-Object -Property Length -StandardDeviation
+            OUTPUT.
+                Count              : 5
+                StandardDeviation  : 1414.2135623731
+
+
+3. Measure-Object with Grouping
+    - Measure-Object can be combined with other cmdlets like Group-Object to perform more complex calculations.
+        EG.
+            # Groups files by extension and measures the count and total size for each group
+            Get-ChildItem -Path "C:\Files\*" | Group-Object Extension | ForEach-Object {
+                [PSCustomObject]@{
+                    Extension = $_.Name
+                    Count     = $_.Count
+                    TotalSize = ($_.Group | Measure-Object -Property Length -Sum).Sum
+                }
+            }

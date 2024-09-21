@@ -4,8 +4,11 @@
 - to boot into safe mode press f8 when the pc is rebooting.
 - Click the command prompt option in the start-up settings .
 - move to the C:\Windows\System32
-- you do this by first typing C:
-- then cd Windows\System32
+	EG.
+		you do this by first typing C:
+			AND 
+ 		cd Windows\System32
+		
 - Then we rename the utilman.exe to utilman1.exe
 - Then we rename the cmd.exe to utilman.exe
 - this is done using :
