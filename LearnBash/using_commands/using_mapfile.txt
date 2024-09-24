@@ -1,0 +1,108 @@
+                        MAPFILE.
+                    ==============
+- mapfile is a built-in Bash command that reads lines from a file or standard input and stores them into an array.
+- It allows you to efficiently read data line-by-line and assign each line as an element in an array.
+- It's especially useful when processing the output of commands or files where you want to capture each line individually in an array.
+
+
+            SYNTAX.
+        ===============
+    EG.
+        mapfile [options] array
+
+
+            BASIC USAGE.
+        ==================
+1. read from a file.
+    - This example reads lines from a file into an array.
+        EG.
+            mapfile my_array < file.txt
+
+                > Each line from file.txt will be stored as an element in the my_array array.
+                > Accessing elements: ${my_array[0]}, ${my_array[1]}, etc.
+
+
+2. read from standard input.
+    - You can pipe output from another command into mapfile.
+        EG.
+            ls | mapfile files_array
+                
+                > The output of ls is read line by line and stored in files_array.
+                
+
+3. Specifying a delimeter.
+    - You can specify a different delimiter (by default, mapfile reads lines separated by newlines).
+        EG.
+            mapfile -d "," my_array < file.csv
+
+                > This will treat commas (,) as the delimiter and split the input into the array elements based on this.
+
+
+4. Options.
+    -t : Removes trailing newlines from each line in the input.
+        EG.
+            mapfile -t my_array < file.txt
+
+                > In this case, each line from file.txt is stored in my_array, but trailing newlines are removed.
+
+
+    -n count : Reads up to count lines.
+        EG.
+            mapfile -n 3 my_array < file.txt
+
+                > This reads the first 3 lines from file.txt and stores them in the array.
+
+
+    -s count : skips the first count lines.
+        EG.
+            mapfile -s 2 my_array < file.txt
+
+                > This will skip the first two lines of the input before starting to store the rest into the array.
+
+
+    -d delimeter : You can specify a different delimiter (by default, mapfile reads lines separated by newlines).
+        EG.
+            mapfile -d "," my_array < file.csv
+
+                > This will treat commas (,) as the delimiter and split the input into the array elements based on this.
+
+
+    -c callback : calls a specific callback function after reading each line.
+        EG.
+            my_callback() {
+                echo "Read: $1"
+            }
+
+            mapfile -C my_callback -c 1 my_array < file.txt
+
+                > After reading each line, the my_callback function is called with the line as an argument.
+
+
+5. Process command output into an array
+    - Capture the output of find into an array using mapfile:
+        EG.
+            mapfile -t files < <(find /etc/NetworkManager/system-connections -name "*.nmconnection")
+
+                > mapfile -t: Trims trailing newlines.
+                > files: Stores the list of found files.
+                > ${files[0]} accesses the first file, ${files[@]} lists all files.
+
+
+6. Reading user input into the array.
+    - Using mapfile to read user input from a prompt:
+        EG.
+            echo -e "Enter some values (Ctrl+D to finish):"
+            mapfile -t user_values
+
+                > After pressing Ctrl+D, all entered lines will be stored in the user_values array.
+
+
+7. using custom delimeters.
+    - Reading a CSV file with commas as delimiters:
+        EG.
+            mapfile -d "," -t csv_array < file.csv
+
+                > This reads the file and splits the lines by commas instead of newlines.
+
+
+

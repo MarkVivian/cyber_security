@@ -34,3 +34,6 @@ done < <(ls | grep c)
 echo "all the files" "${files[@]}" 
 echo "${files[0]}"
 
+
+#         USING DECLARE.
+#     =========================
