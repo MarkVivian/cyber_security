@@ -1,0 +1,55 @@
+                                        PACKAGE.
+                                    =================
+-  This cmdlet is part of the PackageManagement module in PowerShell.
+- It allows users to discover and manage software packages installed on the system mostry msi type.
+
+                
+                BASIC SYNTAX.
+            =======================
+EG.
+    Get-Package [-Name <String[]>] [-ProviderName <String>] [-RequiredVersion <String>] [-AllVersions] [<CommonParameters>]
+
+    > -Name: Specifies the name of the package(s) to retrieve. You can use wildcards (e.g., *).
+    > -ProviderName: Filters the results by specifying the package provider (e.g., NuGet, MSI).
+    > -RequiredVersion: Specifies a particular version of the package.
+    > -AllVersions: Retrieves all versions of the specified package.
+
+
+            USAGES.
+        ===============
+1. Listing all installed packages 
+    - This retrieves a list of all software packages installed on the system.
+        EG.
+            Get-Package
+
+
+2. Filtering installed packages by name.
+    - You can filter the list to find specific applications.
+        EG.
+            Get-Package -Name "*McAfee*"
+
+            - This will show all installed packages with "McAfee" in their name.
+
+
+3. Retrieving Detailed Information About a Specific Package:
+    - You can get more detailed information about a specific package, such as version, provider, and installation location.
+        EG.
+            Get-Package -Name "McAfee Security" | Format-List
+
+            - This displays a detailed list of properties for the specified package.
+
+
+4. Uninstalling a package.
+    - You can uninstall a package using the Uninstall-Package cmdlet along with Get-Package.
+        EG.
+            Get-Package -Name "*McAfee*" | Uninstall-Package -Force
+
+            - This will uninstall any package that matches the name pattern without confirmation.
+
+
+5. Checking for a specific version.
+    - If you want to see if a particular version of a package is installed:
+        EG.
+            Get-Package -Name "McAfee" -RequiredVersion "x.x.x"
+
+            - Replace "x.x.x" with the desired version number.

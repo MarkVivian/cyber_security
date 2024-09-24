@@ -96,6 +96,10 @@
 
 
 3. Creating and modifying keys and values.
+    - ou cannot create a new registry key directly inside the root of HKLM:\. 
+    - The structure of the registry does not allow new keys to be added at the root level (e.g., HKEY_LOCAL_MACHINE\).
+    - You can only create new keys inside existing subkeys (like HKLM:\SOFTWARE, HKLM:\SYSTEM, etc.).
+    
     > Creating a new registry key.
         - To create a new registry key (like creating a new folder in a directory), use the New-Item cmdlet.
             EG.
@@ -210,3 +214,4 @@
 3. Searching for a Registry Key or Value:
     EG.
         Get-ChildItem -Path "HKCU:\" -Recurse | Where-Object { $_.Name -match "SearchTerm" }
+

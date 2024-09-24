@@ -4,29 +4,75 @@
 - It's a versatile tool for customizing the output you see in the console or for further processing in your scripts.
 
 
-- Basic usage while selecting multiple properties.
+            BASIC SYNTAX.
+        =====================
+EG.
+    Select-Object [-Property] <Object[]> [-ExcludeProperty <String[]>] [-ExpandProperty <String>] [-First <Int32>] [-Last <Int32>] [-Unique]
+
+    -Property: Specifies the properties (or columns) to include in the output. You can specify one or more property names.
+    -ExcludeProperty: Specifies properties to exclude from the output.
+    -ExpandProperty: Expands a single property that contains objects, showing its contents directly.
+    -First: Limits the output to the first n objects.
+    -Last: Limits the output to the last n objects.
+    -Unique: Removes duplicates from the output, returning only unique values.
+
+
+                    USAGES.
+                =================
+1. selecting multiple specific properties.
     EG.
         Get-Process | Select-Object Name, Id
 
             - This command retrieves all running processes and displays only the Name and Id properties for each process using Select-Object.
 
 
-- wildcard characters.
+2. wildcard characters.
     EG.
         Get-Process | Select-Object Name, *Working*
 
             - This selects Name and all properties containing "Working" in their name (e.g., CPUWorkingSet, WorkingDirectory).
 
 
-- Excluding Properties.
+3. Excluding Properties.
     EG.
         Get-Process | Select-Object -ExcludeProperty Description
 
             - This selects all properties except Description for each process.
 
 
--  Format output 
+4. Format output 
     EG.
         Get-Process | Select-Object Name, CPU -Format Table
 
             - This displays Name and CPU properties of processes in a table format.
+
+
+5. Expand properties.
+    - If a property contains a nested object (like an array or object), you can expand it to show its contents directly using -ExpandProperty.
+        EG. 
+            Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" | Select-Object -ExpandProperty DisplayName
+
+            - This command will show just the DisplayName values (without extra metadata) for all software listed in the registry.
+
+
+6. Limit results.
+    - Sometimes you might not want all results, just the first or last few.
+        > First:    
+            EG.
+                Get-Process | Select-Object Name, CPU -First 5
+
+                - This will only show the first 5 processes with their names and CPU usage.
+
+        > LAST:
+            EG.
+                Get-Process | Select-Object Name, CPU -Last 5
+
+                - This will show the last 5 processes in the list.
+
+
+7. Get Unique values.
+    - If you're dealing with repeated values and want to see only unique entries, you can use -Unique.
+        EG.
+            Get-Process | Select-Object Name -Unique
+
+            - This will show the unique process names, removing duplicates.
