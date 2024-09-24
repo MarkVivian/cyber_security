@@ -7,19 +7,37 @@
     > and more.
 
 
-            COMMON USES.
-        ==================
+                    COMMON USES.
+                ==================
 1) Setting Exclusion paths
     - You can exclude specific paths, file extensions, and processes from being scanned by Windows Defender.
+    >> Set-MpPreference: This cmdlet sets the entire list of exclusions at once. 
+                         It will replace the existing exclusion list with the new one you provide. Use this when you want to set all exclusions in one go.
+
+    >> Add-MpPreference: This cmdlet is used to add items to the existing exclusions list without modifying other exclusions.
+                         If you have multiple exclusions and want to add more, use this cmdlet.
+                         
         EG.
             # Exclude a folder.
             Set-MpPreference -ExclusionPath "C:\MyFolder"
+            Add-MpPreference -ExclusionPath "C:\path\to\folder"
 
             # exclude a file extension.
-            Set-MpPreference -ExclusionExtension ".log"
+            Add-MpPreference -ExclusionExtension ".ps1"
 
             # exclude a process
-            Set-MpPreference -ExclusionProcess "notepad.exe"
+            Add-MpPreference -ExclusionProcess "processname.exe"
+
+            # exclude a specific file.
+            Add-MpPreference -ExclusionPath "C:\path\to\file.ps1"
+
+    - You can also remove a specific exclusion.
+        EG.
+            # Removing a folder exclusion.
+            Remove-MpPreference -ExclusionPath "C:\path\to\folder\"
+
+            # Remove an Extension Exclusion.
+            Remove-MpPreference -ExclusionExtension ".ps1"
 
 
 2) Configuring Real-Time Protection.
@@ -32,13 +50,19 @@
             Set-MpPreference -DisableRealtimeMonitoring $true
 
 
-3) Setting Cloud Protection levels.
-    EG.
-        # Enable Cloud Protection
-        Set-MpPreference -MAPSReporting Advanced
+3) Checking Current Preferences
+    - To check the current settings, you can use the Get-MpPreference cmdlet.
+        EG.
+            Get-MpPreference
 
-        # Disabled Cloud Protection
-        Set-MpPreference -MAPSReporting Disabled
+            # checking for exclusive paths.
+            Get-MpPreference | Select-Object -ExpandProperty ExclusionPath 
+
+            # checking for exclusive extension.
+            Get-MpPreference | Select-Object -ExpandProperty ExclusionExtension 
+
+            # checking for exclusion Process.
+            Get-MpPreference | Select-Object -ExpandProperty ExclusionProcess
 
 
 4) Disabling Windows Defender.
@@ -51,7 +75,25 @@
         Set-MpPreference -DisableIntrusionPreventionSystem $true
         Set-MpPreference -DisableScriptScanning $true
 
+            -DisableRealtimeMonitoring $true:
+                > This disables the real-time monitoring feature of Windows Defender, which means it will no longer actively scan files as they are accessed or modified.
 
+            -DisableBehaviorMonitoring $true:
+                > Turns off behavioral monitoring, which normally looks for suspicious behaviors associated with malware.
+
+            -DisableIOAVProtection $true:
+                > Disables the IOAV (Internet-based protection) feature that scans files downloaded from the internet for malware.
+
+            -DisablePrivacyMode $true:
+                > This disables privacy mode, which restricts certain types of data collection and reporting by Windows Defender.
+
+            -DisableIntrusionPreventionSystem $true:
+                > Disables the Network Intrusion Prevention System (IPS), which monitors network traffic for suspicious activity.
+
+            -DisableScriptScanning $true:
+                > This command disables script scanning, so Windows Defender will not scan for suspicious activity in scripts such as PowerShell, VBScript, etc.
+
+    
 5) Enabling PUA 
     - Potentially Unwanted Application (PUA) protection helps block potentially unwanted software.
         EG.
@@ -69,8 +111,48 @@
             Set-MpPreference -ScanScheduleDay Everyday -ScanScheduleTime 03:00
 
 
-7) Checking Current Preferences
-    - To check the current settings, you can use the Get-MpPreference cmdlet.
-        EG.
-            Get-MpPreference
+7) Setting Cloud Protection levels.
+    EG.
+        # Enable Cloud Protection
+        Set-MpPreference -MAPSReporting Advanced
 
+        # Disabled Cloud Protection
+        Set-MpPreference -MAPSReporting Disabled
+ 
+
+ 8) Scanning with defender.
+    - You can initiate different types of scans using the Start-MpScan
+        EG.
+            # Quick scan .
+            Start-MpScan -ScanType QuickScan
+
+            # Full scan.
+            Start-MpScan -ScanType FullScan
+
+            # Custom scan : To scan a specific folder.
+            Start-MpScan -ScanPath "C:\Path\To\Folder"
+
+
+9) Checking the status of windows defender.
+    EG.
+        Get-MpComputerStatus
+
+            - This will give you details such as whether real-time protection is enabled, signature status, and more.
+
+
+10) Updating Defender Signature.
+    EG. 
+        Update-MpSignature
+
+
+11) Viewing Quarantined items.
+    EG.
+        Get-MpThreat
+
+
+12) Removing all exclusion.
+    EG.
+        Set-MpPreference -ExclusionPath @()
+
+
+13) 

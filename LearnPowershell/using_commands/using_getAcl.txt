@@ -1,0 +1,81 @@
+                               
+                               GET ACL.
+                            ==============
+- Get-Acl is a PowerShell cmdlet used to retrieve Access Control Lists (ACLs) for a specified resource like files, directories, or registry keys.
+- ACLs determine the permissions that users and groups have on an object.
+
+
+            BASIC USAGE.
+        ==================
+1. Syntax.
+    EG.
+        Get-Acl -Path "C:\MyFolder"
+
+        > Path: The resource for which the ACL is retrieved.
+        > Owner: The owner of the resource.
+        > Group: The primary group associated with the resource.
+        > Access: List of access rules for users and groups, including permissions like read, write, and execute.
+
+
+2. Getting ACL of a File
+    EG
+        Get-Acl -Path "C:\MyFile.txt"
+
+        - This command shows the ACL for the file C:\MyFile.txt, including the owner, group, and permissions.
+
+
+3. Retrieving ACL for the Registry
+    EG.
+        Get-Acl -Path "HKLM:\Software\Microsoft\Windows"
+
+        - This command retrieves the ACL for the Windows registry key under HKLM.
+
+
+4. Accessing Specific Properties
+    > List all access entries.
+        EG.
+            (Get-Acl -Path "C:\MyFile.txt").Access
+
+            - This shows all the access entries (permissions) for C:\MyFile.txt.
+
+    > Get Owner Information:
+        EG.
+            (Get-Acl -Path "C:\MyFile.txt").Owner
+
+            - This retrieves the owner of the file.
+
+
+5. Modifying ACL with Set-Acl
+    - Set-Acl can modify the ACL for a resource.
+        EG.
+            # Changing Ownership
+            $acl = Get-Acl "C:\MyFile.txt"
+            $acl.SetOwner([System.Security.Principal.NTAccount]"NewOwner")
+            Set-Acl -Path "C:\MyFile.txt" -AclObject $acl
+
+            - This changes the owner of C:\MyFile.txt to NewOwner.
+
+
+6. Retrieve Current ACL:
+    EG.
+        $acl = Get-Acl "C:\MyFile.txt"
+
+
+7. Create a New Access Rule:
+    EG.
+        $newRule = New-Object System.Security.AccessControl.FileSystemAccessRule(
+                    "DOMAIN\User",
+                    "Read",
+                    "Allow")
+
+
+8. Add the New Rule:
+    EG.
+        $acl.AddAccessRule($newRule)
+
+
+9. Apply the New ACL:
+    EG.
+        Set-Acl -Path "C:\MyFile.txt" -AclObject $acl
+
+        

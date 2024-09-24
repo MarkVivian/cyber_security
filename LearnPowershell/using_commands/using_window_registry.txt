@@ -1,0 +1,212 @@
+                       WINDOW REGISTRY.
+                    =======================
+- The Windows Registry is a hierarchical database that stores low-level settings for the operating system and applications. 
+- PowerShell provides several cmdlets to interact with the registry, enabling you to view, create, modify, and delete registry keys and values.
+
+
+                REGISTRY STRUCTURE.
+            =========================
+- Hives: Major sections like HKEY_LOCAL_MACHINE (HKLM) and HKEY_CURRENT_USER (HKCU).
+- Keys: Similar to folders, used to organize values.
+- Values: Store actual data, like configuration settings.
+
+
+                    ACCESSING THE REGISTRY.
+                ==============================
+1. Navigating the registry.
+    - Registry drives in PowerShell are: 
+        > HKCU - HKEY_CURRENT_USER
+        > HKLM - HKEY_LOCAL_MACHINE
+        > HKCR - HKEY_CLASS_ROOT 
+        > HKU - HKEY_USERS
+        > HKCC - HKEY_CURRENT_CONFIG
+            EG.
+                cd HKCU:\
+
+
+2. Listing keys and values.
+    - List all keys in the current location.
+        EG.
+            Get-ChildItem 
+
+            - This will show:
+                EG.
+                            NAME                        PROPERTY.
+                        ----------------------------------------------------------------
+                        Volatile Environment           LOGONSERVER               : \\DESKTOP-00UNCM3
+                                                        USERDOMAIN                : DESKTOP-00UNCM3
+                                                        USERNAME                  : Mark
+                                                        USERPROFILE               : C:\Users\Mark
+                                                        HOMEPATH                  : \Users\Mark
+                                                        HOMEDRIVE                 : C:
+                                                        APPDATA                   : C:\Users\Mark\AppData\Roaming
+                                                        LOCALAPPDATA              : C:\Users\Mark\AppData\Local
+                                                        USERDOMAIN_ROAMINGPROFILE : DESKTOP-
+                                                    
+                    > Volatile Environment : This represent the subkeys under the current location.
+                    > Property : This are values associated to the subkey .
+                        - Each property (value name) within the subkey has a corresponding data type and value.
+                            EG.
+                                LOGONSERVER : \\DESKTOP-00UNCM3 
+                    
+    - View a specific key's values.
+        Get-Item : is used to retrieve the registry key itself along with its default property values. 
+                    It doesn’t delve into the individual properties (values) within the key deeply.    
+                        EG.
+                            Get-Item HKLC:\"volatile Environment"
+
+                            - This shows 
+                                EG.
+                                        Name                           Property
+                                        ----                           --------
+                                        Volatile Environment        LOGONSERVER               : \\DESKTOP-00UNCM3
+                                                                    USERDOMAIN                : DESKTOP-00UNCM3
+                                                                    USERNAME                  : Mark
+                                                                    USERPROFILE               : C:\Users\Mark
+                                                                    HOMEPATH                  : \Users\Mark
+                                                                    HOMEDRIVE                 : C:
+                                                                    APPDATA                   : C:\Users\Mark\AppData\Roaming
+                                                                    LOCALAPPDATA              : C:\Users\Mark\AppData\Local
+                                                                    USERDOMAIN_ROAMINGPROFILE : DESKTOP-00UNCM3
+
+        Get-ItemProperty : is used to retrieve only the values (properties) of a specific registry key. 
+                           It ignores the key name and focuses solely on listing all the properties (values) and their data.
+                                EG.
+                                    Get-ItemProperty -Path "HKCU:\Volatile Environment"
+
+                                    - This shows.
+                                        EG.
+                                            LOGONSERVER              : \\DESKTOP-00UNCM3
+                                            USERDOMAIN               : DESKTOP-00UNCM3
+                                            USERNAME                 : Mark
+                                            USERPROFILE              : C:\Users\Mark
+                                            HOMEPATH                 : \Users\Mark
+                                            HOMEDRIVE                : C:
+                                            APPDATA                  : C:\Users\Mark\AppData\Roaming
+                                            LOCALAPPDATA             : C:\Users\Mark\AppData\Local
+                                            USERDOMAIN_ROAMINGPROFILE: DESKTOP-
+
+                                            - Get a specific registry value.
+                                                EG.
+                                                    (Get-ItemProperty -Path "HKCU:\Volatile Environment").LOGONSERVER
+
+                                                    - This shows .
+                                                        EG.
+                                                            \\DESKTOP-00UNCM3
+
+
+3. Creating and modifying keys and values.
+    > Creating a new registry key.
+        - To create a new registry key (like creating a new folder in a directory), use the New-Item cmdlet.
+            EG.
+                # Let's say we want to create a new key under HKCU:\Software called MyNewKey
+                New-Item -Path "HKCU:\Software" -Name "MyNewKey"
+
+                - This command creates a new subkey called MyNewKey under HKCU:\Software.
+                - If the key already exists, you’ll get an error. 
+                - Use the -Force parameter to suppress the error and overwrite it if necessary.
+                    EG.
+                        New-Item -Path "HKCU:\Software" -Name "MyNewKey" -Force 
+
+    > Creating a new registry value.
+        - After creating a new key, you might want to add some values (properties) to it.
+        - For this, use the New-ItemProperty cmdlet.
+            EG.
+                # Let’s create a new string value under our newly created key, MyNewKey.
+                New-ItemProperty -Path "HKCU:\Software\MyNewKey" -Name "MyValueName" -Value "MyValueData" -PropertyType String
+
+                > Path: Specifies the registry key where the value should be created.
+                > Name: The name of the new registry value.
+                > Value: The data you want to store in the value.
+                > PropertyType: The type of the value. Common types include:
+                    = String: A standard string value (REG_SZ).
+                    = DWord: A 32-bit integer value (REG_DWORD).
+                    = QWord: A 64-bit integer value (REG_QWORD).
+                    = ExpandString: A string with environment variables (REG_EXPAND_SZ).
+                    = MultiString: An array of strings (REG_MULTI_SZ).
+                    = Binary: Binary data (REG_BINARY).
+    
+    > Modifying an existing registry value.
+        - If you need to modify an existing value, use the Set-ItemProperty cmdlet.
+            EG.
+                # Let’s modify the value of MyValueName under MyNewKey to something else:
+                Set-ItemProperty -Path "HKCU:\Software\MyNewKey" -Name "MyValueName" -Value "NewValueData"
+
+                - This changes the value of MyValueName to NewValueData.
+
+    > Creating a new key and value in one command.
+        EG.
+            New-Item -Path "HKCU:\Software" -Name "AnotherKey" | New-ItemProperty -Name "AnotherValue" -Value "SomeData" -PropertyType String
+
+
+4. Deleting Keys and Values:
+    - Remove-Item deletes a key.
+        EG.
+            # Delete the key MyNewKey under HKCU:\Software:
+            Remove-Item -Path "HKCU:\Software\MyNewKey" -Recurse
+
+    - Remove-ItemProperty deletes a specific value within a key.
+        EG.
+            # Delete the value MyValueName within the key MyNewKey:
+            Remove-ItemProperty -Path "HKCU:\Software\MyNewKey" -Name "MyValueName"
+
+
+5. Exporting and Importing Registry Keys
+    > Exporting a registry key
+        - To export a registry key (back it up), use the reg export command.
+        - This is a command-line utility, not a PowerShell cmdlet, but you can run it within PowerShell.
+            EG.
+                # Export the key MyNewKey to a .reg file:
+                reg export "HKCU\Software\MyNewKey" "C:\Backup\MyNewKey.reg" /y
+
+                - This exports the key and all its subkeys and values to the file MyNewKey.reg.
+
+    > Importing a registry key
+        - To import a registry key from a .reg file, use the reg import command.
+            EG.
+                # To import a registry key from a .reg file, use the reg import command.
+                reg import "C:\Backup\MyNewKey.reg"
+
+                - This will restore the MyNewKey registry key from the backup file.
+
+
+6.  Checking if a Registry Key or Value Exists.
+    > Checking if a key exists.
+        - Use the Test-Path cmdlet to check if a registry key exists.
+            EG.
+                # Check if the key MyNewKey exists:
+                if (Test-Path "HKCU:\Software\MyNewKey") {
+                    Write-Output "Key exists!"
+                } else {
+                    Write-Output "Key does not exist!"
+                }
+
+                - This checks for the existence of the MyNewKey under HKCU:\Software.
+
+    > Checking if a Value Exists within a Key
+        - To check if a specific value exists within a key, use Get-ItemProperty with -ErrorAction SilentlyContinue.
+            EG.
+                # Check if the value MyValueName exists within MyNewKey:
+                if (Get-ItemProperty -Path "HKCU:\Software\MyNewKey" -Name "MyValueName" -ErrorAction SilentlyContinue) {
+                    Write-Output "Value exists!"
+                } else {
+                    Write-Output "Value does not exist!"
+                }
+ 
+                - This checks if MyValueName exists within the MyNewKey key.
+
+
+                ADVANCE EXAMPLES
+            =====================
+1. Setting Multiple Values in a Single Key:
+    EG.
+        Set-ItemProperty -Path "HKCU:\Software\YourKey" -Name "ValueName1" -Value "Data1"
+        Set-ItemProperty -Path "HKCU:\Software\YourKey" -Name "ValueName2" -Value 1234
+
+2. Creating a Backup of the Entire Registry Hive:
+    EG.
+        reg export "HKLM\Software" "C:\Backup\SoftwareHive.reg"
+
+3. Searching for a Registry Key or Value:
+    EG.
+        Get-ChildItem -Path "HKCU:\" -Recurse | Where-Object { $_.Name -match "SearchTerm" }
