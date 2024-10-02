@@ -6,6 +6,7 @@
 - Metasploit has two main versions:
     > Metasploit Pro: 
         - The commercial version that facilitates the automation and management of tasks. This version has a graphical user interface (GUI).
+    
     > Metasploit Framework: 
         - The open-source version that works from the command line.
         - This room will focus on this version, installed on the AttackBox and most commonly used penetration testing Linux distributions.
@@ -16,8 +17,10 @@
 - The main components of the Metasploit Framework can be summarized as follows;
     > msfconsole: 
         - The main command-line interface.
+    
     > Modules:
         - supporting modules such as exploits, scanners, payloads, etc.
+    
     > Tools:
         - Stand-alone tools that will help vulnerability research, vulnerability assessment, or penetration testing.
         - Some of these tools are msfvenom, pattern_create and pattern_offset.

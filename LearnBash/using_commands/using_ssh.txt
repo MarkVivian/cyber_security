@@ -9,6 +9,10 @@ Common comands:
     EG.
         ssh user@remotehost
 
+        - you can also use -l 
+            EG.
+                ssh -l user localhost
+
 
 2) connecting to a remote-host on a non-default port
     EG.

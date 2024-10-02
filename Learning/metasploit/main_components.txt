@@ -1,0 +1,149 @@
+                        MAIN COMPONENTS OF METASPLOIT.
+                    ========================================
+        METASPLOIT CONSOLE.
+    --------------------------
+- The console is the primary interface where you'll interact with Metasploit's features.
+    EG.
+        # Command to start.
+         msfconsole
+
+- Once you launch it, you'll access and control all the framework’s capabilities, including scanning, exploiting, and using various modules.
+ 
+
+        VULNERABILITY, EXPLOIT, PAYLOAD.
+    ---------------------------------------
+> Exploit: 
+    - A piece of code that uses a vulnerability present on the target system.
+    - For instance, if you find a vulnerability in a web server, an exploit might help you inject malicious code into that server.
+
+> Vulnerability:
+    - A weakness in the system. 
+    - For example, a vulnerable version of a web server might allow unauthorized users to access data.
+
+> Payload:
+    - Payloads are the code that will run on the target system.
+    - What you deliver through the exploit, such as opening a backdoor or gaining shell access.
+    EG.
+        > Vulnerability:
+            - An unpatched web server.
+            - Think of a house with a weak lock on the door. That’s the vulnerability — a flaw in the security of the house.
+        
+        > Exploit:
+            - Code to exploit the vulnerability and inject your own code.
+            - The thief sees this weakness and uses a lock-picking tool to unlock the door. The act of using the tool (lock pick) to take advantage of the weak lock is the exploit.
+        
+        > Payload:
+            - The code that runs once access is gained, like opening a backdoor, running commands, or creating a connection back to your machine.
+            - Once inside, the thief does something (like stealing valuables or planting something). What the thief does after getting inside the house is the payload.
+     
+        
+            MODULES.
+        --------------
+- Modules are small components within the Metasploit framework that are built to perform a specific task, such as exploiting a vulnerability, scanning a target, or performing a brute-force attack.
+- if you're scanning a target, your machine is the one sending out probes to the target system (Machine B), but it doesn’t need access to Machine B first.
+- This happens from your machine before gaining access.
+- After you gain access to the target (Machine B), you use different modules, like post-exploitation modules, to gather information or escalate privileges.
+- Modules are like "tools" that help achieve different objectives, categorized as follows:
+    
+    1. Auxiliary modules.
+        - Used for tasks like scanning, crawling and fuzzing (testing for weaknesses).
+            EG.
+                # A port scanner to check open ports on a target machine.
+                use auxiliary/scanner/portscan/tcp.
+
+                    - This can help identify potential entry points on a target.
+
+    2. Encoders.
+        - These disguise your exploit and payload to bypass antivirus detection.
+        - However, they aren’t foolproof as modern AV systems can still detect encoded payloads.
+        - Signature-based antivirus and security solutions have a database of known threats.
+        - They detect threats by comparing suspicious files to this database and raise an alert if there is a match.
+        - Thus encoders can have a limited success rate as antivirus solutions can perform additional checks.
+            EG.
+                # Encoding payload to avoid antivirus detection.
+                use encoder/x86/shikata_ga_nai
+
+                    - if you're exploiting a system and don't want AV to flag it immediately.
+
+    3. Evasion modules.
+        - While encoders will encode the payload, they should not be considered a direct attempt to evade antivirus software.
+        -  Encoders mainly focus on "repackaging" the payload, while evasion modules actively try to avoid security measures like firewalls or antivirus during exploitation.
+        - These attempt to bypass antivirus or other security measures more actively.
+            EG.
+                # Evasion modules for Windows defender evasion.
+                use evasion/windows/windows_defender_exe
+
+                    - Evading Windows Defender while delivering your payload.
+
+    4. Exploits.
+        - These are categorized based on the target system, such as Windows, Linux, etc.
+        - They take advantage of known vulnerabilities in these systems.
+            EG.
+                # Using an exploit to attack a vulnerable Android system.
+                use exploit/android/browser/webview_addjavascriptinterface
+
+                    - Exploiting a browser vulnerability on an Android device.
+
+    5. NOPs (No Operations)
+        - NOPs do nothing, but they help with payload alignment by creating buffer space.
+        - They are often used as a buffer to achieve consistent payload sizes.
+        -  Some exploits require exact alignment of code in memory to work. NOPs help achieve this.
+            EG.
+                # Inserting NOPs in an exploit to adjust the buffer.
+                use nops/x86/single_byte
+
+                    - Padding your exploit so that your payload gets executed at the right time.
+
+    6. Payloads
+        - Running command on the target system is already an important step but having an interactive connection that allows you to type commands that will be executed on the target system is better.
+        - Such an interactive command line is called a "shell". Metasploit offers the ability to send different payloads that can open shells on the target system.
+        - Payloads are categorized into different types:
+            > Adapters.
+                - wraps single payloads to convert them into different formats.
+                - For example, a normal single payload can be wrapped inside a Powershell adapter, which will make a single powershell command that will execute the payload.
+
+            > Singles:
+                - Self-contained; they don’t require a separate connection(do not need to download an additional component to run).
+            
+            > Stagers:
+                -  Establish a connection first, then download the rest of the payload.
+                - Useful when working with staged payloads.
+                - “Staged payloads” will first upload a stager on the target system then download the rest of the payload (stage).
+                - This provides some advantages as the initial size of the payload will be relatively small compared to the full payload sent at once.
+            
+            > Stages:
+                - Downloaded by the stager. This will allow you to use larger sized payloads.   
+                - The final part that gets downloaded and executed by the stager.
+            EG.
+                > Single payloads.
+                    - A reverse shell that gives you direct access to the target.
+                        EG.
+                            use payload/windows/x64/shell_reverse_tcp
+
+                > Staged payloads.
+                    - A stager is sent first, which sets up a connection before sending the actual payload.
+                        EG.
+                            use payload/windows/shell/reverse_tcp
+                
+            - For gaining full control over a target system through an interactive shell.
+            - Both are reverse Windows shells. The former is an inline (or single) payload, as indicated by the “_” between “shell” and “reverse”.
+            - While the latter is a staged payload, as indicated by the “/” between “shell” and “reverse”.
+
+    7. POST (Post-Exploitation Modules)
+        - These are used after you've gained access to the system to perform further actions like gathering information, privilege escalation, etc.
+            EG.
+                # Gathering system info after an exploit.
+                use post/windows/gather/enum_logged_on_users
+
+                    - After getting access, you can list all the logged-on users for further attacks.
+
+
+            KEYS.
+        ==========
+Exploit = Breaking into the system.
+Payload = What you do after breaking in (like open a shell or run a command).
+Auxiliary = Tools for scanning, reconnaissance, and additional testing.
+Encoders/Evasion = Ways to avoid detection by security software.
+NOPs = Padding to align code.
+Post-Exploitation = What you do after gaining control (privilege escalation, data theft, etc.).
+
