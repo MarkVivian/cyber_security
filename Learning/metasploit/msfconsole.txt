@@ -32,135 +32,44 @@
 
             USING MODULES IN CONTEXT.
         -------------------------------
-- Let us look at the example below to have a better understanding of this feature.
-- We will use the MS17-010 “Eternalblue” exploit for illustration purposes.
-
-- Once you type the use exploit/windows/smb/ms17_010_eternalblue command, you will see the command line prompt change from msf6 to “msf6 exploit(windows/smb/ms17_010_eternalblue)”. 
-- The "EternalBlue" is an exploit allegedly developed by the U.S. National Security Agency (N.S.A.) for a vulnerability affecting the SMBv1 server on numerous Windows systems.
-- The SMB (Server Message Block) is widely used in Windows networks for file sharing and even for sending files to printers.
-- EternalBlue was leaked by the cybercriminal group "Shadow Brokers" in April 2017. In May 2017, this vulnerability was exploited worldwide in the WannaCry ransomware attack. 
+- Once a module is selected, the prompt changes to indicate the context in which you are working.
+- For example, after using the MS17-010 EternalBlue exploit, the prompt changes to reflect the exploit module:
     EG.
-         use exploit/windows/smb/ms17_010_eternalblue
-            
-            OUTPUT 
-                [*] No payload configured, defaulting to windows/x64/meterpreter/reverse_tcp
-                [msf](Jobs:0 Agents:0) exploit(windows/smb/ms17_010_eternalblue) >>
+        # example of selecting a module.
+        use exploit/windows/smb/ms17_010_eternalblue
+
+            - The console prompt changes to indicate that you are now working with the MS17-010 EternalBlue exploit:   
+                EG.
+                    [msf6](Jobs:0 Agents:0) exploit(windows/smb/ms17_010_eternalblue) >>
+
+                        - You can still use regular shell commands within this context, such as ls, while also having specific Metasploit commands available.
+                        - While the prompt has changed, you will notice we can still run the commands previously mentioned.
+                        - This means we did not "enter" a folder as you would typically expect in an operating system command line.
+                            EG.
+                                exploit(windows/smb/ms17_010_eternalblue) >> ls
+                                [*] exec: ls
+
+                                Desktop    Downloads  Pictures  Templates
+                                Documents  Music      Public    Videos
+                                [msf](Jobs:0 Agents:0)
+                                exploit(windows/smb/ms17_010_eternalblue) >>
 
 
-- The module to be used can also be selected with the use command followed by the number at the beginning of the search result line.
-
-- While the prompt has changed, you will notice we can still run the commands previously mentioned.
-- This means we did not "enter" a folder as you would typically expect in an operating system command line.
+                    VIEWING MODULE OPTIONS.
+                -------------------------------
+-  This command displays all the parameters required for the selected module, both for the exploit and the payload.
     EG.
-         exploit(windows/smb/ms17_010_eternalblue) >> ls
-        [*] exec: ls
+        show options 
 
-        Desktop    Downloads  Pictures  Templates
-        Documents  Music      Public    Videos
-        [msf](Jobs:0 Agents:0)
-        exploit(windows/smb/ms17_010_eternalblue) >>
-
-- The prompt tells us we now have a context set in which we will work.
-- You can see this by typing the show options command.
-    EG.
-        [msf](Jobs:0 Agents:0) exploit(windows/smb/ms17_010_eternalblue) >> show options
-
-        Module options (exploit/windows/smb/ms17_010_eternalblue):
-
-        Name           Current Setting  Required  Description
-        ----           ---------------  --------  -----------
-        RHOSTS                          yes       The target host(s), see https://doc
-                                                    s.metasploit.com/docs/using-metaspl
-                                                    oit/basics/using-metasploit.html
-        RPORT          445              yes       The target port (TCP)
-        SMBDomain                       no        (Optional) The Windows domain to us
-                                                    e for authentication. Only affects
-                                                    Windows Server 2008 R2, Windows 7,
-                                                    Windows Embedded Standard 7 target
-                                                    machines.
-        SMBPass                         no        (Optional) The password for the spe
-                                                    cified username
-        SMBUser                         no        (Optional) The username to authenti
-                                                    cate as
-        VERIFY_ARCH    true             yes       Check if remote architecture matche
-                                                    s exploit Target. Only affects Wind
-                                                    ows Server 2008 R2, Windows 7, Wind
-                                                    ows Embedded Standard 7 target mach
-                                                    ines.
-        VERIFY_TARGET  true             yes       Check if remote OS matches exploit
-                                                    Target. Only affects Windows Server
-                                                    2008 R2, Windows 7, Windows Embedd
-                                                    ed Standard 7 target machines.
+            - This will list settings like RHOSTS (target IP), SESSION and LHOST (attacker’s IP).
 
 
-        Payload options (windows/x64/meterpreter/reverse_tcp):
-
-        Name      Current Setting  Required  Description
-        ----      ---------------  --------  -----------
-        EXITFUNC  thread           yes       Exit technique (Accepted: '', seh, threa
-                                                d, process, none)
-        LHOST     192.168.100.91   yes       The listen address (an interface may be
-                                                specified)
-        LPORT     4444             yes       The listen port
-
-
-        Exploit target:
-
-        Id  Name
-        --  ----
-        0   Automatic Target
-
-
-
-        View the full module info with the info, or info -d command.
-
-        [msf](Jobs:0 Agents:0) exploit(windows/smb/ms17_010_eternalblue) >>
-
-
-- This will print options related to the exploit we have chosen earlier.
-- The show options command will have different outputs depending on the context it is used in.
-- The example above shows that this exploit will require we set variables like RHOSTS and RPORT.
-- On the other hand, a post-exploitation module may only need us to set a SESSION ID (see the screenshot below).
-- A session is an existing connection to the target system that the post-exploitation module will use.
-    EG.
-        msf6 post(windows/gather/enum_domain_users) > show options
-
-        Module options (post/windows/gather/enum_domain_users):
-
-        Name     Current Setting  Required  Description
-        ----     ---------------  --------  -----------
-        HOST                      no        Target a specific host
-        SESSION                   yes       The session to run this module on.
-        USER                      no        Target User for NetSessionEnum
-
-        msf6 post(windows/gather/enum_domain_users) >
-
-
-- The show command can be used in any context followed by a module type (auxiliary, payload, exploit, etc.) to list available modules. The example below lists payloads that can be used with the ms17-010 Eternalblue exploit.
+- The show command can be used in any context followed by a module type (auxiliary, payload, exploit, etc.) to list available modules.
+- The example below lists payloads that can be used with the ms17-010 Eternalblue exploit.
     EG.
         [msf](Jobs:0 Agents:0) exploit(windows/smb/ms17_010_eternalblue) >> show payloads
 
-        Compatible Payloads
-        ===================
 
-        #   Name                                                Disclosure Date  Rank    Check  Description
-        -   ----                                                ---------------  ----    -----  -----------
-        0   payload/generic/custom                                               normal  No     Custom Payload
-        1   payload/generic/shell_bind_aws_ssm                                   normal  No     Command Shell, Bind SSM (via AWS API)
-        2   payload/generic/shell_bind_tcp                                       normal  No     Generic Command Shell, Bind TCP Inline
-        3   payload/generic/shell_reverse_tcp                                    normal  No     Generic Command Shell, Reverse TCP Inline
-        4   payload/generic/ssh/interact                                         normal  No     Interact with Established SSH Connection
-        5   payload/windows/x64/custom/bind_ipv6_tcp                             normal  No     Windows shellcode stage, Windows x64 IPv6 Bind TCP Stager
-        6   payload/windows/x64/custom/bind_ipv6_tcp_uuid                        normal  No     Windows shellcode stage, Windows x64 IPv6 Bind TCP Stager with UUID Support
-        7   payload/windows/x64/custom/bind_named_pipe                           normal  No     Windows shellcode stage, Windows x64 Bind Named Pipe Stager
-        8   payload/windows/x64/custom/bind_tcp                                  normal  No     Windows shellcode stage, Windows x64 Bind TCP Stager
-        9   payload/windows/x64/custom/bind_tcp_rc4                              normal  No     Windows shellcode stage, Bind TCP Stager (RC4 Stage Encryption, Metasm)
-
-        [msf](Jobs:0 Agents:0) exploit(windows/smb/ms17_010_eternalblue) >>
-
-
-- If used from the msfconsole prompt, the show command will list all modules.
-- The use and show options commands we have seen so far are identical for all modules in Metasploit.
 - You can leave the context using the back command.
     EG.
         msf6 exploit(windows/smb/ms17_010_eternalblue) > back
@@ -171,112 +80,29 @@
     EG.
         msf6 exploit(windows/smb/ms17_010_eternalblue) > info
 
-            Name: MS17-010 EternalBlue SMB Remote Windows Kernel Pool Corruption
-            Module: exploit/windows/smb/ms17_010_eternalblue
-        Platform: Windows
-            Arch: 
-        Privileged: Yes
-            License: Metasploit Framework License (BSD)
-            Rank: Average
-        Disclosed: 2017-03-14
 
-        Provided by:
-        Sean Dillon 
-        Dylan Davis 
-        Equation Group
-        Shadow Brokers
-        thelightcosine
-
-        Available targets:
-        Id  Name
-        --  ----
-        0   Windows 7 and Server 2008 R2 (x64) All Service Packs
-
-        Check supported:
-        Yes
-
-        Basic options:
-        Name           Current Setting  Required  Description
-        ----           ---------------  --------  -----------
-        RHOSTS                          yes       The target host(s), range CIDR identifier, or hosts file with syntax 'file:'
-        RPORT          445              yes       The target port (TCP)
-        SMBDomain      .                no        (Optional) The Windows domain to use for authentication
-        SMBPass                         no        (Optional) The password for the specified username
-        SMBUser                         no        (Optional) The username to authenticate as
-        VERIFY_ARCH    true             yes       Check if remote architecture matches exploit Target.
-        VERIFY_TARGET  true             yes       Check if remote OS matches exploit Target.
-
-        Payload information:
-        Space: 2000
-
-        Description:
-        This module is a port of the Equation Group ETERNALBLUE exploit, 
-        part of the FuzzBunch toolkit released by Shadow Brokers. There is a 
-        buffer overflow memmove operation in Srv!SrvOs2FeaToNt. The size is 
-        calculated in Srv!SrvOs2FeaListSizeToNt, with mathematical error 
-        where a DWORD is subtracted into a WORD. The kernel pool is groomed 
-        so that overflow is well laid-out to overwrite an SMBv1 buffer. 
-        Actual RIP hijack is later completed in 
-        srvnet!SrvNetWskReceiveComplete. This exploit, like the original may 
-        not trigger 100% of the time, and should be run continuously until 
-        triggered. It seems like the pool will get hot streaks and need a 
-        cool down period before the shells rain in again. The module will 
-        attempt to use Anonymous login, by default, to authenticate to 
-        perform the exploit. If the user supplies credentials in the 
-        SMBUser, SMBPass, and SMBDomain options it will use those instead. 
-        On some systems, this module may cause system instability and 
-        crashes, such as a BSOD or a reboot. This may be more likely with 
-        some payloads.
-
-        References:
-        https://docs.microsoft.com/en-us/security-updates/SecurityBulletins/2017/MS17-010
-        https://cvedetails.com/cve/CVE-2017-0143/
-        https://cvedetails.com/cve/CVE-2017-0144/
-        https://cvedetails.com/cve/CVE-2017-0145/
-        https://cvedetails.com/cve/CVE-2017-0146/
-        https://cvedetails.com/cve/CVE-2017-0147/
-        https://cvedetails.com/cve/CVE-2017-0148/
-        https://github.com/RiskSense-Ops/MS17-010
-
-        Also known as:
-        ETERNALBLUE
-
-        msf6 exploit(windows/smb/ms17_010_eternalblue) > 
+- Alternatively, you can use the info command followed by the module’s path from the msfconsole prompt.
+    EG.
+        info exploit/windows/smb/ms17_010_eternalblue
+            
+            - Info is not a help menu; it will display detailed information on the module such as its author, relevant sources, etc.
 
 
-- Alternatively, you can use the info command followed by the module’s path from the msfconsole prompt (e.g. info exploit/windows/smb/ms17_010_eternalblue).
-- Info is not a help menu; it will display detailed information on the module such as its author, relevant sources, etc.
-
-
-                SEARCH.
-            -----------------
-- One of the most useful commands in msfconsole is search.
-- This command will search the Metasploit Framework database for modules relevant to the given search parameter.
-- You can conduct searches using CVE numbers, exploit names (eternalblue, heartbleed, etc.), or target system.
+                    SEARCH FOR MODULES.
+                -------------------------
+- Use search to locate modules related to a specific vulnerability, exploit, or CVE.
+- You can narrow down results by specifying a module type or platform.
     EG.
         msf6 > search ms17-010
 
-        Matching Modules
-        ================
-
-        #  Name                                      Disclosure Date  Rank     Check  Description
-        -  ----                                      ---------------  ----     -----  -----------
-        0  auxiliary/admin/smb/ms17_010_command      2017-03-14       normal   No     MS17-010 EternalRomance/EternalSynergy/EternalChampion SMB Remote Windows Command Execution
-        1  auxiliary/scanner/smb/smb_ms17_010                         normal   No     MS17-010 SMB RCE Detection
-        2  exploit/windows/smb/ms17_010_eternalblue  2017-03-14       average  Yes    MS17-010 EternalBlue SMB Remote Windows Kernel Pool Corruption
-        3  exploit/windows/smb/ms17_010_psexec       2017-03-14       normal   Yes    MS17-010 EternalRomance/EternalSynergy/EternalChampion SMB Remote Windows Code Execution
-        4  exploit/windows/smb/smb_doublepulsar_rce  2017-04-14       great    Yes    SMB DOUBLEPULSAR Remote Code Execution
-
-
-        Interact with a module by name or index, for example use 4 or use exploit/windows/smb/smb_doublepulsar_rce
-
-        msf6 >
-
-
-            - The output of the search command provides an overview of each returned module.
+            - This will return all related exploits, auxiliary modules, and scanners for the MS17-010 vulnerability.
             - You may notice the “name” column already gives more information than just the module name.
             - You can see the type of module (auxiliary, exploit, etc.) and the category of the module (scanner, admin, windows, Unix, etc.).
-            - You can use any module returned in a search result with the command use followed by the number at the beginning of the result line. (e.g. use 0 instead of use auxiliary/admin/smb/ms17_010_command)
+            - You can use any module returned in a search result with the command use followed by the number at the beginning of the result line.
+                EG.
+                    # instead of use auxiliary/admin/smb/ms17_010_command
+                     use 0 
+
 
 - Another essential piece of information returned is in the “rank” column.
 - Exploits are rated based on their reliability.
@@ -311,25 +137,6 @@
 - For example, if we wanted our search results to only include auxiliary modules, we could set the type to auxiliary. The screenshot below shows the output of the search type:auxiliary telnet command. 
     EG.
         msf6 > search type:auxiliary telnet
-
-        Matching Modules
-        ================
-
-        #   Name                                                Disclosure Date  Rank    Check  Description
-        -   ----                                                ---------------  ----    -----  -----------
-        0   auxiliary/admin/http/dlink_dir_300_600_exec_noauth  2013-02-04       normal  No     D-Link DIR-600 / DIR-300 Unauthenticated Remote Command Execution
-        1   auxiliary/admin/http/netgear_r6700_pass_reset       2020-06-15       normal  Yes    Netgear R6700v3 Unauthenticated LAN Admin Password Reset
-        2   auxiliary/dos/cisco/ios_telnet_rocem                2017-03-17       normal  No     Cisco IOS Telnet Denial of Service
-        3   auxiliary/dos/windows/ftp/iis75_ftpd_iac_bof        2010-12-21       normal  No     Microsoft IIS FTP Server Encoded Response Overflow Trigger
-        4   auxiliary/scanner/ssh/juniper_backdoor              2015-12-20       normal  No     Juniper SSH Backdoor Scanner
-        5   auxiliary/scanner/telnet/brocade_enable_login                        normal  No     Brocade Enable Login Check Scanner
-        6   auxiliary/scanner/telnet/lantronix_telnet_password                   normal  No     Lantronix Telnet Password Recovery
-        7   auxiliary/scanner/telnet/lantronix_telnet_version                    normal  No     Lantronix Telnet Service Banner Detection
-        8   auxiliary/scanner/telnet/satel_cmd_exec             2017-04-07       normal  No     Satel Iberia SenNet Data Logger and Electricity Meters Command Injection Vulnerability
-
-        Interact with a module by name or index, for example use 13 or use auxiliary/server/capture/telnet
-
-        msf6 >
 
         - Please remember that exploits take advantage of a vulnerability on the target system and may always show unexpected behavior.
         - A low-ranking exploit may work perfectly, and an excellent ranked exploit may not, or worse, crash the target system.

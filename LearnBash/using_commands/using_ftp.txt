@@ -1,0 +1,90 @@
+                                    FTP (FILE TRANSFER PROTOCOL)
+                                =====================================
+- FTP is a standard network protocol used for transferring files between a client and a server over a TCP/IP connection.
+
+
+        BASIC SYNTAX.
+    ----------------------
+EG.
+    ftp [options] [hostname]
+
+        > hostname:
+            - The IP address or domain of the remote FTP server.
+        
+        > options:
+            - Additional options for specific functionalities (e.g., enabling passive mode).
+
+
+                COMMON USES.
+            ------------------
+1. Starting an FTP session
+    - To start an FTP session, you simply type the command followed by the hostname or IP of the FTP server.
+        EG.
+            ftp ftp.example.com
+
+                - This will prompt you for a username and password. Once authenticated, you'll enter an FTP session.
+
+
+2. Uploading a File
+    - Once connected, you can upload files using the put command.
+        EG.
+            put localfile.txt
+
+                - This will upload localfile.txt from your local system to the current directory on the remote FTP server.
+
+
+3. Downloading a File
+    - You can download files from the remote server using the get command.
+        EG.
+            get remotefile.txt
+
+                - This will download remotefile.txt from the server to your current local directory.
+
+
+4. Navigating Directories
+    - You can move between directories on the remote FTP server using cd and check where you are using pwd.
+        > Change directory:
+            EG.
+                cd /path/to/directory
+
+        > Print working directory:
+            EG.
+                pwd
+
+
+5. Listing Files
+    - To view the files on the remote server:
+        EG.
+            ls
+
+                - This works similarly to the ls command in Linux, displaying files in the current directory.
+
+
+6. Closing an FTP Session
+    - You can exit an FTP session using the bye or quit commands.
+        EG.
+            bye
+
+
+7. Using FTP with a Script (Batch mode)
+    - To automate FTP tasks (e.g., downloading multiple files), you can create a script using ftp in non-interactive mode.
+        EG.
+            #!/bin/bash
+            HOST='ftp.example.com'
+            USER='username'
+            PASSWD='password'
+
+            ftp -n -v $HOST << EOF
+            user $USER $PASSWD
+            cd /path/to/directory
+            get file.txt
+            bye
+            EOF
+
+
+4. Other Useful Options
+
+    -n: Disables auto-login upon starting an FTP session.
+    -v: Enables verbose mode, printing out all commands being executed.
+
+By using these options in your commands or scripts, you can manage FTP sessions more effectively.

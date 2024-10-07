@@ -1,0 +1,76 @@
+                                DF
+                            ==========
+- The df command is a Unix/Linux command that displays information about the total and available disk space on a file system.
+- It is used to report the amount of available disk space, used disk space, and percentage of used disk space on a file system.
+
+
+            BASIC SYNTAX.
+        --------------------
+    EG.
+        df [options] [file system]
+
+            - [options] are optional parameters that can be used to customize the output
+            - [file system] is the file system for which you want to display the disk space usage.
+
+
+            COMMON OPTIONS.
+        ----------------------
+-a or --all:
+    > Displays disk space usage of all file systems, including pseudo and duplicate file systems.
+
+-h or --human-readable: 
+    > Displays disk space usage in human-readable format (e.g., GB, MB, etc.).
+
+-i or --inodes:
+    > Displays disk space usage with inode information.
+
+-T or --print-type:
+    > Displays disk space usage with file system type information.
+
+-x or --exclude-type:
+    > Excludes file systems of a specific type from the output.
+
+
+            USAGES.
+        ---------------
+1. Displaying disk space usage of all file systems
+    EG.
+        df
+
+            - This will display the disk space usage of all file systems.
+
+
+2. Displaying disk space usage of a specific file system
+    EG.
+        df /dev/sda1
+
+            - This will display the disk space usage of the /dev/sda1 file system.
+
+
+3. Displaying disk space usage in human-readable format
+    EG.
+        df -h
+
+            - This will display the disk space usage of all file systems in human-readable format.
+
+
+4. Displaying disk space usage with inode information
+    EG.
+        df -i
+
+            - This will display the disk space usage of all file systems with inode information.
+
+
+5. Displaying disk space usage with file system type information
+    EG.
+        df -T
+
+            - This will display the disk space usage of all file systems with file system type information.
+
+
+6. Excluding file systems of a specific type from the output
+    EG.
+        df -x tmpfs
+
+            - This will display the disk space usage of all file systems, excluding file systems of type tmpfs.
+
