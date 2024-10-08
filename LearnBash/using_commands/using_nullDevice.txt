@@ -11,7 +11,7 @@
 `2>` : Redirects the standard error (stderr) to a file or another location.
 `&>` : Redirects both stdout and stderr to a file or another location (in some shell like `bash`).
 `>>` : Appends the standard output to a file.
-
+`>&2` : Changes the output from stdout to stderr so that log files can handle the output as an error.
 
                 EXAMPLES.
             ----------------
@@ -41,4 +41,6 @@
                 - This command redirects stdout and stderr to `output.log`.
 
 
-                
+4) Redirect stdout to stderr.
+    EG.
+        echo -e >&2 "this will be taken as an error message."

@@ -1,0 +1,33 @@
+                                PARAMETER EXPANSION.
+                            ============================
+- Bash allows you to manipulate the value of a variable in various ways.
+- The syntax for the basic parameter expansion is ${parameter}.
+
+
+                COMMON USAGES.
+            --------------------
+1. Default Value:
+    EG.
+        sql_user=${sql_user:-root}
+            
+            - This means "if sql_user is unset or null, assign it the value root." If sql_user already has a value, it remains unchanged.
+
+2. Default Value with Assignment:
+    EG.
+        sql_user=${sql_user:-root}
+
+            - Similar to above, but if you want to assign root only if sql_user is unset or null:
+                EG.
+                    sql_user=${sql_user-root}
+
+3. Substituting with a Value:
+    EG.
+        echo "${sql_user:0:1}"  # Outputs the first character of sql_user
+
+4. Length of a Variable:
+    EG.
+        echo "${#sql_user}"  # Outputs the length of sql_user
+
+5. String Replacement:
+    EG.
+        echo "${sql_user/root/admin}"  # Replaces 'root' with 'admin' in sql_user

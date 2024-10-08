@@ -1,0 +1,117 @@
+                            MYSQL.
+                        ==============
+- MySQL is a widely used relational database management system.
+- You can interact with it using the command line.
+
+
+                        CONNECTING TO MYSQL.
+                    ---------------------------
+The basic syntax for connecting to a MySQL database is:
+    EG.
+        mysql -u username -p
+
+            -u username: Specifies the username you want to use for the connection.
+            -p: Prompts for the password. If you want to provide the password directly, you can specify it like this:
+                EG.
+                    mysql -u username -ppassword
+
+                        - (Note: there is no space between -p and the password.)
+
+
+                            USEFUL MYSQL OPTIONS.
+                        ----------------------------
+1. Executing SQL Commands with -e. 
+    - The -e option allows you to execute a specific SQL command directly from the command line.
+        EG.
+            mysql -u root -p -e "SHOW DATABASES;"
+
+                - This command connects to MySQL as the root user, prompts for a password, and executes the SHOW DATABASES; SQL command.
+
+2. Redirecting Output:
+    - You can redirect the output of the SQL commands to a file. For example:
+        EG.
+            mysql -u root -p -e "SHOW DATABASES;" > databases.txt
+        
+                - This will save the output to databases.txt.
+
+3. Accessing a Specific Database:
+    - If you want to connect directly to a specific database:
+        EG.
+            mysql -u root -p database_name
+
+                - This connects you directly to database_name, and you can execute SQL commands without needing to specify the database in each command.
+
+4. Using SQL Files:
+    - You can execute a SQL script file with:
+        EG.
+            mysql -u root -p < script.sql
+
+                - This will execute all SQL commands in script.sql.
+
+5. Other Useful Flags:
+    --host=hostname: Connects to a MySQL server on a specified host (default is localhost).
+    --port=port: Specifies the port number for the connection (default is 3306).
+    -v: Enables verbose mode, which provides more information during execution.
+
+6. starting mysql in safe mode.
+    - which allows you to access the database without a password.
+    - make sure the sql service has been stopped.
+        EG.
+            sudo systemctl stop mysql.
+                THEN 
+            sudo mysqld_safe --skip-grant-tables &
+
+                - This command runs MySQL with the grant tables disabled, meaning you can access MySQL without needing to provide a password.
+
+4. Change the Root Password
+    - Once logged in, you can change the root password with the following commands:
+        EG.
+            FLUSH PRIVILEGES;  -- This ensures that the changes take effect
+                THEN 
+            ALTER USER 'root'@'localhost' IDENTIFIED BY 'new_password';  -- Replace 'new_password' with your desired password
+                THEN 
+            EXIT 
+
+                - If you're using an older version of MySQL (before version 5.7.6), use this command instead:
+                    EG.
+                        SET PASSWORD FOR 'root'@'localhost' = PASSWORD('new_password');  -- Replace 'new_password' with your desired password
+
+
+                                MYSQLD_SAFE.
+                        ===========================
+- mysqld_safe is a script that helps start the MySQL or MariaDB server (mysqld) safely.
+- It acts as a wrapper for the mysqld server and provides additional functionality to improve the reliability and security of your database server.
+- Here are some key features:
+    > Automatic Restart:
+        - If the mysqld server crashes, mysqld_safe can automatically restart it.
+    
+    > Error Logging:
+        - It can log errors to a file, which is useful for troubleshooting.
+    
+    > Environment Variable Management:
+        - mysqld_safe sets certain environment variables that are useful for the mysqld process.
+
+
+                    COMMON USAGES.
+                ---------------------
+- You typically run mysqld_safe from the command line like this:
+    EG.
+        sudo mysqld_safe &
+            
+            - The & runs it in the background. Here are some common options:
+
+            I. --datadir:
+                - Specifies the directory where the database files are stored.
+                    EG.
+                        sudo mysqld_safe --datadir=/var/lib/mysql &
+
+            II. --log-error:
+                - Specifies the error log file.
+                    EG.
+                        sudo mysqld_safe --log-error=/var/log/mysql/error.log &
+
+            III. --skip-grant-tables:
+                - This allows you to start the server without loading the user privilege tables.
+                - This can be useful for recovery purposes, such as resetting a lost root password.
+                    EG.
+                        sudo mysqld_safe --skip-grant-tables &

@@ -1,0 +1,52 @@
+                                    DPKG.
+                                ===========
+- It handles the installation, removal, and querying of .deb packages.
+- It is not a front-end like apt or apt-get, which also handle package dependencies.
+- dpkg operates at a lower level and deals strictly with individual packages.
+
+
+                COMMON DPKG COMMANDS.
+            --------------------------
+1. Installing a deb package.
+    EG.
+        dpkg -i package.deb 
+
+2. Removes a package but leaves configuration files.
+    EG.
+        dpkg -r package 
+
+3. Purges a package, removing all files, including configuration.
+    EG.
+        dpkg -P package 
+
+4. List all installed packages
+    EG.
+        dpkg -l 
+
+5. 
+
+
+                            DPKG-QUERY.
+                        --------------------
+- is a sub-command of dpkg used to query the database of installed packages.
+
+
+                    COMMON USES.
+                -------------------
+1. Check if a package installed.
+    EG.
+        dpkg-query -W -f='${Status}' package_name
+
+            - This checks whether a package is installed and gives its status.
+
+2. List files installed by a package    
+    EG.
+        dpkg-query -L package_name
+
+            - This lists the files that a package has installed on your system.
+
+3. Get details about a specific package
+    EG.
+        dpkg-query -s package_name
+
+            - This shows the status of a package, including version, description,

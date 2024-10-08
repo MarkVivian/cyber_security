@@ -7,6 +7,10 @@
         # Command to start.
          msfconsole
 
+            - we can also launch msfconsole without the display banner using the -q option.
+                EG.
+                    msfconsole -q
+
 - Once you launch it, you'll access and control all the framework’s capabilities, including scanning, exploiting, and using various modules.
  
 

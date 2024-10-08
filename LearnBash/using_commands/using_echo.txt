@@ -60,3 +60,14 @@ To add colors, you use ANSI escape codes.
                     EG.
                         echo -e "\e[34mHello,\nWorld!\e[0m"  # Blue text with a new line
                         echo -e "Tab\tCharacter"  # Text with a tab character
+
+- The \033 is similar to \e.
+    \033[31m = Red
+    \033[32m = Green
+    \033[33m = Yellow
+    \033[34m = Blue
+    \033[35m = Magenta
+    \033[36m = Cyan
+    \033[37m = White
+    \033[91m = Bright Red (as in your example)
+    \033[0m = Reset to default (usually used at the end of the sequence to turn off the formatting).    

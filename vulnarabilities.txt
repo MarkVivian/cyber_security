@@ -1,0 +1,20 @@
+ Web Security Practice Platforms
+
+    OWASP Juice Shop: An intentionally insecure web application for security training. It's an open-source project that simulates a shopping site with numerous security flaws.
+    PortSwigger Web Security Academy: Free learning and practice environment for web vulnerabilities, offering labs on various web security topics like SQL injection, XSS, and more.
+    Hack The Box: Hack The Box has web-based challenges, and many of their retired machines offer lessons on web vulnerabilities. You can work on them at your own pace.
+    Damn Vulnerable Web App (DVWA): A PHP/MySQL web application that is damn vulnerable. It helps you practice common vulnerabilities like SQL injection, XSS, file inclusion, etc.
+    bWAPP: Another vulnerable web app designed to help with web application security testing.
+
+2. Testing Operating System Vulnerabilities (for Metasploit and others)
+
+    VulnHub: A site that provides intentionally vulnerable operating systems for practice. You can download the OS images and run them in a virtual machine (like VirtualBox or VMware) to simulate attacks.
+    TryHackMe: Although some content is paid, many rooms are free, offering vulnerable machines to practice on, including Metasploit and web hacking.
+    Metasploitable 2: An intentionally vulnerable Linux virtual machine designed for testing and practicing Metasploit.
+    Virtual Hacking Labs: A paid platform, but offers hands-on penetration testing labs with various OS and vulnerability types to explore, including Metasploit.
+    Parrot OS + Katoolin: You can set up your own pentesting lab by installing Parrot Security OS and using Katoolin to install different vulnerable apps and services for practice.
+
+3. Self-Hosted Vulnerable Environments
+
+    Docker Vulnerable Web Applications: You can use Docker to spin up intentionally vulnerable web applications quickly. Many repositories host these projects, such as OWASP Juice Shop and DVWA.
+    CVE Lists + Public Exploits: If you're looking to practice on specific vulnerabilities, searching for CVEs and trying them on machines in VulnHub or Metasploit is a great way to learn.
