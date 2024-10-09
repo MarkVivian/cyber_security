@@ -1,0 +1,231 @@
+                                HYDRA.
+                            =============
+- it's a powerful and popular password-cracking tool used to perform brute-force attacks against various network services.
+- It's especially effective for testing the security of web applications where a login form exists.
+
+
+                        KEY FEATURES.
+                    -------------------
+> Supports Multiple Protocols:
+    - Hydra can attack numerous protocols, including HTTP, FTP, SSH, Telnet, and more.
+
+> Fast and Flexible:
+    - It can perform attacks using dictionary files, allowing you to test multiple usernames and passwords rapidly.
+
+> Threading:
+    - Hydra can run multiple connections in parallel, speeding up the attack process significantly.
+
+> Supported services: 
+    i. ftp[s] 
+    ii. http[s]-{head|get|post}
+    iii. http[s]-{get|post}-form
+    iv. http-proxy http-proxy-urlenum
+    v. icq
+    vi. imap[s]
+    vii. irc
+    viii. ldap2[s]
+    ix. ldap3[-{cram|digest}md5][s]
+    x. memcached
+    xi. mongodb
+    xii. mssql
+    xiii. mysql
+    etc-->  redis rexec rlogin rpcap rsh rtsp s7-300 sip smb smtp[s] smtp-enum snmp socks5 ssh sshkey svn teamspeak telnet[s] vmauthd vnc xmpp adam6500 asterisk cisco cisco-enable cobaltstrike cvs firebird nntp oracle-listener oracle-sid pcanywhere pcnfs pop3[s] postgres radmin2 rdp
+
+> fail string characters.
+    > F= indicates a failure string (e.g., incorrect login).
+    > S= specifies a success string (e.g., a message displayed when a login is successful).
+    > C= lets you match conditions in the response code (e.g., HTTP status codes).
+    > B= can be used to match the body of the response, but it’s not as common as F=.
+
+
+                    BASIC SYNTAX.
+                ---------------------
+EG.
+    hydra -l <username> -P <password_list> <target_url> <protocol>
+
+        -l <username>: 
+            > Specify a single username.
+        
+        -L <userfile>:
+            > Specify a file containing a list of usernames.
+        
+        -P <password_list>:
+            > Specify the path to a file containing a list of passwords.
+        
+        -p <password>:
+            > Specify a single password.
+        
+        -t <number>:
+            > Set the number of parallel connections (default is 16).
+        
+        -s <port>:
+            > Specify a port if it's different from the default.
+        
+        -vV:
+            > Enable verbose output to show attempts and results.
+        
+        -f:
+            > Exit after the first successful login.
+
+
+                        BASIC USAGE.
+                    ------------------
+1. Brute-force using a single username:
+    EG.
+        hydra -l admin -P /path/to/password_list.txt http-get://example.com/login
+
+            - This attempts to log in as admin using the passwords listed in the specified file against the login page of http://example.com/login.
+
+
+2. Brute-force using multiple usernames:
+    EG.
+        hydra -L /path/to/usernames.txt -P /path/to/password_list.txt http-get://example.com/login
+
+            - This command will try each username in usernames.txt with each password in password_list.txt.
+
+
+3. HTTP POST with Custom Parameters
+    - When a login form uses POST requests, you can specify the parameters for username and password.
+        EG.
+            hydra -l admin -P /path/to/password_list.txt -d http-post-form "www.example.com/login:username=^USER^&password=^PASS^:F=incorrect"
+                OR 
+            hydra -l admin -P /path/to/password_list.txt -d localhost http-post-form "/example.com/login:username=^USER^&password=^PASS^:F=incorrect" # for localhost .
+                - http-post-form:
+                    > Specifies that it is a POST request.
+                
+                - username=^USER^&password=^PASS^:
+                    > Tells Hydra how to send the login credentials.
+                    > the "username" and "password" should match the input name attribute.
+                        EG.
+                            <input type="text" name="username">
+                            <input type="text" name="password">
+                
+                - F=incorrect:
+                    > This indicates that if the response contains the word "incorrect," the login attempt has failed.
+                    > Replace "incorrect" with the actual failure message of the website.
+                    > the F= is a fail string showed above.(34)
+
+                - if the form has a button containing a name and value .
+                    EG.
+                        <input type="submit" value="Login" name="Login">
+
+                            - it should be added to the custom parameters.
+                                EG.
+                                    hydra -l admin -P /path/to/password_list.txt -d http-post-form "www.example.com/login:username=^USER^&password=^PASS^&Login=Login:F=incorrect"
+
+                                        - Login=Login: 
+                                            > This matches the name and value of the submit button in the form you inspected.
+                                            > Hydra simulates filling out the form by including this value, so it's treated as if you clicked the "Login" button in a normal web form.
+
+
+4. Specify a proxy.
+    - You can route Hydra's traffic through a proxy server:
+        EG.
+            hydra -l admin -P /path/to/password_list.txt -s 8080 -o output.txt -vV http-get://example.com/login -p <proxy_ip>:<proxy_port>
+
+                -s 8080:
+                    > Specifies the proxy port.
+
+                -o output.txt:
+                    > Saves the output of successful attempts to output.txt.
+
+                -p <proxy_ip>:<proxy_port>:
+                    > Specifies the proxy server.
+
+
+5. Using a Dictionary for Usernames and Passwords
+    - To test combinations of usernames and passwords from different files:
+        EG.
+            hydra -L /path/to/usernames.txt -P /path/to/passwords.txt http-get://example.com/login
+
+                - This will try every username from usernames.txt with every password from passwords.txt.
+
+
+6. Exiting After a Successful Login
+    I. -f 
+        - This option will stop Hydra after it finds the first successful login for the specified user on each target (host) being tested.
+        - If you are testing multiple hosts, Hydra will continue testing the other hosts until it finds the first successful login for each.
+            EG.
+                hydra -l admin -P /path/to/password_list.txt -f http-get://example.com/login http-get://another-example.com/login
+
+                    - In this case, if it finds the password for admin on example.com, it will stop testing that host but will continue to test another-example.com.
+                   
+    II. -F.
+        - This option will stop Hydra entirely after it finds the first successful login/password pair for any host in the list being tested.
+        - Once it finds a successful login on any target, it will terminate the entire session.
+            EG.
+                hydra -l admin -P /path/to/password_list.txt -F http-get://example.com/login http-get://another-example.com/login
+
+                    - In this case, if it finds the password for admin on example.com, it will stop testing both hosts immediately.
+
+
+7. Rate limiting.
+    -w TIME: 
+        >This option defines the maximum wait time in seconds for responses.
+        > For example, if the site allows login attempts after 15 minutes, you can set this wait time to 900 seconds.
+
+    -W TIME:
+        > This option defines a wait time between each connection a task performs.
+        > It can help prevent triggering rate limits.
+
+    -c TIME:
+        > This option allows you to set the wait time in seconds per login attempt over all threads.
+        > It's effective when you’re using a low number of tasks (e.g., -t 1).
+        
+        EG.
+            hydra -l admin -P /path/to/password_list.txt -w 900 -W 10 -c 5 http-get://example.com/login
+
+                - This command sets Hydra to wait a maximum of 900 seconds for responses and will wait 10 seconds between each connection attempt.
+
+
+8. Writting output to a file.
+    - To write found login/password pairs to a specified file:
+        EG.
+            hydra -l admin -P /path/to/password_list.txt -o found.txt http-get://example.com/login
+
+                -o found.txt:
+                    > This saves any successful login/password combinations to found.txt.
+
+
+9. Using a Server List for Parallel Attacks
+    - Using a Server List for Parallel Attacks
+        EG.
+            hydra -M /path/to/servers.txt -l admin -P /path/to/password_list.txt http-get
+
+                - -M servers.txt: Each line in servers.txt should contain one target URL.
+
+
+10. Generating Passwords with Custom Charset and Disabling Symbols
+    I. Generating Passwords with Custom Charset
+        - The -x option allows you to specify a custom character set and password length for Hydra to generate during the brute-forcing process.
+        - The syntax is:
+            EG.
+                -x <min>:<max>:<charset>
+
+                    <min>:
+                        > Minimum length of the generated passwords.
+                    
+                    <max>:
+                        > Maximum length of the generated passwords.
+                    
+                    <charset>:
+                        > Characters to include in the generated passwords.
+                            1: Include digits (0-9).
+                            a: Include lowercase letters (a-z).
+                            A: Include uppercase letters (A-Z).
+                        > Any other character added to the charset will also be included.
+                            EG.
+                                hydra -l admin -x 4:6:a1 -P /path/to/password_list.txt http-get://example.com/login
+
+                                    - -x 4:6:a1: This will generate passwords that are 4 to 6 characters long using lowercase letters (a) and numbers (1).
+                                    - It will create combinations like a1, aa1, a1a, etc.
+
+    II. Disabling symbols.
+        - The -y option disables the inclusion of symbols when generating passwords.
+        - This can be helpful if you want to limit the characters used in your generated passwords.
+            EG.
+                hydra -l admin -x 4:6:a1 -y http-get://example.com/login
+
+                    -y:
+                        > This means that only lowercase letters and numbers will be used, excluding symbols like !, @, #, etc.
+

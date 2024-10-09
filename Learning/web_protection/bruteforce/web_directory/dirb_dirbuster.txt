@@ -1,0 +1,145 @@
+                            DIRB. AND DURBUSTER.
+                        =========================
+- durbuster is a gui version or dirb.
+- dirb is a web content scanner used in penetration testing to brute-force hidden directories and files on web servers.
+- It works by trying various URL paths using a wordlist and checking for valid HTTP responses like 200 OK to find hidden resources that aren't publicly listed.
+
+
+                    BASIC SYNTAX.
+                ------------------
+EG.
+    dirb [url] [wordlist]
+
+        > url : The target website or web application you want to scan.
+        > wordlist : A file containing potential directory and file names that dirb will try to append to the URL.
+                    - if not provided it will use the default word list in </usr/share/dirb/wordlist>
+            EG.
+                dirb https://backiee.com /usr/share/wordlists/dirb/common.txt
+                    OR 
+                dirb https://backiee.com 
+
+                    - This will try URLs like:
+                        https://backiee.com/admin
+                        https://backiee.com/login
+                        https://backiee.com/index.html
+
+                    - If dirb finds valid resources (i.e., HTTP status 200 OK), it will display them.
+                        EG.
+                            + https://backiee.com/application.wadl (CODE:200|SIZE:109654)                                                                         
+                            + https://backiee.com/applications (CODE:200|SIZE:109654) 
+
+
+                   BASIC USAGES.
+             ---------------------
+1. Using a custom wordlist.
+    - You can specify your own wordlist instead of using the default one:
+        EG.
+            dirb https://backiee.com /path/to/custom-wordlist.txt
+
+                - This allows you to craft more specific scans based on what you suspect might be on the website.
+
+
+2. Scan for specific file extensions.
+    - In some cases, you may want to look for specific types of files.
+    - For example, if you suspect there are .php or .html files, you can focus your scan on those types:
+        EG.
+            dirb https://backiee.com /usr/share/wordlists/dirb/common.txt -X .php,.html
+
+                - This tells dirb to append the listed extensions (.php and .html) to each word in the wordlist.
+                - So, for each directory or file name in the wordlist, dirb will check URLs like:
+                    EG.
+                        https://backiee.com/admin.php
+                        https://backiee.com/login.html
+
+
+3. Stop Recursive Scanning.
+    - If dirb finds directories, it can automatically dive into those directories and scan deeper inside them
+    - If you want to stop this :
+        EG.
+            dirb https://backiee.com /usr/share/wordlists/dirb/common.txt -r
+
+                - This disables recursive scanning, meaning if it finds https://backiee.com/admin/, it won't scanning inside /admin/.
+
+
+4. Ignoring Specific Response Codes:
+    - Sometimes, you might want to ignore specific HTTP status codes in the output, such as 404 (Not Found) or 403 (Forbidden).
+    - You can use the -N option to do this:
+        EG.
+            dirb http://example.com /path/to/wordlist.txt -N 403
+
+
+5. Using a proxy.
+    - If you want to use a proxy (e.g., for anonymity or testing purposes), you can configure dirb to send requests through one:
+        EG.
+            dirb https://backiee.com -p http://127.0.0.1:8080
+
+                - This might be useful when you want to funnel requests through a tool like Burp Suite  or an anonymous proxy.
+
+
+6. Adding Custom Headers:
+    - You can add custom HTTP headers to your dirb requests using the -H option.
+    - This is useful if you need to simulate specific requests with particular headers like Authorization, Content-Type, etc.
+        EG.
+            dirb http://example.com /path/to/wordlist.txt -H "Authorization: Bearer token"
+
+
+7. Providing username and password.
+    - To perform HTTP basic authentication, you can use the -u option to provide a username and password.
+    - This is common when testing protected areas of a website.
+        EG.
+            dirb http://example.com /path/to/wordlist.txt -u username:password
+
+
+8. Case insensetive search.
+    - You can make the search case-insensitive using the -i option.
+    - This is useful when directory or file names are not case-sensitive on the server.
+        EG.
+            dirb http://example.com /path/to/wordlist.txt -i
+
+
+9. save output to a file.
+    - To save the output to a file for later analysis, use the -o option:
+        EG.
+            dirb http://example.com /path/to/wordlist.txt -o output.txt
+
+                - This will save all the results of the scan to the specified file.
+
+
+10. Proxy authentication.
+    - If you're behind a proxy that requires authentication, you can provide the proxy credentials using the -P option:
+        EG.
+            dirb http://example.com /path/to/wordlist.txt -P username:password
+
+
+11. Using a client certificate.
+    - Some servers require client certificates for access.
+    - You can specify a certificate with the -E option:
+        EG.
+            dirb http://example.com /path/to/wordlist.txt -E /path/to/certificate.pem
+
+
+12. Extensions.
+    - -X <extensions>: This option allows you to specify extensions that should be appended to the words in the wordlist.
+    - For example, if you're looking for .php or .html files, you can use:
+        EG.
+            dirb http://example.com /path/to/wordlist.txt -X .php,.html
+
+    - -x <extensions_file>: Unlike -X, this option allows you to specify a file that contains a list of extensions to use.
+    - The file should contain one extension per line.
+        EG.
+            dirb http://example.com /path/to/wordlist.txt -x /path/to/extensions.txt
+
+
+13. 
+
+
+                        WHAT TO DO WHEN YOU DISCOVER A FILE.
+                    =========================================
+- If you find something like https://backiee.com/file/random.txt, what you can do with it depends on the type of file and what information it contains. Here’s what you could consider:
+    1. Downloading the File:
+        - You can view or download the file if it is publicly accessible.
+        - Use a tool like curl or wget to grab the file:
+            EG.
+                wget https://backiee.com/file/random.txt
+
+    2. simply paste the URL into a browser to view its contents.

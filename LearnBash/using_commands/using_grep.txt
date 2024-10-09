@@ -72,3 +72,10 @@ fixed string search.
             - It’s faster when you’re searching for simple strings that don’t involve regex.
 
 
+searching with escape characters.
+    EG.
+        man dirb | grep -- "-p" # Using Escape Character:
+            OR 
+        man dirb | grep "\-p" # Using Double Dash:
+
+            - Both methods will allow you to search for -p or any other flag in a man page without grep interpreting it as an option.

@@ -25,7 +25,7 @@ The basic syntax for connecting to a MySQL database is:
         EG.
             mysql -u root -p -e "SHOW DATABASES;"
 
-                - This command connects to MySQL as the root user, prompts for a password, and executes the SHOW DATABASES; SQL command.
+                - This command connects to MySQL as the root user, pro
 
 2. Redirecting Output:
     - You can redirect the output of the SQL commands to a file. For example:

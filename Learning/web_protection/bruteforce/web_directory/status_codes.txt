@@ -1,0 +1,46 @@
+                                STATUS CODES.
+                            =====================
+1. 200 OK: 
+    - The URL exists, and the server successfully returned content.
+    - This indicates a valid file or directory.
+        EG.
+            CODE:200 [SIZE:92241]
+            
+                - The size 92241 indicates how large the page is. This can help you spot potentially sensitive or interesting files.
+
+
+2. 301 Moved Permanently:
+    - The URL has been moved to another location.
+    - It usually means the URL is a redirect, and dirb will follow it.
+        EG.
+            CODE:301
+        
+                - You may want to check where it's being redirected.
+
+
+3. 302 Found:
+    - This is a temporary redirect, meaning the content is elsewhere temporarily.
+        EG.
+            CODE:302
+
+
+4. 403 Forbidden:
+    - The server understands the request, but you don't have permission to access it.
+    - This might mean the file exists but is protected.
+        EG.
+            CODE:403
+
+
+5. 404 Not Found:
+    - The URL does not exist.
+    - It indicates that dirb tried to access something that isn't there.
+        EG.
+            CODE:404
+
+
+6. 500 Internal Server Error:
+    - This indicates a problem on the server side, which could be due to a misconfiguration or other error.
+
+
+7. 503 Service Unavailable:
+    -  The server cannot handle the request at the moment, often due to being overloaded.
