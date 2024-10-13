@@ -8,7 +8,7 @@
     EG.
         my_script.sh &
 
-            - his runs my_script.sh in the background.
+            - This runs my_script.sh in the background.
             - The terminal will immediately be available for other commands.
             - You’ll get a job number and a process ID (PID) like this:
                 EG.

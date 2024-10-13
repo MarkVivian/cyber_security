@@ -1,0 +1,78 @@
+                                    BURP SUITE.
+                                ==================
+- a powerful tool used for web application security testing.
+- Burp Suite is highly popular for discovering vulnerabilities, including SQL injection, cross-site scripting (XSS), and other flaws in web applications.
+
+
+                Key Components of Burp Suite:
+            ----------------------------------
+Proxy:
+    - Burp Suite operates as an intercepting proxy.
+    - It captures HTTP and HTTPS traffic between your browser and the target web application, allowing you to inspect and manipulate requests/responses.
+
+Target:
+    - Helps you define the scope of testing.
+    - You can specify which domains and paths you want to test.
+
+Intruder:
+    - Allows you to perform automated attacks, such as fuzzing, brute force, or parameter tampering.
+
+Repeater:
+    - Lets you manually modify and resend requests.
+    - Useful for testing how different inputs affect responses.
+
+Scanner (Pro version):
+    - Automatically identifies vulnerabilities in web applications.
+
+Decoder:
+    - Helps decode or encode data in various formats (Base64, URL encoding, etc.).
+
+Comparer:
+    - Compares different requests or responses to identify variations.
+
+
+                            BURP SUITE WORKFLOW.
+                        ---------------------------------
+1. Setting Up Burp Suite with a Browser:
+    - Configure your browser to route traffic through Burp Suite’s proxy (default is 127.0.0.1:8080).
+    - You will need to install Burp’s CA certificate in your browser to intercept HTTPS traffic.
+
+
+2. Intercepting and Analyzing Requests:
+    - Open Burp Suite and go to the Proxy tab → Intercept.
+    - Burp will capture all the requests you make through your browser. You can view and edit these requests before they reach the server.
+    - After editing, forward the request, and Burp will display the response from the server.
+        EG. 
+            > Visit a login page, enter credentials, and Burp intercepts the form submission.
+            > You can modify parameters like username or password to see how the application responds.
+
+
+3. Using Intruder for Attacks:
+    - Intruder is used for automating attacks like fuzzing or brute-forcing.
+    - To use it, right-click on an intercepted request and send it to Intruder.
+    - Define Positions (which parts of the request to target) and choose an attack type (e.g., sniper, cluster bomb).
+    - Load a payload list (for brute-forcing, you can load a list of usernames or passwords).
+        EG.
+            > For a brute-force attack, you could target a login form’s password field and use a wordlist to try various passwords.
+
+
+4. Manual Testing with Repeater:
+    - Repeater is for testing requests manually.
+    - You can modify and send requests repeatedly to test how the web application behaves.
+    - Simply right-click on a request from Proxy or Intruder and send it to Repeater.
+        EG.
+            > Modify parameters like user-agent, cookie, or form data in Repeater, and observe how the server reacts.
+            > This can help identify hidden parameters or vulnerabilities.
+
+
+5. Scanning for Vulnerabilities (Pro):
+    - The Scanner automatically checks for common vulnerabilities like SQL injection, XSS, and CSRF.
+    - You can initiate scans from the Proxy or Repeater by right-clicking on a request and selecting Scan.
+    - Burp will highlight vulnerabilities in its results.
+
+
+6. Decoding and Encoding Data:
+    - Use the Decoder tab to encode or decode data, such as Base64, URL encoding, or hex.
+    - This is useful when you encounter encoded values in a request and need to understand or modify them.
+        EG.
+            > If a session token is Base64 encoded, you can decode it, modify its value, and encode it back to manipulate a session.

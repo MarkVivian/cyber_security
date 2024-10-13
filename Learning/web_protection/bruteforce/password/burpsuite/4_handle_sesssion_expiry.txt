@@ -1,0 +1,204 @@
+                        HANDLE SESSION EXPIRY.
+                    ===========================
+1. Update Cookies Automatically:
+    > Copy the current session cookie (e.g., PHPSESSID or any session-related cookie) from your browser while logged in to DVWA.
+
+    > Grep - Extract in Option 1 (Maintaining Session via Dynamic Token Extraction)
+        Grep - Extract is a feature in Burp Suite’s Intruder that allows you to extract specific pieces of information (like session cookies or CSRF tokens) from the server’s response and then use them in subsequent requests.
+
+        - Here's how you use Grep - Extract:
+            Step 1: Set a Grep - Extract rule:
+                Go to the Intruder -> Options tab.
+                Scroll down to the Grep - Extract section.
+                Click Add to create a new rule.
+
+            Step 2: Define what to extract:
+                In the response from the server, you'll have some identifier like a session cookie or CSRF token.
+                 For example, PHPSESSID=xyz123 or user_token=abc456.
+                You can use a regex to extract this value. For example:
+                    Session Cookie Extraction: Use regex to extract the session value:
+                        EG.
+                            PHPSESSID=([a-zA-Z0-9]+)
+
+                                # [a-zA-Z0-9]: Matches any letter from a to z (lowercase), A to Z (uppercase), or any digit (0-9).
+                                # +: This indicates one or more occurrences of the characters.
+
+                CSRF Token Extraction: Use a similar approach for CSRF tokens:
+                    EG.
+                        user_token=([a-zA-Z0-9]+)
+
+            Step 3: Insert the extracted token:
+                1. Choose the Attack Type
+                    Go to the Intruder tab.
+                    Select the Positions tab.
+                    For the attack type, select Pitchfork from the dropdown menu.
+                    This will allow you to insert multiple payloads at different positions.
+
+                2. Set Payload Positions
+                    Highlight the dynamic values in the intercepted request where you want to insert payloads:
+                        Highlight the PHPSESSID value (e.g., PHPSESSID=pe5o1t11r2k8v96rb7v3oo48vi).
+                        Highlight the password (e.g., password=left).
+                        Highlight the user_token (e.g., user_token=63b76e24bb590ab0378ab98728f91010).
+                    The highlighted parts should be wrapped with § symbols in the request:
+                        EG.
+                            Cookie: PHPSESSID=§pe5o1t11r2k8v96rb7v3oo48vi§
+                            username=admin&password=§left§&user_token=§63b76e24bb590ab0378ab98728f91010§
+
+                3. Configure Payload Sets
+                    Now, navigate to the Payloads tab.
+                    You will configure three payload sets: one for each position.
+
+                    Payload Set 1: PHPSESSID (using Recursive Grep)
+
+                        Select Payload Set 1 (for PHPSESSID).
+                            Under Payload Type, select Recursive Grep Extract.
+                            In Initial Payload, provide the current PHPSESSID from the intercepted request (e.g., pe5o1t11r2k8v96rb7v3oo48vi).
+                            Set up the Grep - Extract rule:
+                                Go to Intruder -> Options and scroll down to the Grep - Extract section.
+                                Add a new extraction rule to capture PHPSESSID using regex like:
+                                PHPSESSID=([a-zA-Z0-9]+).
+                                This will extract and update PHPSESSID for each subsequent request.
+
+                    Payload Set 2: Password (Simple List)
+                            Select Payload Set 2 (for password).
+                            Under Payload Type, choose Simple List or File.
+                            If using a wordlist, load it here (e.g., rockyou.txt).
+                            The payload will insert different password guesses at the password position.
+
+                    Payload Set 3: user_token (using Recursive Grep)
+                        Select Payload Set 3 (for user_token).
+                        Under Payload Type, select Recursive Grep Extract.
+                        In Initial Payload, provide the current user_token from the intercepted request (e.g., 63b76e24bb590ab0378ab98728f91010).
+                        Set up the Grep - Extract rule:
+                            In the Grep - Extract section (same as PHPSESSID), add another rule for user_token.
+                            Use a regex like:
+                            user_token=([a-zA-Z0-9]+).
+                            This will dynamically extract and update the user_token for each request.
+
+                4. Configure Payload Processing (if needed)
+                    If you need to modify or process the payloads (e.g., URL encoding, adding a prefix/suffix), you can configure Payload Processing in the Payloads tab.
+                    For most cases, no additional processing is required unless the server expects the payload to be in a specific format (like encoded).
+
+                5. Start the Attack
+                    Now, your payloads are configured, and the positions are set.
+                    Click Start Attack to begin sending requests with updated PHPSESSID, password, and user_token.
+                    Burp Suite will cycle through your payloads, using the values from the Grep - Extract for session and token updates and the wordlist for passwords.
+
+
+2. Add the Cookie Manually:
+    - If the session cookie is static for the duration of the attack, you can manually add the cookie in Burp Suite.
+    - Go to Intruder -> Payloads, and in the request where you are making the brute-force attack, make sure the Cookie header (e.g., Cookie: PHPSESSID=<session_value>) is updated with your current session value from the browser.
+
+
+3. Use the Cookie Jar:
+    - Burp Suite has a feature called the Cookie Jar that can help manage cookies automatically.
+    - Enable it by going to Project options -> Sessions.
+    - In the Session Handling Rules, you can create a new rule to update cookies based on responses, so your attack keeps the session alive.
+
+
+4. Configure Session Handling:
+    - In the same Session Handling Rules (in Project options -> Sessions), you can set up rules to refresh the session or re-authenticate automatically when a session expires.
+    - For instance, you can configure Burp to send a re-login request whenever it receives a 301/302 redirection.
+
+
+5. Handling Anti-CSRF Tokens (if applicable):
+    - Sometimes, the session expiration may involve CSRF tokens being invalidated.
+    - If the server is using an anti-CSRF token (like user_token in your intercepted request), you can configure Burp Suite to extract and refresh the token with each request.
+    - In Intruder -> Options, use the Grep - Extract option to extract the new CSRF token from each response and then update the request with the new token using payload processing.
+
+
+                    Step-by-Step Guide: Configuring Resource Pool to Prevent Account Lockout and Throttling
+            ======================================================================================================
+1. Navigate to the Resource Pool Settings
+    > Open Burp Suite and go to the Intruder tab.
+    > At the bottom of the Intruder -> Positions tab, you will see the Resource Pool option.
+    > Click on Resource Pool to open the settings.
+
+2. Understanding Resource Pool Settings
+    > You'll see a few critical options that can help manage how Burp Suite interacts with the server during an attack. Here's what they mean and how you should configure them to prevent triggering account locks:
+        - Maximum concurrent requests: This setting controls how many requests Burp Suite will send simultaneously to the server.
+        - Delay between requests: This adds a fixed time delay between each request, helping slow down your attack to avoid detection.
+        - Automatic throttling: This helps automatically slow down requests if the server becomes overwhelmed.
+
+3. Configuring Resource Pool to Prevent Lockout
+    Step 1: Set Maximum Concurrent Requests
+        Default: Burp Suite may try to send multiple requests simultaneously.
+        Recommended Setting: Set Maximum Concurrent Requests to 1.
+            This means Burp will only send one request at a time, which reduces the risk of overwhelming the server and triggering rate-limiting or lockout.
+
+    Step 2: Add a Delay Between Requests
+        Default: There may be no delay, which can look suspicious to the server if you are brute forcing quickly.
+        Recommended Setting: Set a Delay Between Requests.
+            For example, add a delay of 10-15 seconds between requests.
+            This helps space out the login attempts and mimics human behavior. To do this:
+                In the Resource Pool window, enter the desired value (e.g., 15000 ms for a 15-second delay) under the Delay Between Requests option.
+
+    Step 3: Enable Automatic Throttling (Optional)
+        Default: Burp Suite does not automatically throttle requests.
+        Recommended Setting: Enable Automatic Throttling.
+            If the server begins to slow down or refuses connections, Burp will automatically adjust the pace to avoid being blocked.
+            This can be useful if the server has rate-limiting mechanisms in place.
+
+4. Throttling Strategy to Avoid Lockout
+    - Strategy for 3 Attempts Before Waiting (Mimicking Lockout Timers):
+    - Some websites will lock an account after 3 failed attempts and allow retrying after 15 minutes. Here's how to manage this in Burp:
+
+        Throttle After 3 Attempts:
+            You can set the Intruder -> Resource Pool to send 3 requests and then introduce a delay of 15 minutes before sending more.
+            To implement this, use a request delay combined with stopping after 3 requests.
+
+        Manually Set Delays for Wait Period:
+            Set up Burp’s Resource Pool to pause for 15 minutes after 3 requests.
+            This is a manual tactic: after sending 3 requests, pause Burp (or configure delays) before resuming the attack. Burp currently doesn't support automatic "wait and retry" functionality.
+
+5. Configuring Maximum Attempts Per Account (Optional)
+Some sites will lock accounts after a set number of failed logins. To prevent exceeding this number:
+    Configure Attempts Manually:
+        Keep track of the number of attempts you've made (e.g., 3 attempts per account).
+        If needed, stop Burp after 3 tries, wait for 15 minutes, and resume the attack later.
+
+
+                        Re-login Request for Session Handling
+                    =============================================
+- The Re-login request method is part of Session Handling Rules in Burp Suite.
+- This is useful in scenarios where sessions expire frequently, or if the web application logs you out automatically after some inactivity.
+- Here’s how and when to apply it:
+    - When to Use a Re-login Request
+        > Frequent Session Expiration:
+            - If your session expires after a short period of time (e.g., during a long brute-force attack), you need to refresh your session by re-authenticating.
+        
+        > Login-required attacks:
+            - If you need to perform an attack that requires constant authentication (e.g., brute-forcing a password), but your session expires after several attempts, Burp can automatically re-login to maintain an active session.
+        
+        > Session-based apps:
+            - Applications that issue session cookies like PHPSESSID or user_token during login require you to log in again when the session expires.
+
+- Step-by-Step: Setting Up Re-login Request
+    - Here’s how you can configure Burp Suite to send a Re-login Request when a session expires:
+        1. Configure a Re-login Request:
+
+            Go to Project options -> Sessions.
+            In Session Handling Rules, click Add.
+            Choose Rule Actions -> Run a macro -> Configure.
+
+        2. Define the Re-login Request:
+
+            In the Macro window, capture a Login Request:
+                Start by performing a login request manually, and capture it in Burp.
+                This login request should include username and password fields, plus the session tokens you need for your attack.
+            Add this login request as a macro so that Burp Suite can send it whenever it detects that your session has expired.
+
+        3. Set Up the Conditions for the Re-login Request:
+
+            Back in the Session Handling Rules window, you can set the rule to invoke the re-login request when Burp detects specific conditions, such as:
+                Session cookie expiration (e.g., PHPSESSID becomes invalid).
+                Specific response headers or body text (e.g., “Session expired” or a 302 redirect to the login page).
+
+        4. Use the Session Handling Rule During the Attack:
+
+            Make sure your attack uses this session handling rule:
+                In the Intruder -> Attack tab, under Options, ensure that the Session Handling Rule you created is applied to your attack.
+                This way, Burp will send the re-login request automatically whenever your session expires.
+
+
+                

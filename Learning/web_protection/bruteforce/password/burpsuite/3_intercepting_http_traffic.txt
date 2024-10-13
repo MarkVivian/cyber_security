@@ -1,0 +1,156 @@
+                                INTERCEPTING HTTP TRAFIC. (DVWA USED.)
+                            ============================================
+Step 1: Intercepting HTTP Traffic in DVWA
+    - Launch Burp Suite and ensure your proxy is listening on 127.0.0.1:8080 (default) or any other configured IP and port.
+    - Open your browser (can be Firefox or Burp’s Chromium browser) and go to DVWA (http://localhost/DVWA or wherever it’s hosted).
+    - Start Burp Proxy:
+        > Go to the Proxy tab > Intercept sub-tab.
+        > Make sure Intercept is on.
+
+    - Capture a Request:
+        > Log in to DVWA or perform any action on the site. Burp Suite should intercept the HTTP request.
+
+
+Step 2: Analyzing the Request
+    - Once you intercept the HTTP request, you’ll see it in Burp's Intercept tab.
+    - You can analyze the request method, headers, cookies, and body.
+    - If you're on the DVWA login page, you’ll be able to see the username and password being submitted in plain text since HTTP traffic is not encrypted.
+
+
+Step 3: Sending the Request to the Intruder
+    > Send to Intruder:
+        - Right-click on the intercepted request and select Send to Intruder.
+        - This will send the request to Burp's Intruder tool, where you can set up a brute force attack.
+
+    > Set Up Intruder Positions:
+        - In the Intruder tab > Positions sub-tab, you will see the captured HTTP request.
+        - Manually clear all preselected fields, and then highlight the parameters you want to brute force (such as username and password).
+        - Click Add § to mark these as positions for payloads.
+
+    > Set Attack Type:
+        - Choose Cluster Bomb if you want to brute force both username and password fields (using combinations from two different wordlists).
+        - If you only want to brute force the password field for a known username, choose Sniper mode.
+            I. Sniper:
+                > Used when you want to brute-force a single field or parameter.
+                > You specify one position, and Burp sends each payload (word from the wordlist) to that position in turn.
+                > Ideal for testing different values in a single parameter, like a password.
+
+            II. Battering Ram:
+                > This attack type uses the same payload for multiple positions.
+                > If you have several parameters (like username and password), Burp will insert the same payload into both fields for each request.
+                > Useful if you want to test the same value in different parameters simultaneously.
+
+            III. Pitchfork:
+                > Allows you to use different payload sets in multiple positions, but it only tests one payload per position at a time.
+                > Useful when you want to test specific combinations from two or more lists (like username and password combinations).
+
+            IV. Cluster Bomb:
+                > The most comprehensive attack type: it tests all combinations of different payload sets.
+                > If you have multiple positions, each payload from the first set is combined with every payload from the second set, etc.
+                > Ideal for brute-forcing multiple parameters like username and password with two different lists.
+
+    > Payload Positioning
+        > Payload positioning refers to where you want Burp to insert your payloads (i.e., values from the wordlists).
+        > In your intercepted request, you have the following fields that might be worth brute-forcing:
+            EG.
+                POST /DVWA/vulnerabilities/brute/ HTTP/1.1
+                Host: localhost
+                ...
+                Cookie: security=impossible; PHPSESSID=p1vlis8jg0gba2j8ga7uenoh1j
+                Connection: close
+
+                username=admin&password=left&Login=Login&user_token=87ca69305c625c1f296542955f8ae4c6
+
+                    - Here are the fields you can target:
+                        > username=admin
+                        > password=left
+                    
+                    - Optionally, you can also try targeting the user_token, but for brute-force attacks, it’s usually unnecessary unless there's session-based authentication.
+                    
+                    - How to Set Payload Positions:
+                        > Highlight the Parameters:
+                            = In the Positions tab, highlight the part of the request you want to replace with a payload.
+                            = For instance, you can highlight the value after username= (admin), and then click Add §.
+                            = Do the same for password=left.
+
+                        > After marking positions, your request should look like this (with § indicating positions for payloads):
+                            EG.
+                                username=§admin§&password=§left§&Login=Login&user_token=87ca69305c625c1f296542955f8ae4c6
+
+
+Step 4: Setting Up Payloads
+    > Payloads Tab:
+        - Go to the Payloads sub-tab.
+        - For Payload Set 1, load your username list or use a fixed username if you know it.
+        - For Payload Set 2, load a password wordlist.
+        
+        - Payload options.
+            a. Payload Sets
+                > In the Payload Sets section, you determine:
+                    - Which positions to insert payloads into (these are the positions you set earlier in the Positions tab).
+                    - Which payload set corresponds to each position (Payload Set 1, Payload Set 2, etc.).
+
+                > For example:
+                    - Payload Set 1 could be a list of usernames for the username field.
+                    - Payload Set 2 could be a list of passwords for the password field.
+
+                > The number of payload sets depends on how many positions you want to fill with different data.
+                > You can set one or multiple payload sets based on your brute-forcing strategy.
+
+            b. Payload Settings
+                > This section allows you to configure what kind of payloads will be inserted into your defined positions.
+                > Burp Suite offers a range of options for payloads:
+                    - Simple list:
+                        > You can use a predefined wordlist (e.g., usernames, passwords). You’ll likely use this for brute-force attacks.
+                    
+                    - Runtime file:
+                        > Load a file at runtime and pull payloads from it. Useful for large wordlists.
+                    
+                    - Numbers:
+                        > You can generate numbers within a range, with custom increments (useful for numerical parameters like PINs).
+                    
+                    - Dates:
+                        > Generate payloads in date formats if the target requires date-based parameters.
+                    
+                    - Brute-forcer:
+                        > Automatically generates all possible combinations of characters based on your specified character set (useful for PIN or password brute-forcing with specific length requirements).
+                    
+                    - Character substitutions:
+                        > This allows for generating variations in common passwords by replacing letters with numbers, e.g., turning "password" into "p@ssw0rd".
+                    
+                    - Custom payload:
+                        > Allows you to define your payloads programmatically.
+
+                > For most brute-force attacks, the Simple list option is commonly used.
+            
+            c. Payload Processing
+                - This feature lets you modify the payloads before sending them to the server. You can apply transformations to payloads, such as:
+                    > Add a prefix or suffix:
+                        - You might want to append a domain (e.g., @example.com) to each payload.
+                    
+                    > Modify case:
+                        - Convert payloads to upper, lower, or mixed case.
+                    
+                    > Hashing:
+                        - Hash the payload using MD5, SHA-1, or other algorithms if the application uses hashed passwords.
+
+                - You can chain multiple processors together if you need more complex transformations.
+            
+            d. Payload Encoding
+                - This ensures the payloads are properly encoded before they are sent, especially when dealing with special characters in URLs, forms, or scripts.
+                    > URL-encoding:
+                        - This is commonly needed if your payloads contain characters like &, =, or spaces, which have special meaning in URLs.
+                    
+                    > HTML encoding:
+                        - Useful if you are injecting payloads into an HTML form or element.
+                    
+                    > Base64 encoding:
+                        - Useful for applications that accept Base64-encoded data.
+
+    > Start the Attack:
+        - Click Start Attack. Burp Suite will send multiple requests, trying different username and password combinations.
+
+
+Step 5: Analyzing the Results
+    - In the Intruder Attack window, look at the response length and status codes to identify successful attempts.
+    - A successful login may result in a different response length or a specific status code (like 200 OK for a successful login page).

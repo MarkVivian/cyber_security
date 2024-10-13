@@ -38,6 +38,15 @@
     > B= can be used to match the body of the response, but it’s not as common as F=.
 
 
+                    LIMITATIONS.
+                ===================
+- Hydra and JavaScript Communication:
+    - Hydra is a tool that reads server responses directly when performing brute force attacks.
+    - It works best with traditional web applications where the server communicates directly with the HTML.
+    - However, in modern web applications, where the server communicates with JavaScript (either through vanilla JavaScript or JavaScript frameworks like React), Hydra cannot interpret or wait for the client-side scripts to generate or modify the page's content dynamically.
+    - As a result, if error messages or success conditions are handled entirely by JavaScript without a direct server response, Hydra will fail to recognize the success or failure of login attempts.
+
+
                     BASIC SYNTAX.
                 ---------------------
 EG.
@@ -229,3 +238,40 @@ EG.
                     -y:
                         > This means that only lowercase letters and numbers will be used, excluding symbols like !, @, #, etc.
 
+
+11. Using Hydra for Different Services (SSH, FTP, Telnet)
+    - Hydra is not limited to web forms.
+    - It's a versatile tool that can be used for a wide range of network services, including SSH, FTP, Telnet, and more.
+    - Here are examples of how you can use Hydra with different services:
+
+        I. SSH (Secure Shell):
+            EG.
+                hydra -l username -P password_list.txt ssh://target_ip
+                    
+                    -Brute-forcing SSH login credentials with a username and password list.
+
+
+        II. FTP (File Transfer Protocol):
+            EG.
+                hydra -l username -P password_list.txt ftp://target_ip
+
+                    - Testing for FTP access with common credentials.
+
+
+        III. Telnet:
+            EG.
+                hydra -l username -P password_list.txt telnet://target_ip
+
+                    - Brute-forcing Telnet login.
+
+        IV.SMTP (Simple Mail Transfer Protocol):
+            EG.
+                hydra -l username -P password_list.txt smtp://target_ip
+
+                    - Brute-forcing SMTP logins, commonly used for email services.
+
+        V. POP3 (Post Office Protocol):
+            EG.
+                hydra -l username -P password_list.txt pop3://target_ip
+
+                    - Attempting to brute-force access to a POP3 email account.
