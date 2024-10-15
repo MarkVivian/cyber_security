@@ -29,7 +29,8 @@ Steps:
     Example:
         - If the token is in a hidden field, you can set the extraction to look for the following:
             EG.
-                <input type="hidden" name="user_token" value="([a-zA-Z0-9]+)">
+                start after expression : <input type="hidden" name="user_token" value="
+                end at delemeter : ">
 
         - The token will be extracted from the response and automatically updated for the next request.
 

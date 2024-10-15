@@ -1,0 +1,136 @@
+                            MEDUSA.
+                        ===============
+- Medusa is a powerful, parallelized, modular tool for brute-forcing authentication on various services.
+- It supports a wide range of protocols like SSH, FTP, Telnet, and more, making it similar to Hydra.
+
+
+                    BASIC SYNTAX.
+                -------------------
+- The general syntax for Medusa is:
+    EG.
+        medusa -h <target_host> -u <username> -P <password_list> -M <module>
+
+            -h : The target host (IP address or domain name).
+            -u : The username to brute force.
+            -P : The password list file (wordlist).
+            -M : The module (service) you want to attack, like SSH, FTP, or Telnet.
+
+                EG.
+                    medusa -h 192.168.1.100 -u admin -P passwords.txt -M ssh
+
+                        - This command brute forces SSH on the host 192.168.1.100 using the username admin and passwords from passwords.txt.
+
+
+                    COMMON OPTIONS.
+                ----------------------
+> -H <file> :
+    - Use a file containing a list of target hosts.
+
+> -U <file> :
+    - Use a file containing a list of usernames.
+
+> -p <password> :
+    - Use a single password instead of a password list.
+
+> -t <number> :
+    - Set the number of parallel threads (default is 16).
+
+> -n <port> :
+    - Specify a custom port for the service (default is the service’s standard port).
+
+> -v :
+    - Verbose mode; prints more details about what is happening.
+
+> -T <seconds> :
+    - Set the timeout for responses from the server.
+
+> -f :
+    - Stop after the first valid password is found.
+
+> -e nsr :
+    - Tests null passwords (n), the username as the password (s), and reversed username as the password (r).
+
+
+                        COMMANDS WITH OPTIONS.
+                    ----------------------------
+1. Brute Force with Multiple Hosts
+    EG.
+        medusa -H hosts.txt -u admin -P passwords.txt -M ftp
+
+            - This command targets multiple hosts (listed in hosts.txt) to brute force FTP with the username admin and the wordlist passwords.txt.
+
+
+2. Using Multiple Usernames
+    EG.
+        medusa -h 192.168.1.100 -U usernames.txt -p password123 -M ssh
+
+            - Here, Medusa tries multiple usernames from usernames.txt with a single password password123 on SSH.
+
+
+3. Specifying a Custom Port
+    EG.
+        medusa -h 192.168.1.100 -u admin -P passwords.txt -M ssh -n 2222
+
+            - This command tries to brute force SSH on port 2222 instead of the default 22.
+
+
+4. Limiting Parallel Threads
+    EG.
+        medusa -h 192.168.1.100 -u admin -P passwords.txt -M telnet -t 10
+
+            - This command reduces the number of threads to 10, useful if the target is sensitive to many parallel connections.
+
+
+5. Stopping After the First Successful Login
+    EG.
+        medusa -h 192.168.1.100 -u admin -P passwords.txt -M ssh -f
+            
+            - The brute force attack will stop as soon as the first valid password is found.
+
+
+6. Verbose Output
+    EG.
+        medusa -h 192.168.1.100 -u admin -P passwords.txt -M ftp -v 6
+
+            - This command enables verbose mode, printing detailed connection information as the attack proceeds.
+
+
+7. Testing Null and Same-Name Passwords
+    EG.
+        medusa -h 192.168.1.100 -u admin -M telnet -e nsr
+
+            - This command checks for null, username-as-password (admin), and reversed username (nimda) as potential passwords on Telnet.
+
+
+                        Advanced Usage Example: SSH Brute Force
+                    ---------------------------------------------------
+EG.
+    medusa -h 192.168.1.100 -U users.txt -P passwords.txt -M ssh -n 22 -t 5 -f -v 6
+
+        > Targets 192.168.1.100 on port 22.
+        > Uses a list of usernames (users.txt) and passwords (passwords.txt).
+        > Limits the number of threads to 5 (-t 5).
+        > Stops after finding the first valid login (-f).
+        > Uses verbose level 6 for detailed output.
+
+
+                                Possible Workarounds    
+                            ------------------------------
+- Increase Delays Between Attempts:
+    - You can configure Medusa to use a slower approach by adding time between attempts to avoid triggering SSH defenses.
+        EG.
+            medusa -h 192.168.1.100 -u admin -P passwords.txt -M ssh -T 10
+
+                > Here, -T 10 adds a 10-second timeout between attempts, reducing the chance of getting blocked.
+
+
+- Randomize Login Attempts:
+    - Some attackers use multiple IP addresses or proxies to randomize and distribute the login attempts, avoiding detection from one IP.
+
+
+- Adjust SSH Configuration (For Testing):
+    - If you control the SSH server (for example, in a lab environment), you can temporarily modify the SSH configuration to allow more attempts before closing the connection.
+        EG.
+            Open the SSH configuration file (/etc/ssh/sshd_config).
+            Look for MaxAuthTries and increase it (default is 3 or 6).
+            Restart the SSH service after making changes.
