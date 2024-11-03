@@ -49,6 +49,66 @@ Step 3: Sending the Request to the Intruder
                 > If you have multiple positions, each payload from the first set is combined with every payload from the second set, etc.
                 > Ideal for brute-forcing multiple parameters like username and password with two different lists.
 
+                    ** DIFFERENCE BETWEEN CLUSTER BOMB AND PITCH FORK**
+                        PITCH FORK.
+                            - Example Setup:
+                                > Positions: username and password parameters are marked as payload positions.
+                                > Payload Sets:
+                                    > Payload set 1: admin, user1, guest
+                                    > Payload set 2: password123, 123456, guest123
+
+                            - In pitchfork mode, Burp Suite will match up the items in each payload list in parallel:
+                                EG.
+                                    Request 1: username=admin, password=password123
+                                    Request 2: username=user1, password=123456
+                                    Request 3: username=guest, password=guest123
+
+                        CLUSTER BOMB.
+                            - Example Setup:
+                                > Positions: username and password parameters are marked as payload positions.
+                                > Payload Sets:
+                                    > Payload set 1: Contains a list of usernames, e.g., admin, user1, guest.
+                                    > Payload set 2: Contains a list of passwords, e.g., password123, 123456, guest123.
+
+                            - In cluster bomb mode, Burp Suite will try all possible combinations of these payloads:
+                                EG.
+                                    Request 1: username=admin, password=password123
+                                    Request 2: username=admin, password=123456
+                                    Request 3: username=admin, password=guest123
+                                    Request 4: username=user1, password=password123
+                                    Request 5: username=user1, password=123456
+                                    Request 6: username=user1, password=guest123
+
+
+                    ** Pitchfork vs. Cluster Bomb in Burp Suite Intruder: When to Use Each **
+                        > Pitchfork is ideal for situations where:
+                            i. You have dynamic tokens (like session tokens or CSRF tokens) that change with each server response.
+                            ii. You’re using Burp Suite's grep method to capture these tokens and inject them into the next request automatically.
+                            iii. You have a list of passwords or other payloads that you want to match one-to-one with each dynamic token.
+
+                            > Since Pitchfork matches payload sets in parallel, it pairs each new captured token with the next item in your password list.
+                            > This is useful when:
+                                i. You want to maintain a one-to-one relationship between tokens and passwords, avoiding unnecessary combinations.
+                                ii. The tokens are captured on the fly, and you need each token to line up with a specific password in your payload list.
+
+                            > Example:
+                                - If the server response provides a new user token on each request, Pitchfork will capture this token, match it with the next password in the list, and send the request efficiently without creating unnecessary combinations.
+
+
+                        > Cluster Bomb is better suited when:
+                            i. You need to test all possible combinations of multiple payload lists.
+                            ii. The payloads are static or do not rely on real-time data from responses.
+                            iii. You’re performing a brute-force attack where every combination of payloads could yield useful results.
+
+                            > With Cluster Bomb, Burp will try every possible combination across payload positions, which is helpful when:
+                                i. You’re testing multiple parameters independently and want to ensure thorough coverage.
+                                ii. There’s no need to maintain a strict pairing (e.g., testing every username with every password).
+
+                            > Example:
+                                - If you have a list of user tokens and a separate list of passwords, Cluster Bomb will try each token with every password in the list.
+                                - This approach is comprehensive but may lead to a high number of requests, so it’s best used when exhaustive testing is required.
+        
+
     > Payload Positioning
         > Payload positioning refers to where you want Burp to insert your payloads (i.e., values from the wordlists).
         > In your intercepted request, you have the following fields that might be worth brute-forcing:
@@ -103,6 +163,9 @@ Step 4: Setting Up Payloads
                     - Simple list:
                         > You can use a predefined wordlist (e.g., usernames, passwords). You’ll likely use this for brute-force attacks.
                     
+                    - Recursive grep.
+                        > you can use extracted data from the response to derive the payload.
+
                     - Runtime file:
                         > Load a file at runtime and pull payloads from it. Useful for large wordlists.
                     
@@ -154,3 +217,25 @@ Step 4: Setting Up Payloads
 Step 5: Analyzing the Results
     - In the Intruder Attack window, look at the response length and status codes to identify successful attempts.
     - A successful login may result in a different response length or a specific status code (like 200 OK for a successful login page).
+
+    > Grep - Match in Burp Suite Intruder
+        Grep:
+            - Match is a feature in Burp Suite’s Intruder tool that allows you to search for specific expressions or patterns in the response of each request during an attack.
+            - This is especially useful for detecting specific outcomes or behaviors in responses, such as identifying if a login succeeded or failed based on certain keywords.
+        
+        How Grep - Match Works
+            Setting Up Grep - Match:
+                In the Intruder attack window, go to the settings tab and locate the Grep - Match section.
+                Enter the expression or keywords you want to search for in the response (e.g., "Welcome," "Invalid password," or "Success").
+
+            Purpose:
+                The Grep - Match feature scans each response for the specified expressions and highlights matches in the attack results.
+                By identifying these keywords, it helps you quickly determine the outcome of each request without manually reviewing each response.
+
+            Using Grep - Match to Identify Success or Failure:
+                For example, if you're performing a brute-force attack on a login page, you might set "Welcome" or "Login successful" as your Grep - Match keyword. If a response contains this keyword, it indicates a successful login.
+                Alternatively, you could set "Invalid password" to detect failed attempts.
+
+            Working with Dynamic Responses:
+                Grep - Match is particularly useful in combination with the Pitchfork or Cluster Bomb attack types, as it allows you to pinpoint specific responses where keywords match, even in high-volume attacks.
+                It can also be combined with Grep - Extract to pull out dynamic values from matched responses for further inspection.

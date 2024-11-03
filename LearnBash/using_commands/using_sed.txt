@@ -32,7 +32,7 @@
 
 2. Deletion (d)
     EG. -----> Delete lines containing "error".
-        sed '/error/d' input_file 
+        sed '/error/d' input _file 
 
             - syntax : /word/d 
 

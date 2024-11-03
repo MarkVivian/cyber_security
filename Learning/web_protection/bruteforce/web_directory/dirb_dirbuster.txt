@@ -130,7 +130,12 @@ EG.
             dirb http://example.com /path/to/wordlist.txt -x /path/to/extensions.txt
 
 
-13. 
+13. warning procedure.
+    - -w tells Dirb to continue running even when it encounters WARNING messages.
+    - By default, Dirb might stop or pause when it encounters warnings (like HTTP 403 Forbidden responses or similar issues).
+    - Using -w allows the scan to proceed without interruptions due to these warnings, enabling a more comprehensive scan.
+        EG:
+            dirb http://localhost/dvwa/ /path/to/wordlist.txt -w
 
 
                         WHAT TO DO WHEN YOU DISCOVER A FILE.

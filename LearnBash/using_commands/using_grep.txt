@@ -74,8 +74,17 @@ fixed string search.
 
 searching with escape characters.
     EG.
-        man dirb | grep -- "-p" # Using Escape Character:
+        man dirb | grep -- "-p" # Using Double Dash
             OR 
-        man dirb | grep "\-p" # Using Double Dash:
+        man dirb | grep "\-p" # Using Escape Character
 
             - Both methods will allow you to search for -p or any other flag in a man page without grep interpreting it as an option.
+
+
+Searching multiple words.
+    EG.
+        grep -E 'small|big' filename.txt #  Using the OR Operator with grep
+            OR
+        grep -e 'small' -e 'big' filename.txt # Using -e for Multiple Patterns
+
+            - This commands will find lines containing either "small" or "big" in filename.txt.

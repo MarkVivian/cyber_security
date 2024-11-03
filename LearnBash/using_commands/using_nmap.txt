@@ -20,7 +20,7 @@ Additionally there are several less common port scan types, some of which we wil
     3. TCP Xmas Scans (-sX)
 
 
-
+        
                                         BASIC COMMANDS
                                     ======================
 >> UDP Scan : `-sU`
