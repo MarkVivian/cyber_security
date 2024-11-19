@@ -1,0 +1,20 @@
+                            IWCONFIG
+                        ==============
+- iwconfig is a command-line utility in Linux used for configuring and managing wireless network interfaces.
+- It is part of the Wireless Tools for Linux package.
+- This tool is primarily used to configure settings like the SSID, frequency, mode, and encryption settings of wireless networks.
+- Unlike ifconfig, which works for all types of network interfaces, iwconfig is specialized for wireless interfaces.
+
+
+                    BASIC SYNTAX.
+                ------------------
+EG.
+    iwconfig [interface] [options]
+
+        - [interface] is the name of the wireless interface (e.g., wlan0, wlp2s0).
+        - [options] are the settings or commands to be applied.
+
+
+                    KEY FIELDS AND OPTIONS IN IWCONFIG
+                -----------------------------------------
+1. SSID 
