@@ -1,0 +1,157 @@
+                                    PS2EXE.
+                                =============
+- The PS2EXE module is a PowerShell tool that allows you to convert a PowerShell script (.ps1) into a standalone executable (.exe).
+- This can be useful for distributing scripts without requiring users to have PowerShell or exposing the source code.
+- Here's a detailed explanation of its features, parameters, and practical examples.
+
+
+            OVERVIEW.
+        -----------------
+- The general syntax for PS2EXE is:
+    EG.
+        ps2exe [-inputFile] '<file_name>' [[-outputFile] '<file_name>'] [options]
+
+            -inputFile: The path to your PowerShell script (.ps1) to be converted.
+            -outputFile: The desired name and location of the resulting .exe file. Defaults to the input file name with an .exe extension.
+            - Various options allow customization of the output executable's behavior and metadata.
+
+
+            USAGE.
+        ------------
+1. Basic conversion.
+    - To convert a script into an executable:
+        EG.
+            ps2exe -inputFile "C:\Scripts\MyScript.ps1" -outputFile "C:\Executables\MyScript.exe"
+
+                - This creates MyScript.exe from MyScript.ps1. The .exe will execute the PowerShell script when run.
+
+
+2. Create a Console Application
+    - By default, the resulting .exe runs as a console application. To customize it further:
+        EG.
+            ps2exe -inputFile "C:\Scripts\MyConsoleScript.ps1" -outputFile "C:\Executables\MyConsoleApp.exe"
+
+                - When the .exe runs, it behaves like a typical PowerShell console, showing outputs and errors in the console window.
+
+
+3. Create a GUI Application
+    - To create a Windows application without a console window:
+        EG.
+            ps2exe -inputFile "C:\Scripts\MyGuiScript.ps1" -outputFile "C:\Executables\MyGuiApp.exe" -noConsole
+
+                -noConsole: Hides the console window. Useful for GUI-based scripts (e.g., using Windows.Forms or WPF).
+
+
+4. Add an Icon to the Executable
+    - You can assign a custom icon to your .exe:
+        EG.
+            ps2exe -inputFile "C:\Scripts\MyScript.ps1" -outputFile "C:\Executables\MyApp.exe" -iconFile "C:\Icons\MyIcon.ico"
+        
+                -iconFile: Specifies an .ico file to use as the application icon.
+
+
+5. Embed Metadata into the Executable   
+    - You can add metadata like title, description, company, product, version, etc., to the executable.
+    - This information is visible in the "Details" tab of the file properties dialog.
+        EG.
+            ps2exe -inputFile "C:\Scripts\MyScript.ps1" -outputFile "C:\Executables\MyApp.exe" `
+            -title "My Application" `
+            -description "This is a demo application." `
+            -company "MyCompany" `
+            -product "MyProduct" `
+            -copyright "© 2024 MyCompany" `
+            -version "1.0.0"
+
+
+6. Create a 32-bit or 64-bit Executable
+    - You can specify the platform architecture:
+        EG.
+            # For 32-bit
+            ps2exe -inputFile "C:\Scripts\MyScript.ps1" -outputFile "C:\Executables\MyApp_x86.exe" -x86
+
+            # For 64-bit
+            ps2exe -inputFile "C:\Scripts\MyScript.ps1" -outputFile "C:\Executables\MyApp_x64.exe" -x64
+
+
+7. Require Administrative Privileges
+    - To force the application to run with administrative privileges:
+        EG.
+            ps2exe -inputFile "C:\Scripts\MyAdminScript.ps1" -outputFile "C:\Executables\MyAdminApp.exe" -requireAdmin
+
+                - This triggers a User Account Control (UAC) prompt when the executable runs.
+
+
+8. Handle Multi-threading (STA/MTA)
+    - You can control the threading model for the application:
+        EG.
+            # Single Thread Apartment (STA) mode (for GUI apps)
+            ps2exe -inputFile "C:\Scripts\MyScript.ps1" -outputFile "C:\Executables\MyApp.exe" -STA
+
+            # Multi-Thread Apartment (MTA) mode
+            ps2exe -inputFile "C:\Scripts\MyScript.ps1" -outputFile "C:\Executables\MyApp.exe" -MTA
+
+
+9. Add Debugging Information
+    - To enable debugging for the executable:
+        EG.
+            ps2exe -inputFile "C:\Scripts\MyScript.ps1" -outputFile "C:\Executables\MyDebugApp.exe" -prepareDebug
+
+                - This embeds information helpful for debugging the script if issues arise.
+
+
+10. Prevent Output or Errors
+    - To suppress all outputs or error messages from the script:
+        EG. 
+            # Suppress all output
+            ps2exe -inputFile "C:\Scripts\MyScript.ps1" -outputFile "C:\Executables\MySilentApp.exe" -noOutput
+
+            # Suppress error messages
+            ps2exe -inputFile "C:\Scripts\MyScript.ps1" -outputFile "C:\Executables\MyErrorFreeApp.exe" -noError
+
+
+11. Extract the Script from an Executable
+    - If you need to extract the original .ps1 from a .exe created with PS2EXE:
+        EG.
+            MyScript.exe -extract:ExtractedScript.ps1
+            
+                - This saves the embedded script to ExtractedScript.ps1 without executing it.
+
+
+12. Support for Newer Windows Features
+    - To enable modern features (like long paths or high-DPI support):
+        EG.
+            ps2exe -inputFile "C:\Scripts\MyScript.ps1" -outputFile "C:\Executables\MyApp.exe" -DPIAware -longPaths
+
+
+13. Enable Debug Mode During Conversion
+    - When converting your script to an executable, use the -prepareDebug parameter.
+    - This embeds debugging information in the .exe file, allowing you to debug it more effectively.
+        EG.
+            ps2exe -inputFile "C:\Scripts\YourScript.ps1" -outputFile "C:\Executables\YourScript.exe" -prepareDebug
+
+                - Run the executable in this mode. If there’s an error, a debugger should launch.
+
+
+14. Additional files.
+    - This option allows you to bundle additional files (e.g., images, configuration files) into the executable
+    - These files will be extracted at runtime and can be accessed from the .exe.
+        EG. 
+            PS2EXE .\myscript.ps1 .\myscript.exe -AddAdditionalFiles "C:\path\to\file.txt"
+
+
+15. add icon.
+    - You can assign an icon to the resulting .exe file.
+        EG.
+            PS2EXE .\myscript.ps1 .\myscript.exe -Icon "C:\path\to\icon.ico"
+
+
+
+16. 
+14. Advanced Options Overview
+Parameter	Description
+--------------------------
+-noVisualStyles	 >> Disables visual styles in GUI apps.
+-lcid	>> Sets the locale ID (e.g., 1033 for English-US).
+-exitOnCancel	>> Ensures the app exits if the user cancels input dialogs.
+-supportOS	>> Uses features of newer Windows versions.
+-credentialGUI	>> Prompts for credentials using a graphical interface.

@@ -1,0 +1,97 @@
+                    REPLACE.
+                ==============
+- The -replace operator in PowerShell is used to replace substrings in a string.
+- It operates with regular expressions, meaning it allows you to search for patterns in a string and replace them with something else.
+
+        
+            BASIC SYNTAX
+        -------------------
+EG.
+    $string -replace <pattern>, <replacement>
+
+        $string: The original string on which you want to perform the replacement.
+        <pattern>: The regular expression pattern you want to search for in the string.
+        <replacement>: The text that you want to replace the matched pattern with.
+
+Key Points:
+    Regular Expressions: The -replace operator uses regular expressions (regex) to search for patterns, so you can use advanced pattern matching techniques.
+    Case Sensitivity: By default, the -replace operator is case-insensitive.
+    Global Replacement: The -replace operator replaces all occurrences of the pattern in the string.
+
+
+EXAMPLES:
+    Example 1: Simple String Replacement
+        $string = "Hello World!"
+        $newString = $string -replace "World", "PowerShell"
+        Write-Host $newString
+
+        Output:
+            Hello PowerShell!
+
+                - Here, the word "World" is replaced with "PowerShell".
+
+    
+    Example 2: Replace All Spaces with Underscores
+        $string = "This is a test string."
+        $newString = $string -replace " ", "_"
+        Write-Host $newString
+
+        Output:
+
+        This_is_a_test_string.
+
+            - This replaces all spaces (" ") with underscores ("_").
+
+    
+    Example 3: Removing Leading and Trailing Spaces (Trimming)
+        $string = "    Hello PowerShell!   "
+        $newString = $string -replace "^\s+|\s+$", ""
+        Write-Host $newString
+
+        Output:
+
+        Hello PowerShell!
+
+            ^\s+: Matches one or more spaces at the beginning of the string.
+            \s+$: Matches one or more spaces at the end of the string.
+            |: Acts as an OR operator, so this pattern matches spaces at both ends of the string.
+
+
+    Example 4: Replace Digits with a Placeholder
+        $string = "My phone number is 123-456-7890."
+        $newString = $string -replace "\d", "X"
+        Write-Host $newString
+
+        Output:
+
+        My phone number is XXX-XXX-XXXX.
+
+            \d: Matches any digit (0-9).
+            In this example, every digit in the string is replaced by "X".
+
+
+Example 5: Case-Insensitive Replacement
+        $string = "Hello world"
+        $newString = $string -replace "world", "PowerShell", 1
+        Write-Host $newString
+
+        Output:
+
+        Hello PowerShell
+
+            - By default, -replace is case-insensitive, so it doesn't matter if "world" is lowercase or uppercase.
+            - If you want to make it case-sensitive, you can use the -creplace operator instead.
+
+            
+Example 6: Using -replace with Capturing Groups
+        # You can also use regular expression capturing groups to reference parts of the match in the replacement string.
+        $string = "My name is John Doe."
+        $newString = $string -replace "My name is (\w+) (\w+)", "Hello, $2 $1"
+        Write-Host $newString
+
+        Output:
+
+        Hello, Doe John
+
+            (\w+): This captures the first and last names as groups.
+            - In the replacement string, $1 refers to the first captured group (John), and $2 refers to the second captured group (Doe).

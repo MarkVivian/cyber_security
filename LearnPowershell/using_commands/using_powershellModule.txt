@@ -1,0 +1,101 @@
+                                    POWERSHELL MODULE
+                                ========================
+- A PowerShell module is a package that contains a set of related commands, such as cmdlets, functions, workflows, or variables, designed to perform specific tasks.
+- Modules can be shared, installed, and reused.
+
+
+                 1.   Installing Modules
+                --------------------------
+- PowerShell has a central repository called the PowerShell Gallery, where many modules are available.
+    EG : Installing a Module
+        # To install a module, you use the Install-Module cmdlet.
+        # Install the PSReadLine module (enhances PowerShell command-line experience)
+        Install-Module -Name PSReadLine -Scope CurrentUser
+
+            * Parameters:
+                -Name: Name of the module you want to install.
+                -Scope: Determines if the module is installed for the current user (CurrentUser) or all users (AllUsers).
+                -Force: Installs without asking for confirmation.
+
+                
+                2.  Using Installed Modules
+               ----------------------------
+- Once installed, you can use the commands in the module by importing it.
+    EG : Importing a Module
+        # Import the PSReadLine module
+        Import-Module -Name PSReadLine
+
+            - Now you can use the commands provided by the module.
+            - For instance, PSReadLine enhances editing in the PowerShell console.
+
+
+                3.  Listing Available Modules
+                ----------------------------------
+- You can see the installed modules using Get-Module.
+    EG : List Installed Modules
+        # List all available modules on your system
+        Get-Module -ListAvailable
+
+
+                4. Discovering and Exploring Modules
+                -----------------------------------------
+- You can find modules available in the PowerShell Gallery or on your system.
+    EG : Finding Modules in the PowerShell Gallery
+        # Search for modules related to "Azure"
+        Find-Module -Name Azure*
+
+
+               5. Uninstalling Modules
+            -----------------------------
+- To remove a module you no longer need:
+    EG : Uninstall a Module
+        # Uninstall the PSReadLine module
+        Uninstall-Module -Name PSReadLine
+
+
+                Working with Module Cmdlets
+            -----------------------------------
+- Here are some commonly used module-related cmdlets:
+    1. Install a Module:
+        EG.
+            Install-Module -Name ModuleName
+
+    2. Uninstall a Module:
+        EG.
+            Uninstall-Module -Name ModuleName
+
+    3. List Installed Modules:
+        EG.
+            Get-Module -ListAvailable
+
+    4. Import a Module:
+        EG.
+            Import-Module -Name ModuleName
+
+    5. Remove a Module from Memory:
+        EG.
+            Remove-Module -Name ModuleName
+
+    6. Find Modules in the Gallery:
+        EG.
+            Find-Module -Name ModuleName
+
+            
+                Practical Example: Azure Module
+                --------------------------------
+- The Azure PowerShell Module allows you to manage Azure resources.
+    1. Install Azure Module:
+        EG.
+            Install-Module -Name Az -Scope CurrentUser
+
+    2. Import Azure Module:
+        EG.
+            Import-Module -Name Az
+
+    3. List Azure Commands:
+        EG.
+            Get-Command -Module Az.*
+
+    4. Connect to Azure:
+        EG.
+            Connect-AzAccount
