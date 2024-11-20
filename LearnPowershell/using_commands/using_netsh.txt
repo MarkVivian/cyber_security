@@ -1,0 +1,174 @@
+                                            NETSH.
+                                        ==============
+- netsh (Network Shell) is a command-line utility in Windows used for network configuration and troubleshooting.
+- It allows you to view and modify the network configuration of your machine, manage wireless profiles, configure firewalls, and perform network diagnostics.
+
+
+                    BASIC SYNTAX.
+                --------------------
+EG.
+    netsh <context> <command> <parameters>
+
+        Context: The area of networking (e.g., interface, wlan, firewall, etc.).
+        Command: The action you want to perform (e.g., show, add, delete, etc.).
+        Parameters: The specific details of the action.
+
+        - You can enter the netsh interactive shell by typing:
+            EG.
+                netsh
+
+                    - From there, you can navigate contexts interactively. To exit, type exit.
+
+
+                COMMON CONTEXTS.
+            ---------------------
+1. Interface context.
+    - Used for managing network adapters.
+        EG: View all network interfaces:
+            netsh interface show interface
+
+        EG: Enable or disable a network interface:
+            netsh interface set interface "Wi-Fi" admin=enabled
+            netsh interface set interface "Wi-Fi" admin=disabled
+
+
+2. WLAN (Wireless LAN) Context
+    - Used for managing wireless networks.
+        EG:  List all saved Wi-Fi profiles:
+            netsh wlan show profiles
+
+        EG: View the details of a specific Wi-Fi profile:
+            netsh wlan show profile name="ProfileName" key=clear
+
+        EG: Connect to a Wi-Fi network
+            netsh wlan connect name="ProfileName"
+
+                - If the profile does not exist, you may need to first create it manually or import it.
+                - also ensure that you can see the network / network is discoverable.
+                    EG.
+                        netsh wlan show networks
+
+        EG: Disconnect from a Wi-Fi network:
+            netsh wlan disconnect
+
+
+3. IP Address Management
+    - Used for setting static or dynamic IP configurations.
+        EG:  Assign a static IP address:
+            netsh interface ip set address name="Ethernet" static 192.168.1.100 255.255.255.0 192.168.1.1
+
+        EG: Set an interface to use DHCP:
+            netsh interface ip set address name="Ethernet" dhcp
+
+
+4. Firewall Configuration   
+    - Manage firewall rules and settings.
+        EG: Enable or disable the Windows Firewall:
+            netsh advfirewall set allprofiles state on
+            netsh advfirewall set allprofiles state off
+
+        EG: Add a firewall rule:
+            netsh advfirewall firewall add rule name="Allow Ping" protocol=ICMPv4 dir=in action=allow
+
+        EG: Delete a firewall rule:
+            netsh advfirewall firewall delete rule name="Allow Ping"
+
+
+5. Monitor Open Ports
+    - List all listening ports to check for unusual or vulnerable services:
+        EG.
+            netsh interface ipv4 show tcpconnections
+
+
+6. Capturing Network Traffic
+    - Enabling and configuring network packet capturing:
+        EG.
+            netsh trace start capture=yes
+            netsh trace stop
+                
+                - Captured data can be analyzed with tools like Wireshark.
+
+
+7. Managing Vulnerable Services
+    - Check for and disable older protocols like SMBv1:
+        EG.
+            netsh advfirewall firewall add rule name="Block SMBv1" dir=out action=block protocol=tcp localport=445
+
+
+8. Auditing Wi-Fi Security
+    - List all Wi-Fi profiles and ensure they use WPA2/WPA3:
+        EG.
+            netsh wlan show profiles name="ProfileName" key=clear   
+
+
+9. Delete a Saved Profile   
+    EG: Delete a saved Wi-Fi profile:
+        netsh wlan delete profile name="WiFi_Name"
+
+    EG: To delete all saved profiles:
+        netsh wlan delete profile name=*
+
+
+10. Setting Up a Wi-Fi Hotspot
+    - netsh can be used to turn your Windows machine into a wireless hotspot.
+        Step 1: Configure the hotspot settings:
+            EG.
+                netsh wlan set hostednetwork mode=allow ssid=HotspotName key=HotspotPassword
+
+                    mode=allow: Enables the hosted network.
+                    ssid=HotspotName: Sets the name of the network.
+                    key=HotspotPassword: Sets the password (minimum 8 characters).
+            
+        Step 2: Start the hotspot:
+            EG.
+                netsh wlan start hostednetwork
+
+        Step 3: Stop the hotspot:
+            EG.
+                netsh wlan stop hostednetwork
+
+        Step 4: View hosted network settings:
+            EG.
+                netsh wlan show hostednetwork
+
+
+11. Monitoring Wi-Fi Statistics
+    - Check connection details and signal strength:
+        EG.
+            netsh wlan show interfaces
+
+
+12. Exporting and Importing Wi-Fi Profiles  
+    - Export saved Wi-Fi profiles to back them up or transfer them to another machine.
+        EG: Export.
+            netsh wlan export profile key=clear folder="C:\WiFiBackup"
+
+                - This saves all profiles to the specified folder, including their passwords.
+
+        EG: Import.
+            netsh wlan add profile filename="C:\WiFiBackup\ProfileName.xml"
+
+
+13.  Viewing Signal Strength of Wi-Fi Networks
+    - List all available networks with their signal strengths:
+        EG.
+            netsh wlan show networks mode=bssid
+
+
+14. Change Power Settings of Wi-Fi Adapter
+    - Enable or disable power-saving mode for the wireless adapter:
+        EG.
+            netsh wlan set power mode=high
+
+                - Options: low, medium, or high.
+
+
+15. Troubleshooting Connection Issues
+    - Diagnose problems with a network connection:
+        EG.
+            netsh wlan show all
+
+                - This displays all networks, profiles, and adapter details.
+
+
+16. 
