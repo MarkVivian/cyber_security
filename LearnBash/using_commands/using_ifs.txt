@@ -1,0 +1,65 @@
+                            IFS.
+                        =========
+- The Internal Field Separator (IFS) is a special variable in Bash that determines how the shell splits words and fields when processing input.
+- By default, IFS is set to whitespace characters: space, tab, and newline.
+- This means that when you read input or process strings, Bash will treat these characters as delimiters.
+
+
+                BASIC SYNTAX.
+            --------------------
+- You can set the IFS variable in your script as follows:
+    EG.
+        IFS='character'
+
+
+                    USAGE.
+                ---------------
+1. Default Behavior
+    -  When using the default IFS (whitespace), Bash splits input based on spaces, tabs, and newlines. 
+        EG.
+            input="Hello World"
+            for word in $input; do
+                echo "$word"
+            done
+        OUTPUT.
+            Hello
+            World
+
+
+2. Changing IFS to a Comma 
+    -  If you have a CSV file and want to read it line by line, you can change the IFS to a comma. 
+        EG.
+            IFS=','
+            while read -r field1 field2 field3; do
+                echo "Field 1: $field1"
+                echo "Field 2: $field2"
+                echo "Field 3: $field3"
+            done < clients.csv
+
+                -  In this example, each line of clients.csv will be split into fields based on commas. 
+
+
+3. Using IFS with read
+    -  You can use IFS with the read command to split input into variables. 
+        EG.
+            IFS=':'
+            read -r user pass uid gid name home shell <<< "username:password:1001:1001:User Name:/home/username:/bin/bash"
+            echo "Username: $user"
+            echo "Password: $pass"
+            echo "User ID: $uid"
+            echo "Group ID: $gid"
+            echo "Name: $name"
+            echo "Home Directory: $home"
+            echo "Shell: $shell"
+
+        OUTPUT.
+            Username: username
+            Password: password
+            User ID: 1001
+            Group ID: 1001
+            Name: User Name
+            Home Directory: /home/username
+            Shell: /bin/bash
+
+
+4. 

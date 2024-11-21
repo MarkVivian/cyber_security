@@ -17,4 +17,64 @@ EG.
 
                     KEY FIELDS AND OPTIONS IN IWCONFIG
                 -----------------------------------------
-1. SSID 
+1. SSID (Network Name)
+    - The SSID is the name of the wireless network.
+    - Use the essid option to set or display the SSID.  
+        EG.
+            iwconfig wlan0 essid "MyNetwork"
+
+                - This command connects the wireless interface wlan0 to a network with the SSID "MyNetwork".
+            
+
+2. Mode
+    - Specifies the mode of operation for the wireless network interface.
+        > Managed: Connects to an access point (default for most Wi-Fi clients).
+        > Ad-Hoc: Connects to other devices directly without an access point.
+        > Monitor: Allows passive monitoring of all traffic on a channel (used for packet capturing).
+            EG.
+                iwconfig wlan0 mode managed
+                iwconfig wlan0 mode monitor
+
+
+3. Frequency/Channel
+    - Sets the frequency (in GHz) or the channel number for the wireless network.
+        EG:
+            iwconfig wlan0 freq 2.462G
+            iwconfig wlan0 channel 11
+
+                - Channel 11 corresponds to a frequency of 2.462 GHz.
+
+
+4. Bit Rate
+    - Specifies the data transmission rate (e.g., 11 Mbps, 54 Mbps).
+        EG:
+            iwconfig wlan0 rate 54M
+
+                - This sets the bit rate to 54 Mbps.
+
+
+5. Power Management
+    - Enables or disables power management to conserve battery.
+        EG:
+            iwconfig wlan0 power on
+            iwconfig wlan0 power off
+
+
+6. Encryption/Authentication
+    - Configure the encryption key for WEP networks.
+        EG:
+            iwconfig wlan0 key 1234567890
+            iwconfig wlan0 key off
+
+                - Note: Modern networks using WPA/WPA2 are managed using tools like wpa_supplicant rather than iwconfig.
+
+
+7. Signal Quality and Link Information
+    - Use iwconfig without arguments to view details such as:
+        > Signal level
+        > Noise level
+        > Link quality
+            EG.
+                iwconfig
+
+                    - Displays link quality, signal strength, and other statistics for wireless interfaces.

@@ -1,0 +1,62 @@
+                            PATH FORMATTING.
+                        ====================
+1. DIRNAME
+    - The dirname command extracts the directory portion of a given file path by removing the file name and any trailing slashes.
+        BASIC SYNTAX.
+        -----------------
+        EG.
+            dirname [OPTION] PATH
+
+            i. Extracting the directory from a full path:
+                EG.
+                    dirname /home/user/documents/file.txt
+
+            ii.  Handling paths without slashes:
+                EG.
+                    dirname filename.txt
+
+            iii.  Using with multiple paths:
+                EG.
+                    dirname /home/user/file.txt /home/user/anotherfile.txt
+
+
+2. REALPATH
+    - The realpath command resolves all symbolic links, relative paths, and returns the absolute path of a file or directory.
+        BASIC SYNTAX.
+        --------------
+        EG.
+            realpath [OPTION] PATH
+
+            i.  Getting the absolute path of a file:
+                EG.
+                    realpath ./myfile.txt
+
+            ii.  Resolving symbolic links:
+                EG.
+                    realpath /usr/bin/python3
+
+
+3. $0
+    - $0 refers to the name of the script being executed.
+    - It can be used to determine how the script was called.    
+        i. Displaying the script name:
+            EG.
+                echo "Script name: $0"
+
+
+4. BASENAME
+    - The basename command extracts the filename from a given path, removing the directory components.
+        BASIC SYNTAX.
+        --------------
+            EG.
+                basename [OPTION] PATH [SUFFIX]
+
+                i.  Extracting the filename:
+                    EG.
+                        basename /home/user/documents/file.txt
+
+                ii.  Removing a specific suffix:
+                    EG.
+                        basename /home/user/documents/file.txt .txt
+
+

@@ -92,3 +92,49 @@
             echo "You entered: $input"
 
                 - This script reads input until it encounters a colon (:).
+
+
+-i <text>
+    - The -i option allows you to set an initial text that appears in the input line before the user starts typing.
+    - This is useful for providing a default value or hint to the user. Example:
+        EG.
+            read -i "Default Name" -p "Enter your name: " name
+            echo "Hello, $name!"
+
+                - In this example:
+                    > If the user simply presses Enter without typing anything, the variable name will be set to "Default Name".
+                    > If the user types a different name, that input will replace the default.
+
+
+-N <number>	
+    - The -N option tells the read command to read a specified number of characters from the input, ignoring delimiters.
+    - This means it will not stop reading at spaces or newlines.
+        EG.
+            read -N 5 -p "Enter up to 5 characters: " input
+            echo "You entered: $input"
+
+                - In this example:
+                    > The command will read exactly 5 characters from the user input.
+                    > If the user types more than 5 characters, they must press Enter to finalize their input, but only the first 5 characters will be captured.
+
+
+-u <file descriptor>	
+    - The -u option allows you to specify a file descriptor from which to read input instead of standard input (stdin).
+    - By default, read takes input from stdin (usually the keyboard).
+        EG.
+            # Create a file and write some text into it
+            echo "This is a test." > testfile.txt
+
+            # Read from file descriptor 3 (which we will open for reading testfile.txt)
+            exec 3< testfile.txt
+            read -u 3 line
+            echo "Read from file: $line"
+
+            # Close file descriptor 3
+            exec 3<&-
+
+                - In this example:
+                    > We create a file named testfile.txt and write a line of text into it.
+                    > We then open that file for reading through file descriptor 3.
+                    > The read -u 3 line command reads from that file descriptor instead of stdin.
+                    > Finally, we close the file descriptor to free up resources.
