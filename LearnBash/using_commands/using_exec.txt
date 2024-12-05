@@ -62,6 +62,19 @@ EG.
                 
                 - In this script, any errors that occur after the exec 2> error.log command will be written to error.log.
 
+        EG. ----> (REDIRECTING STANDARD OUTPUT AND INPUT)
+            #!/bin/bash
+
+            # Redirect standard output to a file
+            exec &> output.log
+
+            # Now all output goes to the file instead of the terminal
+            echo "This will go to output.log"
+            ls none_existant_file
+
+                - In this script, all erronous and normal output is redirected to output.log after the exec &> output.log line.
+                - The echo and ls commands’ output will be saved in output.log.
+
 
 4. Using `exec` to open and close file descriptors
     EG. ---------> (Opening a file descriptor)

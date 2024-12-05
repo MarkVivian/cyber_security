@@ -111,7 +111,9 @@
                 EG.
                     ps -e
 
-
+            - show process being run by a specific bash file.
+                EG.
+                    ps aux | grep bash_file.sh
 
 
 

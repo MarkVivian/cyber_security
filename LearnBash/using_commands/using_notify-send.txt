@@ -1,0 +1,90 @@
+                            NOTIFY SEND.
+                        ==================
+- is a command-line tool for sending desktop notifications to the user via a notification daemon.
+- These notifications are lightweight and can display events or information without interrupting the user.
+
+                
+                BASIC SYNTAX.
+            -------------------
+EG.
+    notify-send [OPTIONS] "Summary" "Body"
+
+        - Summary: The title of the notification.
+        - Body: Additional text or details (optional).
+
+
+            COMMON USES.
+        -------------------
+1. Sending a Basic Notification
+    - Use the default settings to send a notification with just a title and optional body text.
+        EG:
+            notify-send "Backup Complete" "Your backup finished successfully."
+            
+                - Displays a notification with the title "Backup Complete" and the body "Your backup finished successfully."
+
+
+2. Setting the App Name
+    - Specify the application name to show as the sender of the notification.
+        EG:
+            notify-send -a "BackupApp" "Backup Complete" "All files have been saved."
+            
+                -a "BackupApp": Sets the app name to BackupApp. This can help the user identify where the notification originated.
+
+
+3. Adding Actions to Notifications
+    - Provide actionable options in the notification (requires the user to interact).
+        EG:
+            notify-send -A "retry=Retry" -A "cancel=Cancel" "Connection Error" "Do you want to retry?"
+
+                -A "retry=Retry": Adds an action button labeled Retry.
+                -A "cancel=Cancel": Adds an action button labeled Cancel.
+                The selected action (e.g., "retry" or "cancel") will be printed to stdout.
+
+
+4. Setting Urgency Levels
+    - Set the priority level of the notification (low, normal, critical).
+        EG:
+            notify-send -u critical "Low Battery" "Please plug in your charger."
+
+                -u critical: Marks the notification as critical, which might persist or be styled differently depending on the notification daemon.
+
+
+5. Controlling Expiration Time
+    - Set how long (in milliseconds) the notification should be displayed.
+        EG
+            notify-send -t 10000 "Reminder" "Meeting starts in 10 minutes."
+
+                -t 10000: Sets the display time to 10 seconds (10000 ms).
+                Note: Some desktop environments (e.g., GNOME) ignore this option.
+
+
+6. Adding Icons
+    - Display a notification with a custom or stock icon.
+        EG:
+            notify-send -i "/usr/share/icons/gnome/256x256/emotes/face-smile.png" "Hello!" "Have a great day!"
+
+                -i "/path/to/icon.png": Specifies the icon to display with the notification. This can be a full path or a stock icon name.
+
+
+7. Replacing an Existing Notification
+    - Update an ongoing notification by replacing it using its ID.
+        EG:
+            notify-send -r 1234 "Download in Progress" "50% complete..."
+                
+                -r 1234: Replaces the notification with ID 1234. This is useful for progress updates.
+
+
+8. Waiting for Notification Closure
+    - Block the command from exiting until the notification is dismissed or expires.
+        EG
+            notify-send -w "Task Complete" "You can now close this."
+                
+                -w: Waits for the notification to close before the script or command exits.
+
+
+9. Adding Hints
+    - Send additional data to the notification daemon using hints.
+        EG:
+            notify-send -h int:transient:1 "Temporary Message" "This message won't persist."
+    
+                -h int:transient:1: Sets the notification to be transient, meaning it won’t persist in a notification center.

@@ -1,3 +1,70 @@
                             TIMEDATECTL
                         ===================
+timedatectl is a command-line utility for managing system time and date, time zones, and NTP (Network Time Protocol) synchronization on Linux-based systems, especially those running systemd.
 
+The basic syntax of timedatectl is:
+    EG.
+        timedatectl [OPTIONS] COMMAND [ARGUMENTS...]
+
+
+            COMMON USES.
+        -------------------
+1. Check the current time settings
+    - To view the current system time, time zone, and other date/time-related settings, you can use:
+        EG.
+            timedatectl
+
+    - This will show the current time, time zone, NTP status, and whether the system clock is synchronized. Example output:
+        EG.
+               Local time: Thu 2024-12-05 22:35:57 EAT
+           Universal time: Thu 2024-12-05 19:35:57 UTC
+                 RTC time: Thu 2024-12-05 19:35:56
+                Time zone: Africa/Nairobi (EAT, +0300)
+                NTP synchronized: yes
+            NTP service: active
+                    RTC in local TZ: no
+
+
+2. Set the system time
+    - You can set the system time manually using timedatectl:
+        EG.
+            # timedatectl set-time "YYYY-MM-DD HH:MM:SS"
+            timedatectl set-time "2024-12-05 22:30:00"
+
+                - This sets the system time to December 5, 2024, 10:30 PM.
+
+
+3. Set the system time zone
+    - To set the time zone, use:
+        EG.
+            # timedatectl set-timezone Zone/Location
+            # For example, to set your time zone to Africa/Nairobi:
+            timedatectl set-timezone Africa/Nairobi
+
+                - You can view available time zones by running:
+                    EG.
+                        timedatectl list-timezones
+
+                            - This will list all the available time zones that you can set.
+
+
+4. Enable or disable NTP synchronization
+    - NTP (Network Time Protocol) ensures that your system clock is synchronized with internet time servers. To enable NTP synchronization:
+        EG.
+            timedatectl set-ntp true
+
+    - To disable NTP synchronization:
+        EG.
+            timedatectl set-ntp false
+
+
+5. Set the hardware clock
+    - The hardware clock (RTC) can be set to local time or UTC.
+    
+    - To set the hardware clock to UTC:
+        EG.
+            timedatectl set-local-rtc 0
+
+    - To set it to local time:
+        EG.
+            timedatectl set-local-rtc 1

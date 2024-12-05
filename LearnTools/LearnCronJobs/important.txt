@@ -1,0 +1,55 @@
+   Crontab Environments Are Limited
+                =======================================
+- When you run a script through cron, the environment it runs in is limited compared to the one you have in your regular shell session.
+- The environment for cron jobs is minimal because cron does not load the same configuration files that your interactive shell does (such as .bashrc, .profile, etc.).
+
+- This means:
+    No access to environment variables you may have set up for user sessions.
+    No path to your graphical environment (such as DISPLAY, which is necessary for GUI programs).
+    No access to the PulseAudio server (if you're playing sounds or using other audio-related features).
+
+- Because of this, when writing scripts that are intended to be executed by cron, you need to explicitly set the environment variables in the script or cron job itself using the export command.
+- This ensures that cron has access to the same environment that your interactive shell has, allowing it to access graphical elements or external resources (like the PulseAudio server).
+
+
+                    Why Use export in Crontab Scripts?
+                ========================================
+- When writing a script to be run in cron, you must export certain environment variables for the script to function correctly.
+- Without these variables set, the script may fail because it doesn’t know where to find necessary services or configurations, such as the sound server, display server, or even the right commands.
+
+- Example of export Usage:
+    export DISPLAY=:0: Tells the script where to display graphical output (important for GUI-based notifications).
+    export PULSE_SERVER=unix:/tmp/pulseaudio.socket: Ensures that PulseAudio is accessible when trying to play sound.
+
+- By setting these variables with export, you're making sure that when the script runs, it behaves in the same way as it would if you ran it manually in your regular shell session.
+- Adding export to Your .sh Script for Crontab
+
+- If your script requires sound, graphical notifications, or other services that rely on environment variables, you'll need to set these explicitly inside the script. Here’s how to modify your .sh script:
+    Set the DISPLAY Variable (for GUI access): If your script requires graphical access (like using notify-send), add this line to the script to ensure it uses the correct display:
+        EG
+            export DISPLAY=:0
+
+    Set the PULSE_SERVER Variable (for PulseAudio sound access): If you’re playing sound with paplay, you may need to export PULSE_SERVER to ensure PulseAudio is accessible:
+        EG.
+            export PULSE_SERVER=unix:/tmp/pulseaudio.socket
+
+    Set Other Variables as Needed: If your script uses any other custom environment variables (such as PATH), you should export those as well:
+        EG
+            export PATH=/usr/bin:/bin:/usr/local/bin
+
+    - Final Example of the .sh Script with export Statements
+        > Here’s an example of what your script might look like with all the necessary export statements for use in cron:
+            EG.
+                #!/bin/bash
+
+                # Ensure the correct environment variables are set for cron
+                export DISPLAY=:0
+                export PULSE_SERVER=unix:/tmp/pulseaudio.socket
+                export PATH=/usr/bin:/bin:/usr/local/bin
+
+                # Your script logic here
+                battery_percentage=$(cat /sys/class/power_supply/BAT0/capacity)
+
+                if [ "$battery_percentage" -le 40 ]; then
+                    notify-send "Battery Alert" "Battery below 40%, please charge!" && paplay /path/to/alert_sound.oga
+                fi

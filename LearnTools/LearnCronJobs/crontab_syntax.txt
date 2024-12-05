@@ -74,12 +74,14 @@ f) run multiple commands.
 
                         SETTING VARIABLES.
                     =========================
-- We can use inline variables:
+- Since the environment of crontabs is limited we need to set variables being used inside the script:
     EG.
-        * * * * * DISPLAY=:0.0 XDG_CURRENT_DESKTOP=MATE /path/to/your/script_to_run.sh
+                
+        #!/bin/bash
 
-            - Inline Variables: This sets the environment variables DISPLAY and XDG_CURRENT_DESKTOP directly for the command /path/to/your/script_to_run.sh.
+        export DISPLAY=:0.0
+        export XAUTHORITY=/home/mark/.Xauthority
 
-            - The environment variables DISPLAY and XDG_CURRENT_DESKTOP are applied to the command and are available only for this command.
+            - This sets the environment variables DISPLAY and XDG_CURRENT_DESKTOP directly for the script..
 
-            - The DISPLAY and XDG_CURRENT_DESKTOP variables are available only for the execution of /path/to/your/script_to_run.sh.
+            - The environment variables DISPLAY and XDG_CURRENT_DESKTOP are applied to the script and are available only for this script.

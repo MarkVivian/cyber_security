@@ -42,3 +42,23 @@
             upower -i $(upower -e | grep BAT) | grep "energy-full-design"
 
         
+                            BATTERY FILE.
+                        ===================
+- If you wish to check the current battery state of the device:
+    EG.
+        cat /sys/class/power_supply/BAT0/capacity 
+
+        - you can also check the state using:
+            EG.       
+                cat /sys/class/power_supply/BAT0/status
+
+                    > This will return the status of the battery, which can be one of the following:
+                        Charging
+                        Discharging
+                        Full
+                        Not charging
+
+
+- actually most of the battery data is in:
+    EG.
+        /sys/class/power_supply/BAT0/

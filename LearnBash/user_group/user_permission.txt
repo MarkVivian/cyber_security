@@ -1,0 +1,160 @@
+                    PERMISSIONS.
+            ===========================
+- Every file and directory in Linux has three types of permissions: read, write, and execute.
+Root Access:
+    - Root always has full access to all files, regardless of user permissions.
+    - It can read, write, and execute any file on the system.
+
+User Permissions:
+    - If the owner removes their own read, write, or execute permissions, they will need root access to regain those permissions.
+    - Without root access, the file cannot be accessed or modified by the owner.
+
+Permission Removal:
+    - If permissions are removed (read, write, or execute), the user cannot perform the corresponding action. For example:
+        > No read permission: Cannot view the file.
+        > No write permission: Cannot modify the file.
+        > No execute permission: Cannot run the file (if it's a script or program).
+
+- These permissions are assigned to three categories:
+    > User (owner): The owner of the file.
+    > Group: The group to which the file belongs.
+    > Others: Everyone else who is not the owner or part of the group.
+
+- The permissions are displayed in a rwx format:
+    > r (read) – permission to read the file.
+    > w (write) – permission to modify the file.
+    > x (execute) – permission to execute the file if it’s a program or script.
+
+- For example, in the output of ls -l, you might see:
+    EG.
+        -rwxr-xr--
+
+            - This means:
+                > Owner has rwx (read, write, execute).
+                > Group has r-x (read, execute).
+                > Others have r-- (read).
+
+
+                    CHANGING PERMISSIONS.
+                ==========================
+- To change file permissions, we use the chmod command.
+
+        BASIC SYNTAX.
+    --------------------
+EG.
+    chmod [permissions] [file]
+
+        
+        USING SYMBOLIC MODE.
+    -------------------------
+- You can set permissions using symbolic representations (r, w, x) along with +, -, and = to add, remove, or set permissions.
+    > Add permission: chmod +x file.txt
+    > Remove permission: chmod -x file.txt
+    > Set permission exactly: chmod u+x file.txt (adds execute permission for the user/owner)
+        EG.
+            chmod u+x file.txt  # Add execute permission for the user
+            chmod g-w file.txt  # Remove write permission for the group
+            chmod o=r file.txt  # Set read-only permission for others
+
+            
+            USING NUMERIC (OCTAL) MODE.
+        -----------------------------------
+- In numeric mode, permissions are represented by a 3-digit number (sometimes 4 digits for special permissions like setuid, setgid, and sticky bit).
+- Each digit represents one of the three categories (user, group, others).
+    > r = 4
+    > w = 2
+    > x = 1
+    > No permission = 0
+
+- Add these numbers together to represent the permissions.
+    EG.
+    7 = rwx (4+2+1)
+    5 = r-x (4+0+1)
+    0 = --- (no permissions)
+
+- So, to set rwx for the user, r-x for the group, and r-- for others:
+    EG.
+        chmod 755 file.txt
+
+
+            chmod (Change File Permissions)
+        -----------------------------------------
+Basic Syntax:
+    chmod [OPTIONS] <permissions> <file/directory>
+
+
+            EXAMPLE.
+        ----------------
+Using symbolic mode:
+    Add execute permission for the user:
+        EG.
+            chmod u+x file.txt
+
+                - Adds execute permission for the user (owner) on file.txt.
+
+
+    Remove write permission for others:
+        EG.
+            chmod o-w file.txt
+
+                - Removes write permission for others on file.txt.
+
+
+    Set read and write for group, remove all for others:
+        EG
+            chmod g+rw,o= file.txt
+
+                - Adds read and write for the group, removes all permissions for others.
+
+
+Using numeric (octal) mode:
+    Set permissions to 755:
+        EG.
+            chmod 755 script.sh
+
+                Sets:
+                    Owner: Read, write, execute.
+                    Group: Read, execute.
+                    Others: Read, execute.
+
+
+    Set permissions to 644:
+        EG.
+            chmod 644 file.txt
+
+                Sets:
+                    Owner: Read, write.
+                    Group: Read.
+                    Others: Read.
+
+
+    Recursive permission change:
+        EG.
+            chmod -R 750 /var/www/html
+
+                - Applies 750 permissions to all files and subdirectories in /var/www/html.
+
+    Make a file executable:
+        EG.
+            chmod +x script.sh
+
+                Adds execute permission for all users.
+
+    Set permissions based on reference file:
+        EG.
+            chmod --reference=ref_file.txt target_file.txt
+
+                Matches the permissions of target_file.txt to those of ref_file.txt.
+
+
+        Cheat Sheet for Permission Modes (Octal):
+    ------------------------------------------------
+Octal	Permission	Symbolic Representation
+0	        None	                ---
+1	       Execute	                --x
+2	        Write	                -w-
+3	        Write, Execute	        -wx
+4	        Read	                r--
+5	        Read, Execute	        r-x
+6	        Read, Write	            rw-
+7	        Read, Write, Execute	rwx

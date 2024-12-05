@@ -1,0 +1,203 @@
+                GROUPS
+            ================
+- Groups allow you to organize users and define permissions collectively.
+- Every file or directory has three sets of permissions: owner, group, and others.
+    > Owner: The user who owns the file.
+    > Group: A collection of users with specific permissions on the file.
+    > Others: All other users on the system.
+
+
+                MANIPULATION.
+            --------------------
+1. Viewing Groups
+    - View groups for the current user:
+        EG.
+            groups
+
+            - Example output:
+                mark sudo docker
+
+
+2. List all groups on the system:
+    EG.
+        cat /etc/group
+            OR 
+        getent group
+
+            - Example:
+                root:x:0:
+                sudo:x:27:mark,john
+                developers:x:1000:mark
+
+                    - Each line shows the group name, group ID (GID), and members.
+                        EG
+                            mark is part of the groups sudo and docker.
+
+                    - To get the members in a group we use:
+                        EG.
+                            getent group groupname  --> getent group sudo.
+
+
+3. Adding and managing groups.
+    > Creating a new group.
+        EG.
+            sudo groupadd <groupname>
+            
+                - Example:
+                    sudo groupadd sharedgroup
+
+                        - Creates a group called sharedgroup.
+
+
+    > Delete a group.
+        EG.
+            sudo groupdel <groupname>
+
+                - Example:
+                    sudo groupdel sharedgroup
+
+
+    > Rename a group.
+        EG. 
+            sudo groupmod -n <new_groupname> <old_groupname>
+
+                - Example   
+                    sudo groupmod -n newgroup oldgroup
+
+
+4. Adding Users to Groups
+    > Add a User to a Group:
+        EG.
+            sudo usermod -aG <groupname> <username>
+
+                - Example.
+                    sudo usermod -aG developers john
+
+                        - Adds john to the developers group.
+                        - The -a (append) flag ensures existing group memberships are preserved.
+
+
+    > Remove a user from a group.
+        EG.
+            sudo gpasswd -d <username> <groupname>
+
+                - Example 
+                    sudo gpasswd -d john developers
+
+
+    > Set a users primary group.
+        EG.
+            sudo usermod -g <groupname> <username>
+
+                - Example   
+                    sudo usermod -g developers john
+
+
+    > view a specific users group.
+        EG.
+            groups <username>
+
+                - Example
+                    groups john
+
+
+5. Changing File Group Ownership
+    > Change the Group of a File/Directory:
+        EG.
+            sudo chgrp <groupname> <file/directory>
+
+                - Example   
+                    sudo chgrp developers project.txt
+
+
+    > Recursive Group Change for a Directory:
+        EG.
+            sudo chgrp -R <groupname> <directory>
+
+                - Example
+                    sudo chgrp -R sharedgroup /home/shared
+
+
+6. Managing File Permissions with Groups
+    > Allow Group Members to Access a File: Use chmod to set group permissions:
+        EG.
+            chmod g+rwx <file>
+
+                - Example   
+                    chmod g+rwx project.txt
+
+                        - Grants read (r), write (w), and execute (x) permissions to the group.
+
+
+    > Restrict Group Access:
+        EG.
+            chmod g-rwx <file>
+
+                - Example:
+                    chmod g-rwx confidential.txt
+
+                        - Revokes all permissions for the group.
+
+
+    > Get Permissions for Multiple Files:
+        EG.
+            chmod -R g+rw <directory>
+
+                - Example   
+                    chmod -R g+rw /home/shared
+
+
+            chown (Change Ownership)
+        --------------------------------
+Basic Syntax:
+    chown [OPTIONS] <new_owner>[:<new_group>] <file/directory>
+
+
+1. Change the owner of a file:
+    EG.
+        sudo chown john file.txt
+
+            - Changes the owner of file.txt to john. The group remains unchanged.
+
+
+2. Change the owner and group:
+    EG.
+        sudo chown john:developers file.txt
+
+            - Changes the owner to john and the group to developers.
+
+
+3. Recursive ownership change:
+    EG.
+        sudo chown -R john:developers /var/www/html
+
+            - Changes the owner and group for all files and subdirectories in /var/www/html.
+
+
+4. Change only the group:
+    EG.
+        sudo chown :developers file.txt
+
+            - Changes the group of file.txt to developers. The owner remains unchanged.
+
+
+5. Change ownership based on reference file:
+    EG.     
+        sudo chown --reference=ref_file.txt target_file.txt
+
+            - Changes the owner and group of target_file.txt to match those of ref_file.txt.
+
+
+                Special Cases and Questions
+            --------------------------------------
+- If I Add a User to a Group, Can They Access Group Files?
+    > Yes, as long as the file permissions allow the group access (e.g., r, w, or x).
+
+- What Happens If a File’s Group Is root but the User Is Not in the root Group?
+    > The user cannot access the file unless the others permissions allow it.
+
+- What Happens If I Create a Custom Group?
+    > The group behaves like any other group. You can add users to it and assign it to files or directories.
+
+- If I Change a File’s Group to mark, Will Root Still Have Access?
+    > Yes, root always has access to all files, regardless of group ownership or permissions.

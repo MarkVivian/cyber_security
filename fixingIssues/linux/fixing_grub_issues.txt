@@ -1,0 +1,14 @@
+                    PROCESS.
+                =============
+1. Boot into the Parrot Live Environment
+
+2. Verify Partitions.
+    - Open a terminal and list the partitions:
+        EG.
+            sudo fdisk -l
+
+                - Identify:
+                    > The Parrot root partition (likely the one labeled Linux filesystem, ext4).
+                    > The EFI system partition (ESP) .
+
+# todo : continue with grub and learn awk in any order.

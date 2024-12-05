@@ -19,49 +19,6 @@
                         `group` : is the group.
 
 
-                    
-                        CHANGING OWNERSHIP
-                    ==========================
-- To change the ownership of a file:
-    EG.
-        chown newuser filename
-
-
-- To change the group ownership.
-    EG.
-        chown :newgroup filename
-
-
-- To change both owner and group:
-    EG.
-        chown newuser:newgroup filename
-
-
-- To change for multiple files in a folder. 
-    EG.
-        chown newuser:newgroup folder -R 
-
-
-                PERMISSIONS 
-            =================
--Permissions determine who can read, write or execute the file:
-    r(read) : Permission to read the file.
-    w(write) : Permission to modify the file.
-    x(execute) : Permission to execute the file.
-
-
-- Permissions are divided into 3 categories:
-    User (owner) permissions.
-    Group permissions.
-    Others permissions.
-
-
-- If the current user is different from the file owner:
-    The user can only perform actions allowed by the group and others' permissions.
-    If the user is not in the group associated with the file, the user's permissions will fall back to the 'others' category.
-
-
-
                 SPECIAL PERMISSIONS (Setuid, Setgid, Sticky bit)
             ======================================================
 the `s` bit in permissions stands for special permissions:
@@ -131,55 +88,6 @@ the `s` bit in permissions stands for special permissions:
 - Checking all the users on a machine.
     EG.
         cut -d: -f1 /etc/passwd    
-
-
-                USERS AND GROUPS
-            =============================
-- To add the current user to a group, use the `usermod` command:
-    EG.
-        sudo usermod -aG groupname username
-
-            - For example, to add the current user `john` to the group `developers`:
-                EG.
-                    sudo usermod -aG developers john.
-
-            - if you want to make the user steve to become root 
-                EG.
-                    sudo usermod -aG root steve 
-
-
-- To remove a user from a group , use the gpasswd .
-    EG.
-        sudo gpasswd -d username groupname 
-
-            - for example, to remove the user steve from sudo.
-                EG.
-                    sudo gpasswd -d steve sudo 
-
-                        - this action will disallow the user steve from being able to use sudo and its relative commands.
-
-
-- To get all the groups available on your system.
-    EG.
-        getent group 
-            OR 
-        cat /etc/group 
-
-
-- To get the members in a group we use:
-    EG.
-        getent group groupname  --> getent group sudo.
-
-
-- To check all the group a user is in.
-    EG.
-        groups username.  ----> groups mark                         
-
-            - if you want to check all the groups the current logged in user is a member of: 
-                EG.
-                    groups 
-                      OR 
-                    id 
 
 
             Manual Removal of a User
