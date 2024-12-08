@@ -9,6 +9,22 @@
 
             echo "$trimmed" # Output: "Hello World!"
 
+    - You can also use xargs.
+        - The xargs command is used in the script to trim leading and trailing spaces from the output of cut.
+        EG.
+            wifi_name=$(echo "$line" | grep "Profile:" | cut -d ':' -f 2 | xargs)
+
+                grep "Profile:": Extracts the line containing Profile:.
+                cut -d ':' -f 2: Splits the line at the colon (:) and extracts the second field (the value after Profile:).
+                xargs: Removes any leading or trailing whitespace from the extracted value, ensuring clean results.
+
+    - using awk.
+        EG. 
+            wifi_name=$(echo "$wifi_name" | awk '{$1=$1;print}')
+
+                $1=$1 rebuilds the line, removing extra spaces.
+                print outputs the trimmed string.
+
 
 2. Splitting strings.
     - To split a string into an array based on a delimiter, you can use the IFS (Internal Field Separator):

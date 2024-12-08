@@ -2,7 +2,23 @@
 
 # ***********************IF LOOPS **************************************
 # -------------CHECK IF FILE --------------
-# -e, -a : checks if file exists.
+# -b filename - Block special file
+# -c filename - Special character file
+# -d directoryname - Check for directory Existence
+# -e filename - Check for file existence, regardless of type (node, directory, socket, symlink, etc.)
+# -f filename - Check for regular file existence not a directory
+# -G filename - Check if file exists and is owned by effective group ID
+# -G filename set-group-id - True if file exists and is set-group-id
+# -k filename - Sticky bit
+# -L filename - Symbolic link
+# -O filename - True if file exists and is owned by the effective user id
+# -r filename - Check if file is a readable
+# -S filename - Check if file is socket
+# -s filename - Check if file is nonzero size
+# -u filename - Check if file set-user-id bit is set
+# -w filename - Check if file is writable
+# -x filename - Check if file is executable
+# -e, -f : checks if file exists.
 # -r : checks if file is readable
 # -w : checks if file is writable.
 # -x : checks if file is executable.
@@ -149,6 +165,13 @@ fi
     # "$EUID" -ne 0 checks if the EUID is not equal to 0 (not root).
     # If the user is not root, it prints a message and exits.
 
+
+# Feature	            [ ] (test)	            [[ ]] (Bash built-in)
+# Portability	    POSIX-compliant	           Not POSIX-compliant
+# Variable Quoting	Required for safety	        Not required
+# Logical Operators	    Use -a, -o	                Use &&, `
+# Pattern Matching	        No	                      Yes
+# Globbing	        Yes (filename expansion)	No (pattern matching instead)
 
 # ************************* FOR LOOP ****************************
 for (( i=0; i<5; i++)); do

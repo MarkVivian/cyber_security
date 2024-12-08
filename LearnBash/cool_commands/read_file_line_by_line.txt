@@ -1,0 +1,111 @@
+                            READ FILE LINE BY LINE.
+                        =============================
+        1. USING `while` LOOP AND `read`
+- This method reads the contents of a file line by line and processes each line individually. 
+    EG.
+        #!/bin/bash
+
+        # Define the input file
+        file="your_file.txt"
+
+        # Read the input file line by line
+        while read -r line; do
+            echo "$line"  # Process the line (in this case, just print it)
+        done < "$file"
+
+            - Explanation.
+                #!/bin/bash: This is the shebang line that tells the system to use the Bash shell to execute the script.
+                file="your_file.txt": This variable holds the name of the file you want to read.
+                while read -r line; do ... done < "$file":
+
+                    The while loop continues until all lines in the file are read.
+                    The read -r line command reads a single line from the file into the variable line.
+                    The -r option prevents backslashes from being interpreted as escape characters.
+                    The input redirection < "$file" specifies that input should come from the specified file.
+
+
+        2. USING A `for` LOOP.
+- You can also use a for loop to read lines from a file, although this method is less memory efficient for large files since it reads all lines at once.
+    EG.
+        #!/bin/bash
+
+        # Define the input file
+        file="your_file.txt"
+
+        # Set Internal Field Separator to newline
+        IFS=$'\n' 
+
+        # Read the input file line by line using a for loop
+        for line in $(cat "$file"); do
+            echo "$line"  # Process each line (in this case, just print it)
+        done
+
+            - Explanation.
+                IFS=$'\n': This sets the Internal Field Separator to newline, ensuring that each line is treated as a separate item.
+                for line in $(cat "$file"): This reads all lines from the file using cat, splitting them into individual words/lines based on IFS.
+
+
+        3. Using File Descriptor.
+- You can also read from a specific file descriptor, which allows for more complex input handling.
+    EG.
+        #!/bin/bash
+
+        # Define the input file
+        file="your_file.txt"
+
+        # Open file descriptor 3 for reading
+        exec 3< "$file"
+
+        # Read from file descriptor 3 line by line
+        while read -r line <&3; do
+            echo "$line"  # Process each line (in this case, just print it)
+        done
+
+        # Close file descriptor 3
+        exec 3<&-
+
+
+        4. READING MULTIPLE LINES TOGETHER.
+- This method is used when the file has grouped records spanning multiple lines. The `read` command is used consecutively to capture these grouped records.
+    EG.
+        #!/bin/bash
+
+        # Define the input file
+        file="your_file.txt"
+
+        # Read file in groups of three lines
+        while IFS= read -r line1 && IFS= read -r line2 && IFS= read -r line3; do
+            # Process the three lines as a group
+            echo "Line 1: $line1"
+            echo "Line 2: $line2"
+            echo "Line 3: $line3"
+            echo "---"
+        done < "$file"
+
+            - Explanation.
+                - Each `read` command reads one line from the file.
+                - The `IFS=` ensures that leading/trailing spaces are preserved.
+                - The `&&` ensures all three `read` commands succeed before processing the group.
+                - The loop continues until all lines in the file are read.
+
+
+        5. USING A `mapfile` COMMAND (FOR BASH 4+).
+- This method reads all lines of a file into an array, which can then be processed line by line.
+    EG.
+        #!/bin/bash
+
+        # Define the input file
+        file="your_file.txt"
+
+        # Read all lines into an array
+        mapfile -t lines < "$file"
+
+        # Process each line
+        for line in "${lines[@]}"; do
+            echo "$line"
+        done
+
+            - Explanation.
+                - `mapfile` reads all lines of the file into the array `lines`.
+                - The `-t` option trims trailing newlines from each line.
+                - Lines can be processed using standard array operations in Bash.
