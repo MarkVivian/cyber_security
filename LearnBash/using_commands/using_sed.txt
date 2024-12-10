@@ -73,3 +73,5 @@
             - start_line,end_line: Applies the command to lines from start_line to end_line.
             - /pattern1/,/pattern2/: Applies the command to lines from the first occurrence of pattern1 to the first occurrence of pattern2.
 
+
+8. understand sed 's/ /1^1/g'

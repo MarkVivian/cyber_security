@@ -62,4 +62,16 @@
             Shell: /bin/bash
 
 
-4. 
+4. reading line by line.
+    EG.
+        filename="text.txt"
+        while IFS=read -r line; do 
+            echo $line;
+        done < $filename
+
+            - We can also read multiple lines at a time.
+                EG.
+                    while IFS=read -r first && IFS= read -r second; do 
+                        echo "1st : $first"
+                        echo "2nd : $second"
+                    done < $filename

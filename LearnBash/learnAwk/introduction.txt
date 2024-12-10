@@ -1,0 +1,25 @@
+                                INTRODUCTION TO AWK.
+                            ============================
+- awk is a powerful text-processing tool in Linux, used to search, extract, and manipulate text from files or standard input.
+- It processes text line by line and splits each line into fields based on delimiters (default is whitespace).
+
+
+        BASIC STRUCTURE.
+    ------------------------
+EG.
+    awk 'pattern { action }' file
+
+        - pattern: A condition to match lines (e.g., lines containing a specific word or pattern).
+        - action: Commands executed for lines matching the pattern.
+        - file: The input file (or standard input if omitted).
+
+
+            EXAMPLE.
+        ------------------
+1. Print All Lines
+    eg.
+        awk '{ print }' file.txt
+
+            > Prints every line from file.txt.
+            > { print } is the default action, equivalent to just awk '' file.txt.
+            
