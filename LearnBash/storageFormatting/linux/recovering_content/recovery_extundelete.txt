@@ -1,0 +1,24 @@
+                            EXTUNDELETE
+                        =====================
+- Purpose:
+    > Sepcifically used for recovering deleted files from ext3/ext4 file systems.
+
+- Installation:
+    EG.
+        sudo apt-get install extundelete
+
+
+                USAGE
+            ============
+1. unmount the file system if it's currently mounted.
+    EG.
+        sudo umount /dev/sdX
+
+            - Replace `/dev/sdX` with the appropriate device identifier.
+
+
+2. Run extundelete to recover files:
+    EG.
+        sudo extundelete /dev/sdX --restore-all
+
+            - This command attempts to restore all deleted files from the specified partition.

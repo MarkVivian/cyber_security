@@ -1,0 +1,72 @@
+                    EJECTING FLASH DRIVE.
+                =========================
+- you can use the udisks command to eject a USB drive. 
+- First, you need to identify the device name of the USB drive. You can do this by using the lsblk command:
+    EG.
+        lsblk
+            - This will list all the block devices on your system, including the USB drive. 
+            - Note down the device name of the USB drive (e.g., /dev/sdb1).
+
+            - To eject a drive we use the command:
+                EG. 
+                    sudo umount /dev/sdb1
+
+                        - Replace /dev/sdb1 with the actual partition name.
+
+
+            - Safely eject the USB drive (optional)
+                EG.
+                    sudo eject /dev/sdb
+
+                        - Replace /dev/sdb with the actual device name (note that this is the device, not the partition).
+
+
+
+                    FORMATTING DRIVE.
+                ======================
+- To format a drive in Linux, you will typically use 
+    > fdisk
+    > parted for partitioning 
+    > mkfs for formatting. 
+
+
+- Open the fdisk utility using:
+    EG.
+        sudo fdisk /dev/sdb 
+
+            - Replace /dev/sdb with your target disk.
+
+            - In the prompt we can :
+                
+                - Clean the disk by deleting all partitions.
+                    EG.
+                        type `d`
+
+                            - delete all existing partitions by typing d and then selecting the partition number. Repeat for all partitions.
+
+                - Creating a new primary partition.
+                    EG.
+                        type `n`
+
+                            - type n to create a new partition, then p for primary, and follow the prompts to specify the partition size.
+
+                - Write changes and exit.
+                    EG.
+                        type `w`
+                            
+                            - Type w to write the changes to the disk and exit fdisk.
+
+                - After creating a new partition (e.g., /dev/sdb1), format it with the desired file system (e.g., ext4):
+
+                    - Format the partition with a filesystem:
+                        EG.
+                            sudo mkfs.ext4 /dev/sdb1
+
+                            - Replace ext4 with the desired file system type (e.g., ntfs, fat32, etc.).
+
+
+- Assign a mount point (optional)
+    EG.
+        sudo mount /dev/sdb1 /mnt
+
+            - Replace /mnt with the desired mount point
