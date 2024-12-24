@@ -1,0 +1,29 @@
+Information Gathering (System and Network Scanning):
+
+    Nmap: For network scanning and identifying open ports/services.
+    Masscan: High-speed port scanner for large networks.
+    Shodan: Search engine for internet-connected devices (great for IoT or misconfigured servers).
+
+OSINT (Open-Source Intelligence):
+
+    Maltego: Graph-based tool for mapping relationships and assets (e.g., domains, emails).
+    theHarvester: Gathers email addresses, subdomains, and more.
+    Recon-ng: A framework for automated OSINT gathering.
+
+Vulnerability Scanning:
+
+    Nikto: Scans web servers for known vulnerabilities.
+    OpenVAS: Full-fledged vulnerability management system.
+    Searchsploit: Locates public exploits for known vulnerabilities.
+
+Social Engineering and Spoofing:
+
+    SET (Social Engineer Toolkit): Phishing, credential harvesting, and more.
+    Gophish: A phishing toolkit for campaigns.
+    Evilginx2: Advanced phishing framework for bypassing MFA.
+
+Social Engineering and Spoofing:
+
+    SET (Social Engineer Toolkit): Phishing, credential harvesting, and more.
+    Gophish: A phishing toolkit for campaigns.
+    Evilginx2: Advanced phishing framework for bypassing MFA.

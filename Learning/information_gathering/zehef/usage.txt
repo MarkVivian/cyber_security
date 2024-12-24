@@ -1,0 +1,22 @@
+                        ZEHEF.
+                    ============
+- Zehef v2 is a tool focused on finding public information on a targeted email.
+
+
+        FEATURES.
+    ----------------
+> Check if the email is in a paste (Pastebin)
+> Find leaks with HudsonRock
+> Checking social media accounts (Instagram, Spotify, Deezer, Adobe, 𝕏 etc...)
+> Generate email combinations
+
+
+                USAGE.
+            ------------
+1. check email. 
+    EG.
+        python3 Zehef.py << user@mail.com >>
+            
+            - in our case.
+                EG.
+                    zehef << user@mail.com >>
