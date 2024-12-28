@@ -1,0 +1,128 @@
+                    PATTERN MATCHING AND REGULAR EXPRESSIONS.
+                ================================================
+1. Basic Pattern Matching
+    - Match lines containing a specific pattern:
+        EG.
+            awk '/pattern/' file.txt
+
+                - /pattern/ searches for lines containing the string "pattern".
+                - It prints the entire line if the pattern is found.
+
+
+2. Match Lines Starting with a Pattern
+    - Search for lines that begin with a specific pattern:
+        EG.
+            awk '/^start/' file.txt
+
+                - ^ indicates the beginning of a line.
+                - /^start/ matches lines that begin with "start".
+
+
+3. Match Lines Ending with a Pattern
+    - Search for lines that end with a specific pattern:
+        EG.
+            awk '/end$/' file.txt
+
+                - $ indicates the end of a line.
+                - /end$/ matches lines that end with "end".
+
+
+4. Case-Insensitive Matching
+    - Match patterns without considering case (uppercase/lowercase):
+        EG.
+            awk 'BEGIN {IGNORECASE = 1} /pattern/' file.txt
+
+                - IGNORECASE = 1 makes the matching case-insensitive.
+                - /pattern/ matches "pattern", "Pattern", "PATTERN", etc.
+
+
+5. Match Multiple Patterns
+    - Match lines containing one of multiple patterns using | (logical OR):
+        EG.
+            awk '/pattern1|pattern2/' file.txt
+
+                - | is the logical OR operator.
+                - This matches lines containing either "pattern1" or "pattern2".
+
+
+6. Using Character Classes
+    - Match characters within a specified range or set:
+        EG.
+            awk '/[a-zA-Z]/' file.txt
+
+                - [a-zA-Z] matches any alphabetic character (both lowercase and uppercase).
+                - This matches lines containing any letter.
+
+
+7. Match a Specific Number of Characters
+    - Match a specific number of characters using curly braces {}:
+        EG.
+            awk '/[0-9]{3,5}/' file.txt
+
+                - [0-9]{3,5} matches a sequence of digits between 3 and 5 characters long.
+                - This matches lines containing numbers with 3 to 5 digits.
+
+
+8. Match a Pattern with Wildcards
+    - Use wildcards to match patterns with flexible content:
+        EG.
+            awk '/start.*end/' file.txt
+
+                - .* matches any sequence of characters (including spaces).
+                - /start.*end/ matches lines that contain "start" followed by "end" with any characters in between.
+
+
+9. Match Lines Containing Numbers
+    - Match lines that contain one or more digits:
+        EG.
+            awk '/[0-9]/' file.txt
+
+                - [0-9] matches any digit.
+                - This matches lines containing numeric characters.
+
+
+10. Anchors for Beginning and End
+    - Match patterns at the beginning or end of a line using anchors ^ and $:
+        EG.
+            awk '/^start.*end$/' file.txt
+
+                - ^start matches lines starting with "start".
+                - end$ matches lines ending with "end".
+                - This matches lines that start with "start" and end with "end".
+
+
+11. Exclude a Pattern (Negate)
+    - Exclude lines that match a pattern using !~:
+        EG. 
+            awk '$1 !~ /pattern/' file.txt
+
+                $1 !~ /pattern/ means "do not match lines where the first column contains the word "pattern".
+                It prints lines where the first column does not contain "pattern".
+
+
+12. Using Regular Expressions with Columns
+    - Match a pattern in a specific column:
+        EG.
+            awk '$2 ~ /pattern/' file.txt
+
+                $2 ~ /pattern/ matches lines where column 2 contains the string "pattern".
+                It prints the entire line if the condition is met.
+
+
+13. Replace Patterns
+    - Replace matching patterns within the text:
+        EG.
+            awk '{gsub(/old/, "new"); print}' file.txt
+
+                gsub(/old/, "new") globally replaces all occurrences of "old" with "new".
+                It prints the modified line after replacement.
+
+
+14. Match Using Regular Expressions for Complex Patterns
+    - Match more complex patterns using advanced regex:
+        EG.
+            awk '/^[A-Za-z]+[0-9]+$/' file.txt
+
+                ^[A-Za-z]+ matches one or more alphabetic characters at the start of the line.
+                [0-9]+$ matches one or more digits at the end of the line.
+                This matches lines that start with letters followed by digits.

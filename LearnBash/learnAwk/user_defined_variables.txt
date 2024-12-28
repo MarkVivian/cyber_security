@@ -1,0 +1,101 @@
+                            USER DEFINED VARIABLES
+                        ============================
+1. Defining and Using Variables
+    - Define and use a simple variable in awk:
+        EG.
+            awk '{x = $1 + $2; print x}' file.txt
+
+                x = $1 + $2 defines a variable x and assigns it the sum of the values in columns 1 and 2.
+                print x prints the value of x for each line.
+
+
+2. Variables in the BEGIN and END Blocks
+    - Define variables in the BEGIN and END blocks for initialization or final output:
+        EG.
+            awk 'BEGIN {x = 10} {print $1 + x} END {print "Total:", x}' file.txt
+
+                In the BEGIN block, x = 10 initializes x before processing any lines.
+                For each line, it prints the sum of column 1 and x.
+                The END block prints "Total: 10" after processing all lines.
+
+
+3. Using Variables for Accumulation (e.g., Sum)
+    - Accumulate values using user-defined variables:
+        EG.
+            awk '{sum += $1} END {print "Total sum:", sum}' file.txt
+
+                sum += $1 accumulates the values in column 1 into the sum variable.
+                The END block prints the total sum after all lines are processed.
+
+
+4. Modifying Variables Based on Conditions
+    - Change the value of a variable conditionally:
+        EG.
+            awk '{if ($1 > 50) x = "High"; else x = "Low"; print $1, x}' file.txt
+
+                The variable x is assigned "High" if column 1 is greater than 50, and "Low" otherwise.
+                The print statement outputs the value in column 1 along with the value of x.
+
+
+5. Using Variables for Formatting
+    - Use variables for controlling output formatting:
+        EG.
+            awk 'BEGIN {OFS = ","} {print $1, $2}' file.txt
+
+                The BEGIN block sets the output field separator OFS to a comma (,).
+                The print statement uses this separator when printing columns 1 and 2.
+
+
+6. Incrementing/Decrementing Variables
+    - Increment or decrement a variable in awk:
+        EG.
+           awk '{count++; print count}' file.txt
+
+                count++ increments the variable count for each line.
+                The print statement outputs the incremented value of count.
+
+
+7. Assigning Multiple Variables
+    - You can assign multiple variables in a single awk statement:
+        EG.
+            awk '{x = $1; y = $2; z = $3; print x, y, z}' file.txt
+
+                x, y, and z are assigned the values from columns 1, 2, and 3, respectively.
+                The print statement outputs these variables.
+
+
+8. Using Variables in Regular Expressions
+    - Use variables within regular expressions:
+        EG.
+            awk -v pat="pattern" '$0 ~ pat {print $1}' file.txt
+
+                -v pat="pattern" passes the variable pat with the value "pattern" to awk.
+                The ~ operator matches the regular expression stored in pat against the entire line ($0).
+                It prints the value from column 1 for lines that match the pattern.
+
+
+9. Using awk Command-Line Variables (-v)
+    - Pass external variables to awk from the command line:
+        EG. 
+            awk -v var=10 '{print $1 + var}' file.txt
+
+                -v var=10 passes the value 10 to the awk program as the variable var.
+                The program then adds var to column 1 and prints the result.
+
+
+10. Arrays as User-Defined Variables
+    - Use arrays as user-defined variables to store multiple values:
+        EG.
+            awk '{arr[$1] = $2} END {for (key in arr) print key, arr[key]}' file.txt
+
+                arr[$1] = $2 stores the value in column 2 indexed by the value in column 1.
+                The END block prints each key-value pair stored in the array.
+
+
+11. User-Defined Constants
+    - You can simulate constants by assigning values that do not change:
+        EG.
+            awk 'BEGIN {CONST = 100} {print $1 + CONST}' file.txt
+
+                CONST = 100 defines a constant-like variable CONST.
+                This value is then used for calculations in the program.

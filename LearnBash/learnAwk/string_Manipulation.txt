@@ -1,0 +1,95 @@
+                        STRING MANIPULATION.
+                    ==========================
+- awk is used to process and manipulate text strings. 
+
+
+                EXAMPLES.
+            ---------------
+1. Extract SubStrings.
+    - Extract part of a string using the substr function.
+        EG.
+            awk '{print substr($1, 2, 4)}' file.txt
+
+                - substr($1, 2, 4) extracts a substring from the first column.
+                - It starts at the 2nd character and takes 4 characters.
+                - Example: If $1 is "abcdef", the output is "bcde".
+
+
+2. String length
+    - Find the length of a string using the length function:
+        EG.
+            awk '{print length($1)}' file.txt
+
+                - length($1) calculates the length of the string in the first column.
+                - Example: If $1 is "hello", the output is 5.
+
+
+3. Search for a pattern.
+    - Print lines where a specific string or pattern exists:
+        EG.
+            awk '/error/' file.txt
+
+                - /error/ matches lines containing the word "error".
+                - This uses regular expressions to find patterns.
+
+
+4. Replace a substring.
+    - Replace a substring in a column.
+        EG.
+            awk '{gsub("old", "new", $2); print $2}' file.txt
+
+                - gsub("old", "new", $2) replaces all occurrences of "old" with "new" in column 2.
+                - Example: If $2 is "oldvalue", the output is "newvalue".
+
+
+5. Convert to Uppercase or Lowercase
+    - Convert a string to uppercase or lowercase:
+        EG.
+            awk '{print toupper($1)}' file.txt
+            awk '{print tolower($1)}' file.txt
+
+                - toupper($1) converts the first column to uppercase.
+                - tolower($1) converts the first column to lowercase.
+
+
+6. Split a String
+    - Split a string into parts based on a delimiter:
+        EG.
+            awk '{split($3, arr, "-"); print arr[1], arr[2]}' file.txt
+
+                - split($3, arr, "-") splits the string in column 3 into an array arr using "-" as the delimiter.
+                - arr[1] and arr[2] are the resulting parts.
+
+
+7. Check for Substring Presence
+    - Print lines where a substring exists in a specific column:
+        EG.
+            awk 'index($1, "test")' file.txt
+
+                - index($1, "test") checks if "test" exists in the first column.
+                - Returns the position of the substring or 0 if not found.
+
+
+8. Append Strings
+    - Concatenate strings:
+        EG.
+            awk '{print $1 " - " $2}' file.txt
+
+                - Combines column 1 and column 2 with " - " in between.
+
+
+9. Reverse a String
+    - Reverse the characters of a string:
+        EG.
+            awk '{for (i = length($1); i > 0; i--) printf "%s", substr($1, i, 1); print ""}' file.txt
+
+                - Loops through the string in reverse order.
+                - Prints each character in reverse.
+
+
+10. Trim Leading/Trailing Whitespace
+    - Remove extra spaces around strings:
+        EG.
+            awk '{gsub(/^ +| +$/, "", $1); print $1}' file.txt
+
+                - gsub(/^ +| +$/, "", $1) removes leading (^ +) and trailing ( +$) spaces from column 1.

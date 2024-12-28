@@ -1,0 +1,90 @@
+                        LOOPING ARRAYS.
+                    =====================
+1. Basic Loop (For Loop)
+    - Use a for loop to iterate over a set of values or columns:
+        EG.
+            awk '{for(i = 1; i <= NF; i++) print $i}' file.txt
+
+                - NF is the number of fields in the current record (line).
+                - This loop iterates through all fields (columns) of each line and prints them one by one.
+
+
+2. Loop Over Array
+    - Iterate over an array and print its elements:
+        EG.
+            awk 'BEGIN {arr[1]="apple"; arr[2]="banana"; for (i in arr) print i, arr[i]}'
+
+                - arr[1] = "apple" assigns a value to an array element.
+                - for (i in arr) iterates through the array arr.
+                -It prints the index (i) and value (arr[i]) of each element.
+
+
+3. Arrays with Dynamic Indices
+    - Use dynamically assigned indices in arrays:
+        EG.
+            awk '{arr[$1] = $2} END {for (key in arr) print key, arr[key]}' file.txt
+
+                - arr[$1] = $2: Uses the value in column 1 as the key, and the value in column 2 as the value in the array.
+                - The END block prints each key-value pair in the array.
+
+
+4. Count Occurrences Using Arrays
+    - Count how many times each value appears in a specific column:
+        EG.
+            awk '{arr[$1]++} END {for (key in arr) print key, arr[key]}' file.txt
+
+                - arr[$1]++: Increments the count for each value in column 1.
+                - The END block prints the values from column 1 and their frequencies.
+
+
+5. Multidimensional Arrays
+    - Store values in a multidimensional array (using concatenation of indices):
+        EG.
+            awk '{arr[$1, $2] = $3} END {for (key in arr) print key, arr[key]}' file.txt
+
+                - arr[$1, $2] = $3: Uses the combination of columns 1 and 2 as the key and stores the value from column 3.
+                - Prints each key-value pair from the multidimensional array.
+
+
+6. Arrays for Summing Values by Group
+    - Sum values by group (using array indices for groups):
+        EG. 
+            awk '{arr[$1] += $2} END {for (key in arr) print key, arr[key]}' file.txt
+
+                - arr[$1] += $2: Adds the value from column 2 to the sum stored in the array for each unique value in column 1.
+                - The END block prints the sum for each group.
+
+
+7. Associative Arrays for Grouping
+    - Group data by a specific column (without summing):
+        EG.
+            awk '{arr[$1] = arr[$1] $2 " "} END {for (key in arr) print key, arr[key]}' file.txt
+
+                - arr[$1] = arr[$1] $2 " " appends the value in column 2 to the array indexed by the value in column 1.
+                - The END block prints the groups formed by concatenating values from column 2 for each unique value in column 1.
+
+
+8. Arrays with String Keys
+    - Use strings as array keys:
+        EG.
+            awk '{arr[$1] = $2} END {for (key in arr) print key, arr[key]}' file.txt
+
+                - arr[$1] = $2: Uses the string from column 1 as the key and the value from column 2 as the value in the array.
+                - The END block prints each key-value pair.
+
+
+9. Delete Array Elements
+    - Remove elements from an array:
+        EG  
+            awk '{delete arr[$1]} END {for (key in arr) print key, arr[key]}' file.txt
+
+                - delete arr[$1]: Deletes the array element for the key from column 1.
+                - In the END block, no elements will be printed if they have been deleted.
+
+
+10. Reset an Array
+    - Clear the contents of an array:
+        EG.
+            awk '{arr[$1] = $2} END {for (key in arr) print key, arr[key]; delete arr}' file.txt
+
+                - delete arr: Removes all elements from the array after the END block has been executed.

@@ -1,0 +1,103 @@
+                                CONDITION STATEMENT.
+                            ==========================
+1. Basic if Statement
+    - The if statement executes a block of code if a condition is true:
+        EG.
+            awk '{if ($1 > 50) print $1}' file.txt
+
+                if ($1 > 50) checks if the value in column 1 is greater than 50.
+                If true, it prints the value of column 1.
+
+
+2. if-else Statement
+    - The else block executes when the if condition is false:
+        EG.
+            awk '{if ($1 > 50) print "High"; else print "Low"}' file.txt
+
+                If the value in column 1 is greater than 50, it prints "High".
+                Otherwise, it prints "Low".
+
+
+3. if-else if-else Statement
+    - For multiple conditions, you can use else if to handle more than two outcomes:
+        EG.
+            awk '{if ($1 > 50) print "High"; else if ($1 > 20) print "Medium"; else print "Low"}' file.txt
+
+                If column 1 is greater than 50, it prints "High".
+                If column 1 is between 20 and 50, it prints "Medium".
+                Otherwise, it prints "Low".
+
+
+4. Using Logical Operators (&&, ||)
+    - You can combine conditions with logical operators && (AND) and || (OR):
+        EG.
+            awk '{if ($1 > 20 && $1 < 50) print $1}' file.txt
+
+                && is the AND operator.
+                This condition checks if column 1 is greater than 20 and less than 50. If true, it prints the value in column 1.
+                    EG.
+                        awk '{if ($1 < 20 || $1 > 50) print $1}' file.txt
+
+                            || is the OR operator.
+                            This condition checks if column 1 is less than 20 or greater than 50. If either condition is true, it prints the value.
+
+
+5. if with Regular Expressions
+    - You can use regular expressions in the if statement to match patterns:
+        EG.
+            awk '{if ($1 ~ /^a/) print $1}' file.txt
+
+                $1 ~ /^a/ checks if the first column starts with the letter "a".
+                If true, it prints the value in column 1.
+
+
+6. Negating a Condition (!)
+    - Negate a condition using the ! operator to check for the opposite of a condition:
+        EG.
+            awk '{if ($1 !~ /^a/) print $1}' file.txt
+
+                $1 !~ /^a/ checks if the first column does not start with the letter "a".
+                If true, it prints the value in column 1.
+
+
+7. Using && and || for Multiple Conditions
+    - Combine multiple conditions for more complex logic:
+        EG.
+            awk '{if ($1 > 20 && $1 < 50 || $2 == "OK") print $1, $2}' file.txt
+
+                The condition checks if column 1 is between 20 and 50 or if column 2 equals "OK".
+                If either condition is true, it prints both column 1 and column 2.
+
+
+8. Using if with else for Range Checks
+    - Check if a value falls within a specified range:
+        EG.
+            awk '{if ($1 >= 10 && $1 <= 100) print $1}' file.txt
+
+                The condition checks if the value in column 1 is between 10 and 100 (inclusive).
+                If true, it prints the value in column 1.
+
+
+9. Using if with next to Skip Records
+    - Use if with next to skip the current record:
+        EG.
+            awk '{if ($1 < 20) next; print $1}' file.txt
+
+                next skips processing the current line if the value in column 1 is less than 20.
+                Lines where column 1 is 20 or greater will be printed.
+
+
+10. Using if with exit to Exit Early
+    - You can use if with exit to stop processing after a certain condition is met:
+        EG.
+            awk '{if ($1 == 100) exit; print $1}' file.txt
+
+                exit stops the awk program after printing the value in column 1 that equals 100.
+
+
+11. if with Multiple Actions (Using Semicolons)
+    - You can have multiple actions in an if statement by separating them with semicolons:
+        EG.
+            awk '{if ($1 > 50) {print $1; print "High"}}' file.txt
+
+                - If column 1 is greater than 50, it prints the value and the string "High" on separate lines.

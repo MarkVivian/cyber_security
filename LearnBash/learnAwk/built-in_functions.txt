@@ -1,0 +1,129 @@
+                                BUILT-IN FUNCTIONS.
+                            ==========================
+1. length
+    - Returns the length of a string or the number of fields in a record:
+        EG.
+            awk '{print length($1)}' file.txt
+
+                length($1) returns the length (number of characters) of the string in column 1.
+                If no argument is provided, length() returns the number of fields in the current record.
+
+
+2. substr
+    - Extract a substring from a string:
+        EG.
+            awk '{print substr($1, 1, 3)}' file.txt
+
+                substr($1, 1, 3) extracts 3 characters starting from position 1 in the string from column 1.
+                The first argument is the string, the second is the starting position, and the third is the length.
+
+
+3. index
+    - Find the position of a substring within a string:
+        EG.
+            awk '{print index($1, "pattern")}' file.txt
+
+                index($1, "pattern") returns the position of the first occurrence of "pattern" in the string in column 1.
+                Returns 0 if the substring is not found.
+
+
+4. toupper and tolower
+    - Convert a string to uppercase or lowercase:
+        EG.
+            awk '{print toupper($1)}' file.txt
+            awk '{print tolower($1)}' file.txt
+
+                toupper($1) converts the string in column 1 to uppercase.
+                tolower($1) converts the string in column 1 to lowercase.
+
+
+5. split
+    - Split a string into an array based on a delimiter:
+        EG.
+            awk '{split($1, arr, "-"); print arr[1], arr[2]}' file.txt
+
+                split($1, arr, "-") splits the string in column 1 into an array arr using - as the delimiter.
+                The split function returns the number of elements created in the array, and you can access the array elements using indices (e.g., arr[1], arr[2]).
+
+
+6. gsub and sub
+    - Replace substrings in a string:
+        EG.
+            awk '{gsub(/old/, "new"); print $1}' file.txt
+            awk '{sub(/old/, "new"); print $1}' file.txt
+
+                gsub(/old/, "new") replaces all occurrences of "old" with "new" in the string.
+                sub(/old/, "new") replaces only the first occurrence of "old" with "new" in the string.
+
+
+7. printf
+    - Formatted output:
+        EG.
+            awk '{printf "Name: %-10s Age: %-3s\n", $1, $2}' file.txt
+
+                printf is used to format the output in a specific way.
+                The format string "%-10s" specifies a left-aligned string with a width of 10 characters.
+                %-3s specifies a left-aligned string with a width of 3 characters.
+
+
+8. system
+    - Execute a system command:
+        EG.
+            awk '{system("echo " $1)}' file.txt
+
+                system("echo " $1) runs the shell command echo with the value from column 1 as an argument.
+                It prints the result of the command to the standard output.
+
+
+9. NR and NF
+    - Special variables for line and field counts:
+        EG.
+            awk '{print "Line number: " NR " Fields: " NF}' file.txt
+
+                NR is the current line number being processed.
+                NF is the number of fields in the current line (record).
+
+
+10. FNR
+    - File's line number (useful in multi-file processing):
+        EG.
+            awk '{print FNR, $1}' file1.txt file2.txt
+
+                FNR is the line number within the current file being processed.
+                This is useful when processing multiple files and distinguishing line numbers in each.
+
+
+11. OFS, ORS, FS and RS
+    - Set output field separator, output record separator, input field separator, and input record separator:
+        EG.
+            awk 'BEGIN {OFS=","; FS=":"} {print $1, $2}' file.txt
+
+                OFS sets the output field separator (, in this case).
+                FS sets the input field separator (: in this case).
+                These control how fields are separated when reading and printing data.
+
+
+12. strftime
+    - Format the current date and time:
+        EG.
+            awk 'BEGIN {print strftime("%Y-%m-%d %H:%M:%S")}'
+
+                strftime("%Y-%m-%d %H:%M:%S") returns the current date and time in the specified format (YYYY-MM-DD HH:MM:SS).
+
+
+13. ENVIRON
+    - Access environment variables:
+        EG.
+            awk 'BEGIN {print ENVIRON["HOME"]}'
+
+                ENVIRON["HOME"] prints the value of the HOME environment variable.
+
+
+14. next and nextfile
+    - Skip to the next record or next file:
+        EG.
+            awk '{if ($1 == "skip") next} {print $0}' file.txt
+            awk '{if ($1 == "skip") nextfile} {print $0}' file1.txt file2.txt
+
+                next skips the current record and processes the next one.
+                nextfile skips the current file and processes the next file.
