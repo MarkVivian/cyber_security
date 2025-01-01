@@ -47,6 +47,10 @@
 		create partition primary
 			--> This command creates a new primary partition on the disk.
 
+			--> If you want to create a new partition with a specified partition size.
+				EG.
+					create partition primary size=SIZE 
+
 
 - Then we select the volume you want to provide an ntfs:
 	EG.
@@ -69,3 +73,76 @@
 	EG.
 		exit
 			--> This command exits the diskpart utility and returns you to the regular command prompt. 
+
+
+
+									VOLUME FORMATTING.
+								==========================
+- List Disks:
+    > In the diskpart prompt, type:
+		EG.
+		    list disk
+
+    			> This shows all disks connected to your system. Identify your flash drive by its size.
+
+
+- Select the Flash Drive:
+    > Select the flash drive by typing:
+		EG.
+		    select disk X
+
+    			> Replace X with the disk number of your flash drive.
+
+
+- List Partitions/Volumes:
+	> To view partitions:
+		EG.
+			list partition
+
+	> Or, to view volumes:
+		EG.
+    		list volume
+
+    			> Identify the volume or partition you want to delete.
+
+
+- Select the Volume to Delete:
+    > If working with partitions:
+		EG.
+			select partition Y
+
+				> Replace Y with the partition number.
+	
+	>If working with volumes:
+		EG.
+    		select volume Z
+
+    			> Replace Z with the volume number.
+
+
+- Delete the Selected Volume/Partition:
+	> For partitions:
+		EG.
+			delete partition
+
+	> For volumes:
+		EG.
+    		delete volume
+
+
+- Extend the Remaining Volume:
+	> Select the partition/volume you want to extend:
+		EG.
+			select partition Y
+				OR
+			select volume Z
+
+
+- Extend it to fill the newly available space:
+	EG.
+	    extend
+
+
+- Exit Diskpart:
+	EG.
+		exit

@@ -1,0 +1,25 @@
+> Use a Multi-Boot Tool:
+    - Ventoy:
+        - Ventoy is a powerful tool that creates a bootable USB drive allowing you to simply copy multiple ISO files onto it.
+        - Steps:
+            > Download and install Ventoy on the USB drive.
+            > Run the executable.
+            > Copy ISO files directly to the drive.
+            > When booting, a menu appears allowing you to select which ISO to boot from.
+        > No need for multiple partitions or reformatting.
+    
+    - YUMI (Your Universal Multiboot Integrator):
+        > Another tool for creating multi-boot USBs.
+        > It supports various operating systems and utility tools.
+
+
+> Manually Configure a Multi-Boot USB:
+    - This is more advanced and involves:
+        > Creating multiple partitions.
+        > Writing each OS to a separate partition.
+        > Configuring a bootloader (like GRUB) to allow selecting the OS at boot time.
+    
+    - Steps:
+        > Partition the drive (as in the first section).
+        > Write bootable files to each partition using tools like dd (Linux) or diskpart (Windows).
+        > Install and configure GRUB to recognize all partitions
