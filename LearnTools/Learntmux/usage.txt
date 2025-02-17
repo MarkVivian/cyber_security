@@ -301,3 +301,19 @@
 						press CTRL + B
 							AND
 						press ]
+
+						
+		Steps to Merge Two tmux Windows into One with Panes:
+	--------------------------------------------------------------
+- Switch to the target window (the one where you want to bring the second window in as a pane):
+	EG.
+		ctrl + b  1
+
+			> (Replace 1 with the window number where you want to merge the other window.)
+
+ 
+- Join the second window as a pane:
+	EG.
+		ctrl + b  :join-pane -s 2
+
+			> (Replace 2 with the window number you want to move.)
