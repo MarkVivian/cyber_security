@@ -65,7 +65,8 @@
 		-this will show you all the devices that are currently connected to that network.
 
 
--Now we need a device to connect to the network so that in the handshake we can get the incrypted password.To do this we use DEAUTHENTICATION(-0) ATTACK to force it to reconnect so that we can campture the handshake. DON'T CLOSE THE WINDOW WITH THE SIXTH PROCESS RUNNING.
+-Now we need a device to connect to the network so that in the handshake we can get the incrypted password
+.To do this we use DEAUTHENTICATION(-0) ATTACK to force it to reconnect so that we can campture the handshake. DON'T CLOSE THE WINDOW WITH THE SIXTH PROCESS RUNNING.
 		-we use the aireplay-ng followed by the -0, followed by the number of deauthentication packets (10 in my case.), -a followed by the BSSID or router -c followed by the victims BSSID then network interface.
 		 EG.
 		 	aireplay-ng -0 10 -a 04:95:E6:F6:3B:80 -c F2:84:64:39:84:24 wlp2s0mon -> will remove the specified device mac address and send 10 deauthentication 
