@@ -1,0 +1,95 @@
+                        DETECTION AND THE CAESAR CIPHER.
+                    -----------------------------------------
+    A. Detection Checklist
+    -------------------------
+- When you see a ciphertext:
+    > Measure its length vs. expected plaintext length
+        + Same length (and mostly letters)
+            = look at substitution ciphers.
+        
+        + Fixed length (32, 40, 64, 60 chars) 
+            = likely a hash or salted hash.
+
+
+    > Inspect the character set
+        + Only a–z or A–Z 
+            = classical text cipher.(Substitution & Transposition)
+
+        + Hex (0–9a–f) or Base64 (A–Za–z0–9+/=) 
+            = cryptographic hash or encryption blob.
+
+
+    > Scan for prefixes or separators
+        + $1$, $2y$, {SSHA}, argon2 
+            = modern salted hashes.
+
+        + No prefix
+            = could still be hash (common) or a simple classical cipher.
+
+
+    > Look for patterns
+        + Repeating blocks or periodic behavior 
+            = Vigenère (key repeats).
+
+        + Incremental shift pattern 
+            = progressive Caesar.
+
+        + Uniform shift 
+            = standard Caesar.
+
+
+            MODERN VS CLASSICAL CRYPTOGRAPHY
+------------------------------------------------------------------------------
+| Feature                          | Classical (Substitution/Transposition) | Modern (Hash, AES, RSA, etc.)                    |
+| -------------------------------- | -------------------------------------- | ------------------------------------------------ |
+| Ciphertext same length as input? | ✅ Usually Yes                          | ✅ Often Yes (but can vary)                       |
+| Reversible (decryptable)?        | ✅ Yes (with key)                       | ✅ Yes for encryption (e.g. AES), ❌ No for hashes |
+| Readable characters (A-Z)?       | ✅ Usually                              | ❌ Often binary, base64, or hex                   |
+| Repeated letters retained?       | ✅ Possibly                             | ❌ Highly randomized                              |
+| Look uniform/random?             | ❌ May have patterns                    | ✅ Very uniform (especially AES/hashes)           |
+
+
+
+            IF CLASSICAL ->  SUBSTITUTION VS TRANSPOSITION
+-----------------------------------------------------------------------------------
+| Feature                            | Substitution                        | Transposition                        |
+| ---------------------------------- | ----------------------------------- | ------------------------------------ |
+| Same letters in ciphertext?        | ❌ Letters change                    | ✅ Same letters, just reordered       |
+| Letter frequencies preserved?      | ❌ No (changed)                      | ✅ Yes (original frequency remains)   |
+| Identical letters same ciphertext? | ✅ Often yes (e.g. Caesar)           | ✅ Yes (but scrambled positions)      |
+| Easy to break by frequency?        | ✅ Yes (e.g. monoalphabetic ciphers) | ❌ Harder—letters are in wrong places |
+
+
+
+        IDENTIFY CIPHER TYPE BY BEHAVIOR (DETECTION CLUES)
+----------------------------------------------------------------------------------------------
+🔒 Substitution Ciphers
+-----------------------------------------------------------------------------------------------------------------
+| Cipher                            | Detection Clues                                                           |
+| --------------------------------- | --------------------------------------------------------------------------|
+| **Caesar**                        | Uniform shift, same letter always becomes same. ("SPOON" → both O’s same) |
+| **ROT13**                         | Caesar with fixed shift of 13, used for light obfuscation                 |
+| **Vigenère**                      | Repeated key, same letter can map to different letters, pattern cycles    |
+| **AutoKey**                       | Similar to Vigenère, but key extends with plaintext                       |
+| **Atbash**                        | Mirror alphabet: A ↔ Z, B ↔ Y, etc.                                       |
+| **Affine**                        | Algebraic: `(a*x + b) mod 26`, breaks regular Caesar patterns             |
+| **Substitution (monoalphabetic)** | Random one-to-one mapping, frequency analysis helps                       |
+
+
+Transposition ciphers
+----------------------------------------------------------------------------------------------
+| Cipher                     | Detection Clues                                                      |
+| -------------------------- | -------------------------------------------------------------------- |
+| **Rail Fence**             | Zigzag pattern; letters preserved but scrambled in regular intervals |
+| **Columnar Transposition** | Rearranged based on keyword; needs keyword length guess              |
+| **Double Transposition**   | Same as above, but done twice                                        |
+
+
+Modern ciphers (Used in real-world security)
+----------------------------------------------------------------------------------------------
+| Cipher / Type           | Detection Clues                                                        |
+| ----------------------- | ---------------------------------------------------------------------- |
+| **Hashing (MD5, SHA1)** | Fixed length, irreversible, looks very random (hex or base64)          |
+| **AES**                 | Binary or base64 output, often 16/24/32-byte blocks                    |
+| **RSA**                 | Long keys, asymmetric encryption, used in signatures and key exchange  |
+| **Base64**              | Ends in `=`, padded, groups of 4 chars, looks "readable" but gibberish |

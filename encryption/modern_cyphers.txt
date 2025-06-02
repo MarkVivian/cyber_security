@@ -1,0 +1,320 @@
+                OVERVIEW OF MODERN CIPHERS.
+-------------------------------------------------------
+- Modern ciphers are broadly split into two main categories:
+    > Symmetric Encryption (Reversible with same key)
+        * Encrypt and decrypt with the same key. 
+        * Fast and widely used for bulk encryption.
+        * Examples:
+            = AES (Advanced Encryption Standard)
+            = DES / 3DES (outdated)
+
+    > Assymmetric Encryption (public/private key pair)
+        * public key encrypts, private key decrypts.
+        * used for secure communication and digital signatures.
+        * examples 
+            = RSA
+            = ECC (Elliptic Curve  Crypto)
+
+    > Hashing Functions (One-Way only)
+        * Not reversible ( no decryption)
+        * used for password storage, intergrity checks.
+        * Examples 
+            = MD5 (broken)
+            = SHA-1 (weakened)
+            = SHA-256, SHA-3 (secure)
+
+    > Encoding (Not encryption, just tranformation)
+        * Not secure : reversible without a key.
+        * used for data transmission.
+        * Example 
+            = Base64
+
+
+            HOW TO DETECT & IDENTIFY MODERN CIPHERS.
+---------------------------------------------------------
+| Feature                        | Likely Cipher Type       | Example Patterns                     |
+| ------------------------------ | ------------------------ | ------------------------------------ |
+| Hexadecimal or base64 output   | Hash or Symmetric Cipher | `5d41402abc4b2a76b9719d911017c592`   |
+| Starts with `MII...`, `LS0...` | RSA keys / PEM-encoded   | Public/Private key format            |
+| Fixed length (e.g. 32 chars)   | Hash (MD5/SHA1)          | MD5 = 32 hex, SHA1 = 40, SHA256 = 64 |
+| Blocks of 16/24/32 bytes       | AES                      | Encrypted data in block sizes        |
+| Ends in `==`, `/`, `+`         | Base64                   | Encoding, not encryption             |
+
+
+                MODERN CIPHERS IN RECOMMENDED ORDER.
+----------------------------------------------------------------------------------------------------------
+| Rank | Topic                  | Why It's Important                                                   |
+| ---- | ---------------------- | -------------------------------------------------------------------- |
+| 1️⃣    | **AES**                | Most widely used symmetric encryption (e.g., Wi-Fi, disk encryption) |
+| 2️⃣    | **Hashing** (MD5, SHA) | Used in password storage, file integrity, web apps                   |
+| 3️⃣    | **RSA**                | Powers HTTPS, digital signatures, and secure key exchange            |
+| 4️⃣    | **Base64**             | Not encryption, but appears often when analyzing traffic/data        |
+
+
+
+                        AES - ADVANCED ENCRYPTION STANDARD.
+--------------------------------------------------------------------------
+- AES is a symmetric block cipher:
+    > some key is used for encryption and decryption.
+    > works in blocks of 128 bits (16 bytes)
+    > Supports 128-, 192- or 256-bit keys.
+
+- How AES works (Simplified)
+    > Plaintext is split into 128-bit blocks.
+    > Each block is encrypted through multiple rounds:
+        * SubBytes 
+            = Replace bytes using an S-box (substitution table)
+        * ShiftRows 
+            = Rearrange rows (transposition)
+        * MixColumns
+            = Mix data across columns.
+        * AddRoundKey
+            = The block is combined with a "round key" (derived from your main key.)
+        * This repeats for 10-14 rounds (depending on key size)
+
+    > After final round -> you get the ciphertext block.
+
+- Key sizes:
+    > 128-bit 
+        * Fast and secure (most common)
+    > 256-bit 
+        * Ultra-secure (for top-secret data)
+
+- AES Modes of operation (very Important!)
+    > Modes define how AES handles blocks:
+        * ECB (Electronic codebook)
+            + characteristic 
+                = identical plaintext blocks encrypt to identical ciphertext blocks.
+            + Detection.
+                = Look for repeating 16-byte blocks in the ciphertext.
+            + Example.
+                = Plaintext "hello hello" (two identical blocks) encrypts to "ABC ABC" (repeating blocks)
+                    plaintext : hello hello 
+                    ciphertext : 6bc1bee22e409f96e93d7e117393172a6bc1bee22e409f96e93d7e117393172a
+
+        * CBC (Cipher Block Chaining)
+            + characteristics.
+                = uses a 16-byte IV; each block depends on the previous one.
+            + Detection.
+                = Check for a 16-byte IV at the start and no repeating blocks.
+            + Example 
+                = Plaintext "hello hello" with IV "123..." encrypts to "123... + XYZ + WUV" (no repeats).
+                    plaintext : hello hello 
+                    IV: d0a5b4c3... (16 bytes)
+                    ciphertext : d0a5b4c3... + 6bc1bee22e409f96e93d7e117393172a + 7a1c2d3e... (IV + two different 16-byte blocks).
+
+        * CFB (cipher feedback) and OFB (output Feedback)
+            + characteristic 
+                = uses a 16-byte IV; stream-like behavior.
+            + Detection.
+                = Look for an IV; distinguishing requires error propagation analysis.
+            + Example:
+                = Similar to CBC, "IV + XYZ + WUV" for "hello hello."
+                    Plaintext: "hello world" (two 16-byte blocks).
+                    IV: d0a5b4c3... (16 bytes).
+                    Ciphertext: d0a5b4c3... + 6bc1bee2... + 7a1c2d3e... (IV + ciphertext).
+
+        * CTR (counter mode)
+            + characteristics.
+                = Uses a 16-byte nonce; no padding needed.
+                = It does not require padding and supports parallel encryption.
+            + Detection.
+                = Check for a nonce; similar to OFB in error behaviour.
+            + example:
+                = "Nonce + XYZ + WUV" for "hello hello."
+
+
+        * GCM (Galois/Counter mode)
+            + Characteristics.
+                = Uses a 16-byte IV and a 16-byte authentication tag.
+            + Detection.
+                = Look for IV at the start and tag at the end.
+            + example.
+                = "IV + XYZ + WUV + Tag" for "hello hello"
+                    Plaintext: "hello world" (two blocks).
+                    IV: d0a5b4c3... (16 bytes).
+                    Ciphertext: 6bc1bee2... + 7a1c2d3e....
+                    Tag: tag... (16 bytes).
+                    Total Data: d0a5b4c3... + 6bc1bee2... + 7a1c2d3e... + tag....
+
+    > ECB should be avoided - it leaks patterns.
+
+- How to detect AES 
+    > Block Structure.
+        * Ciphertext length is always a multiple of 16 bytes (e.g., 32, 48, or 64 hex characters).
+            + this is because AES operates on fixed-size blocks of 16 bytes(128 bits).
+            + therefore any ciphertext produced by AES must have a length that is a multiple of 16 bytes.
+            + if the plaintext is not a multiple of 16 bytes, padding (e.g. PKCS#7) is added to ensure the length fits.
+        * EG. 
+            6bc1bee22e409f96e93d7e117393172a (32 hex chars = 16 bytes).
+
+    > Patterns in ECB Mode.
+        * If you see identical ciphertext blocks, it might be AES in ECB mode, where the same plaintext blocks encrypt to the same ciphertext.
+            = each block of plaintext is encrypted independently using the same key.
+            = if two blocks of plaintext are identical, their corresponding ciphertext block will also be identical.
+        * EG.
+            = if you are encrypting an image with a black and white striped pattern using AES in ECB mode, the black areas will encrypt to the same ciphertext block.
+            = this potentially shows "ghost" outlines of the original pattern in the encyrpted image.
+                plainText : AAAA + AAAA (two identical blocks)
+                ciphertext (ECB mode) : XYZ + XYZ (same ciphertext for both blocks)
+
+    > Key length clues.
+        + Keys are 16 bytes (128-bit), 24 bytes (192-bit), or 32 bytes (256-bit).
+        + Often stored/passed as hex strings
+        + EG.
+            = A key like 2b7e151628aed2a6abf7158829cf4f3c (32 hex characters : 16 bytes) suggest AES-128
+            NB : 1 BYTE REPRESENT 2 HEX CHARACTERS 
+            
+    > Initial Vector (IV) presence 
+        + In modes like CBC or GCM, AES often includes a 16-byte Initialization Vector (IV) at the start of the ciphertext.
+            = An IV might look like d0a5b4c3... (16 bytes) before the ciphertext, indicating CBC/GCM.
+            = it ensures that the same plaintext will produce different ciphertext each time it is encrypted.
+
+    > Common Headers.
+        + Tools like OpenSSL might add headers like "Salted__" (or its Base64 version, "U2FsdGVkX1"), suggesting AES encryption in CBC mode with salt and IV.
+        + EG.
+            = A Base64 string starting with U2FsdGVkX1 decodes to "Salted__", hinting at OpenSSL's AES.
+
+- Common Use Cases.
+    > Full-disk encryption(BitLocker, FileVault)
+    > HTTPS traffic (TLS uses AES-GCM)
+    > VPNs
+    > Encrypted messaging (Signal, Whatsapp)
+
+
+
+                    HASHING FUNCTIONS (MD5, SHA-1, SHA-256, ETC)
+------------------------------------------------------------------------------------------------------------------
+- Hashing functions are one-way algorithms: 
+    > You feed in data (e.g.. a password or file), and get a fixed-size "digest". 
+    > You cannot decrypt a hash back to the original input.
+    > instead, attacks rely on brute-force or precomputed tables.
+    > Hashes are ubiquitous in password storage, file integrity checks, and digital fingerprinting.
+    > consistent (same input -> same hash every time)
+
+- Core properties of cryptographic hashes.
+    | Property                 | Description                                                                                                           |
+    | ------------------------ | --------------------------------------------------------------------------------------------------------------------- |
+    | **One-Way**              | Easy to compute H=HASH(M), but infeasible to compute M from H.                                                        |
+    | **Deterministic**        | Same input always yields the same output.                                                                             |
+    | **Fixed Output Length**  | Output length is fixed (e.g., MD5 → 128 bits → 32 hex chars; SHA-1 → 160 bits → 40 hex; SHA-256 → 256 bits → 64 hex). |
+    | **Avalanche Effect**     | A tiny change in input (e.g., flipping one bit) yields a completely different hash.                                   |
+    | **Collision Resistance** | Hard to find two distinct inputs that hash to the same digest.                                                        |
+ 
+- How to detect and identify common hashes.
+    | Algorithm   | Output Length            | Format & Pattern               | Typical Use Cases                                                       |
+    | ----------- | ------------------------ | ------------------------------ | ----------------------------------------------------------------------- |
+    | **MD5**     | 128 bits → 32 hex chars  | `[0–9a–f]{32}` (lowercase hex) | Legacy checksums, unsalted password hashes (not recommended)            |
+    | **SHA-1**   | 160 bits → 40 hex chars  | `[0–9a–f]{40}`                 | Older TLS certificates, GIT object IDs (deprecated for security)        |
+    | **SHA-256** | 256 bits → 64 hex chars  | `[0–9a–f]{64}`                 | Modern file integrity, JWT signatures, password hashing (with salt/KDF) |
+    | **SHA-512** | 512 bits → 128 hex chars | `[0–9a–f]{128}`                | High-security integrity checks, some KDFs                               |
+    | **bcrypt**  | 60+ characters           | $2a$10$... (with cost factor)  | 
+
+    NB : All these outputs are typically shown in lowercase hex. If you see uppercase hex, it’s often just a formatting choice.
+       : 1 bit == 4 hex characters.
+       : 1 byte == 2 hex character
+
+    > By context.
+        * Unsalted Hashes.
+            + Found in checksums (e.g file downloads.)
+            +  if it's a short file checksum on a downloadable binary, it's likely MD5 or SHA-1.
+            + Pure hex strings with fixed lengths.
+            + rarely have prefixes.
+        * Salted/KDF Hashes:
+            + Password storage (e.g databases, /etc/shadow)
+            + contain $ seperators and prefixes like:
+                = $1$ → MD5-based
+                = $5$ → SHA-256-based
+                = $6$ → SHA-512-based
+                = $2a$, $2b$ → bcrypt
+
+    > Examples.
+        * MD5 ("hello")
+            $ echo -n "hello" | md5sum
+            5d41402abc4b2a76b9719d911017c592  -
+        
+        * SHA-1 ("hello")
+            $ echo -n "hello" | sha1sum
+            aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d  -
+
+        * SHA-256 ("hello")
+            $ echo -n "hello" | sha256sum
+            2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824  -
+
+- How hashing works (simplified)
+    > Input Processing.
+        * Data is split into blocks (e.g 512-bit chunks)
+    > Compression & Mixing:
+        * Mathematical operations scramble bits (AND/OR/XOR, bit-shifts).
+    > Finalization:
+        * Output is truncated to fixed length (e.g., 256 bits for SHA-256).
+    
+    > Critical security upgrade:
+        * Never store raw hashes for passwords! Use salted key derivation functions (KDFs) like:
+            EG.
+                # Safe password storage example (Python)
+                from bcrypt import hashpw, gensalt
+                hashed = hashpw(b"password", gensalt())  # Output: $2b$12$...
+
+- Why salt:
+    > diff 
+        * Unsafe (no salt)
+            "password" -> SHA256("password") = always `5e8848...`
+        * Safe (with salt)
+            "password" + "x!3Fg" → SHA256("passwordx!3Fg") = unique hash per user
+    
+    > Modern KDFs vs. Raw Hashes.
+        Feature	       | Raw MD5/SHA-1      | bcrypt/Argon2
+      -----------------|--------------------|------------------------------------------
+        Speed	       | Fast (vulnerable)	| Slow (thwarts brute-force)
+        Salt Handling  | Manual	            | Auto-generated
+        Cost Factor	   | None	            | Adjustable (e.g., 12 rounds)
+        Collision Risk | High (MD5 broken)	| Extremely low
+
+- Salted Hash formats (Prevent rainbow-table attacks)
+    > In real-world systems (e.g., /etc/shadow on Linux, web apps), passwords are rarely stored as raw MD5/SHA1.
+    > They use salt + hash and often a Key Derivation Function (KDF):
+        | Scheme           | Format Example                     | Explanation                                                                                                        |
+        | ---------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+        | **MD5crypt**     | `$1$salt$hash`<br>`$1$xyz$e5f…c4a` | `$1$` prefix means MD5-based crypt; `salt` is up to 8 chars; `hash` is 22 chars base64.                            |
+        | **bcrypt**       | `$2y$12$salt22charshash31chars`    | `$2y$` or `$2b$`; next two digits (`12`) are cost factor; then 22 char salt + 31 char hash (modular crypt format). |
+        | **SHA-256crypt** | `$5$salt$hash`                     | `$5$` prefix for SHA-256; `salt` up to 16 chars; `hash` is 43 chars base64.                                        |
+        | **SHA-512crypt** | `$6$salt$hash`                     | `$6$` prefix for SHA-512; `salt` up to 16 chars; `hash` is 86 chars base64.                                        |
+
+    > Detection.    
+        * If you see $1$…, $2y$…, $5$…, or $6$…, you’re dealing with a salt+hash.
+        * The numeral after $ indicates algorithm (1=MD5, 5=SHA-256, 6=SHA-512, 2y=bcrypt).
+
+            A[See a string] --> B {Contains $ prefix?}
+            B -->|Yes| C[Check prefix:  $1$ → MD5   $5$ → SHA-256   $6$ → SHA-512   $2a$ → bcrypt]
+            B -->|No| D{Hex only?   Fixed length?}
+            D -->|32 chars| E[MD5]
+            D -->|40 chars| F[SHA-1]
+            D -->|64 chars| G[SHA-256]
+            D -->|128 chars| H[SHA-512]
+        
+    > Critical security notes.
+        * MD5/SHA-1 are broken:
+            + Can generate collisions (two inputs → same hash). Never use for security!
+        * Always salt passwords:
+            + Prevents rainbow table attacks.
+        * use KDFs, not raw hashes.
+            + bcrypt, Argon2, or PBKDF2 are designed for password storage.
+
+- Use cases of these hashes.
+    | Algorithm         | Typical Usage                                              |
+    | ----------------- | ---------------------------------------------------------- |
+    | **MD5**           | File integrity checks (legacy), but not for passwords.     |
+    | **SHA-1**         | GIT object IDs, SHA-1 is now considered weak.              |
+    | **SHA-256/512**   | Modern file checksums, JWT signatures, certificate chains. |
+    | **bcrypt/Argon2** | Password storage (web applications, Linux PAM, etc.).      |
+
+- Practical tools for analysis.
+    > Identify hashes.
+        hash-identifier 5d41402abc4b2a76b9719d911017c592
+    
+    > crack hashes 
+        hashcat -m 0 -a 0 hash.txt rockyou.txt  # MD5 brute-force
+
+    > Generate hashes 
+        echo -n "hello" | openssl sha256  # SHA-256

@@ -1,0 +1,356 @@
+NB : FOR THE MOD26 you divide the value by 26 and take the remainder.
+    EG.
+        (27)MOD26
+        = 30/26 = 1 Rem 4 
+        = 4
+
+    : IF THE VALUE INSIDE THE () IS NEGATIVE ITS ADDED TO THE MOD VALUE.
+    EG.
+        (-8)MOD 26
+        = -8 + 26 = 18
+        = 18
+    
+
+         THE CAESAR CYPHER
+-----------------------------------------------------------------------------
+- How It Works
+    > Algorithm: 
+        + shift every letter in the plaintext by a fixed number of positions in the alphabet (modulo 26).
+
+    > Key: 
+        + a single shift value, e.g. k = 3.
+
+    > Encryption:
+        + Ci=(Pi+k) mod 26
+            = where Pi is the numerical value of the i'th plaintext letter (a = 0, b = 1, …).
+
+    > Decryption:
+        = Pi=(Ci−k) mod 26
+
+    EG.
+        Key: k=3
+        
+        Plain: attack
+        
+        Encrypt:
+            a → d, t → w, t → w, a → d, c → f, k → n
+
+        Ciphertext: 
+            dwwdfn
+
+
+        PROGRESSIVE CAESAR CIPHER (a.k.a Caesar with incrementing shifts)
+--------------------------------------------------------------------------------------------------------------------
+- Instead of using the same shift for every letter, we increment the shift as we move through the text.
+    > Algorithm
+        + For each character at index i:
+            Ci = (Pi + k) mod 26
+        
+        + where
+            = Pi is the plaintext letter's position(a=0, b=1, etc)
+            = k is the initial shift value(can be 0)
+        
+        + Decryption
+            Pi = (Ci - k) mod 26 
+    
+        EG.
+            Encrypt the word 'hello' with 'k=0' (so just a pure increment per letter)
+            
+            | Plain | Shift | Cipher |
+            | ----- | ----- | ------ |
+            | h     | 0     | h      |
+            | e     | 1     | f      |
+            | l     | 2     | n      |
+            | l     | 3     | o      |
+            | o     | 4     | s      |
+
+            ciphertext : hfnos
+
+
+    > How to detect it.
+        + look for:
+            = Same length as plain text.
+            = Letters are shifted by a consistent amount, but the amount increases as you move through the text
+            = alphabetic characters only.
+            = Doesn't repeat shift like Vigenere; instead it ramps up.
+
+
+        THE VIGENERE CIPHER.
+--------------------------------------------------------------------------
+- How it works:
+    > key 
+        + a word or phrase(e.g. LEMON)
+    
+    > Encryption for letter i:
+        Ci = (Pi + Ki)mod 26
+            = where Ki is the shift from the ith key letter(A=0,B=1,...)
+
+    > Decryption    
+        Pi = (Ci - Ki)mod 26
+
+    EG.
+        key : LEMON -- Shifts[11,4,12,14,13]
+        
+        plain : ATTACKATDAWN
+        
+        Encrypt by applying shifts cyclically.
+
+        | Pos | Plain | Key Letter | Shift | Cipher |
+        | --- | ----- | ---------- | ----- | ------ |
+        | 0   | A     | L (11)     | 11    | L      |
+        | 1   | T     | E (4)      | 4     | X      |
+        | 2   | T     | M (12)     | 12    | F      |
+        | 3   | A     | O (14)     | 14    | O      |
+        | 4   | C     | N (13)     | 13    | P      |
+        | 5   | K     | L (11)     | 11    | V      |
+        | …   | …     | …          | …     | …      |
+        | 11  | N     | O (14)     | 14    | B      |
+
+        cipherText : LXFOPV EF RNHR 
+
+
+            ROT13 & ATBASH.
+-------------------------------------------------------
+- ROT13
+    > Shift every letter by 13(half the alphabet).
+    > Encryption and Decription follows the same logic as above.
+        Ci = (Pi + k)mod26 
+        Pi = (Ci - k)mod26
+
+    EG.
+        plain Text : hello.
+        cipherText : uryyb.
+    
+- Atbash.
+    > mirror alphabet.
+        + A<->Z, B<->Y, C<->X
+    > Formula.
+        Ci = (25 - Pi)
+        Pi = (25 - Ci)
+    EG.
+        plain text : attack 
+        cipher text : zggzxp.
+
+- Detection.
+    - Same length, letters only.
+    - pattern is fixed and trivial to reverse by hand.
+
+
+            THE AUTOKEY CIPHER 
+----------------------------------------------------------------
+- Concept and Detection.
+    > Type 
+        + Polyalphabetic substitution.
+    
+    > Keystream
+        + Begins with a secret keyword, then continues by appending the plaintext itself.
+    
+    > Detection clues.
+        + same-length, letters only (classical).
+        + keyword is embedded in the ciphertext.
+        + polyalphabetic (mapping varies).
+        + No small repeating cycle(unlike vigenere) - the shifts "drift" once the keyword is exhausted.
+
+- Encryption and Decryption formulas.
+    > Let.
+        + Keyword = K = K0, K1 .... Km-1 --> E.G.= MAN
+        + plaintext = P = P0, P1 .... Pn-1 --> E.G.= PEAK 
+        + Keystream = S = K0, K1 .... Km-1,P0, P1 .... Pn-m-1 --> E.G.= MANPEAK
+        + in other words its similar to VIGENERE but instead of repeating the key, its the key followed by the plain text.
+
+    > Encryption. (for i = 0 to n - 1)
+        Ci = (Pi + Si) mod 26
+
+    > Decryption.
+        - Recover the first m playtext letters by subtracting the known keyword shifts.
+        - As you recover each new Pi, append it to the keystream to decrypt the next letter.
+
+    EG.
+        keyword : KEY -> shifts[10, 4, 24]
+        plaintext : HELLOWORLD
+
+        | i | Plain | Shift | Cipher | Calculation               |
+        | - | ----- | ----- | ------ | ------------------------- |
+        | 0 | H(7)  | 10    | R      | (7 + 10) mod 26 = 17 → R  |
+        | 1 | E(4)  | 4     | I      | (4 + 4)  mod 26 = 8  → I  |
+        | 2 | L(11) | 24    | J      | (11 + 24) mod 26 = 9  → J |
+        | 3 | L(11) | 7     | S      | (11 + 7)  mod 26 = 18 → S |
+        | 4 | O(14) | 4     | S      | (14 + 4)  mod 26 = 18 → S |
+        | … | …     | …     | …      | …                         |
+        | 9 | D(3)  | 14    | R      | (3 + 14)  mod 26 = 17 → R |
+
+        cyphertext : RIJSSR...R (complete through index 9)
+
+
+                THE ATBASH CIPHER 
+----------------------------------------------------------------------------------------
+- Concept and Detection.
+    > Type 
+        + Monoalphabetic substitution (a special fixed mapping)
+    
+    > Mapping 
+        + Mirror of the alphabet:
+        EG.
+            Plain:  ABCDEFGHIJKLMNOPQRSTUVWXYZ  
+            Cipher: ZYXWVUTSRQPONMLKJIHGFEDCBA
+
+    > Detection clues.
+        + Same length, letters only.
+        + if you see "A" -> "Z", "B" -> "Y", etc.
+        + No shifting key-always the same mirror.
+
+- Encryption and Decryption.
+    > Because it's self-inverse, encryption = decryption:
+        + Ci = (25 - Pi) (with A=0,...,Z=25)
+        + Pi = (25 - Ci)
+    
+    > Encrypt HELLO:
+        + H(7) -> 25 - 7 = 18 -> S
+        + E(4) -> 25 - 4 = 21 -> V 
+        + L(11) -> 25 - 11 = 14 -> O
+        + L -> O 
+        + O(14) -> 25 - 14 = 11 -> L 
+        + Result : SVOLL 
+    
+    > Decrypt SVOLL -> Same steps -> HELLO.
+
+- How to use.
+    > it's trivial : Just mirror each letter back.
+    > No key to recover - everyone uses the same mapping.
+    > often appears in puzzles or simple CTF trivia.
+
+
+            ROT13
+------------------------------------------------------------------------
+- Concept and Detection.
+    > Type 
+        + Monoalphabetic substitution (a special Caesar)
+    
+    > Mapping 
+        + Shift bby 13 positions (half the alphabet)
+    
+    > Properties:
+        + Encryption = Decryption (applying ROT13 twice returns original)
+        + Only affects letters A-Z(a->n, b->o, ...,m->z)
+
+- Detection clues.
+    > Same length, letters only.
+    > Common in puzzles, "Obfuscated" text you can read by applying ROT13
+    > Result still letters, often English words mapped to other gibberish-looking words.
+
+- Encryption and decryption.
+    > For each letter Pi:
+        Ci = (Pi + 13)mod26 
+
+    EG.
+        hello -> uryyb 
+        uryyb -> hello 
+        attack at dawn -> nggnpx ng qnja (spaces and case preserved)
+        
+
+            RAIL FENCE CIPHER.
+------------------------------------------------------------------------
+- Concept & Detection.
+    > Type 
+        * Transposition Cipher 
+    
+    > Mechanism.
+        * Write the plaintext in a zig-zag pattern over multiple "rails" (rows), then read line by line.
+
+- Detection clues.
+    > Same letters, just scrambled order.
+    > Frequency are unchanged from the plaintext.
+    > Harder to spot than substitution because the letters are reordered not changed.
+
+- Encryption Process (Rail Fence with 3 rails)
+    > Let's encrypt HELLOTHERE with 3 rails.
+        * Step 1: Write zig-zag 
+        Rail 1: H     O       R   
+        Rail 2: E   L   T   E   E
+        Rail 3:   L      H
+
+        cipher : HORELTEELH
+
+- Decryption.
+    > For HLTEELOHRLE, you reverse the process:
+        * Enstimate length of each rail segment based on length and zig-zag pattern.
+        * Rebuild the zig-zag and read down in the zigzag order to extract plaintext.
+
+
+            COLUMNAR TRANSPOSITION CIPHER.
+---------------------------------------------------------------------------------------
+- Concept & Detection.
+    > Type 
+        * Transposition cipher.
+    
+    > Mechanism 
+        * Write the plaintext in rows under a keyword.
+        * Rearrange the columns based on alphabetical order of the keyword letters.
+        * Read column by Column in the new order.
+
+- Detection clues.
+    > Same letters, different order.
+    > Frequency unchanged.
+    > if cyphertext looks like blocks of letters reordered, suspect columnar.
+
+- How it works.
+    > Plaintext : WEAREDISCOVERED
+    > Keyword : ZEBRAS
+
+    > Step 1: Assign Column order from keyword.
+        * Alphabetize keyword:
+            Z E B R A S → positions: 6 3 2 5 1 4  
+               Sorted: A B E R S Z → 1 2 3 4 5 6
+
+        * So assign column numbers like:
+            Z E B R A S  
+            6 3 2 5 1 4
+
+        * Step 2: Write the plaintext row by row.
+            Z  E  B  R  A  S  
+            6  3  2  5  1  4
+            ---------------
+            W  E  A  R  E  D  
+            I  S  C  O  V  E  
+            R  E  D  X  X  X   ← (pad X’s to fill grid)
+
+        * Read columns in order of column numbers (1 -> 6):
+            1 (A): E V X
+            2 (B): A C D
+            3 (E): E S E
+            4 (S): D E X
+            5 (R): R O X
+            6 (Z): W I R
+
+        * cipherText : EVXACDESEDEXROXWIR
+
+- Decryption .
+    Reverse the process.
+        * Determine number of columns and how many letters per column.
+        * Fill in columns in keyword alphabetical order.
+        * Reconstruct rows to get plaintext.
+
+
+    
+- Mono- vs. Polyalphabetic Substitution
+    > Monoalphabetic (e.g. Caesar, Atbash, simple monoalphabetic):
+        + Every occurrence of a given plaintext letter maps to the same ciphertext letter.
+            EG.
+                oo → rr every time if shift = +3.
+
+    > Polyalphabetic (e.g. Progressive Caesar, Vigenère, Autokey):
+        + The same plaintext letter can map to different ciphertext letters depending on position or key.
+
+Distinguishing Progressive Caesar vs. Vigenère
+    > Progressive Caesar:
+        + Shift increases by exactly +1 each position (or some linear function).
+        + Check differences between successive shifts—if they’re all +1, you’re in Progressive land.
+
+    > Vigenère:
+        + Uses a repeating key (e.g. “KEYKEY…”).
+        + Shifts will repeat in a fixed cycle (the key length).
+        + You’ll see a periodic pattern in the shifts, not a steadily rising one.
+
+    > Transposition Ciphers
+        + Also produce same-length, letter-only output—but letter frequencies match plaintext, just reordered.
+        + Look for unusual patterns (e.g. chunks of text moved around) rather than shifted letters.
