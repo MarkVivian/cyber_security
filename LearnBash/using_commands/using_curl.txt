@@ -2,41 +2,194 @@
                     ==========
 - This is a command line tool for transferring data using various protocols.
 
+
+            COMMON FLAGS.
+        -------------------
+| Flag | Meaning                     |
+| ---- | --------------------------- |
+| `-i` | Include response headers    |
+| `-I` | HEAD request (headers only) |
+| `-L` | Follow redirects            |
+| `-v` | Verbose output              |
+| `-d` | POST data                   |
+| `-H` | Custom header               |
+| `-A` | User-Agent                  |
+| `-X` | Set request method          |
+| `-o` | Output to file              |
+| `-O` | Save as remote filename     |
+| `-u` | Basic auth                  |
+| `-b` | Send cookies                |
+| `-c` | Save cookies                |
+| `-x` | Use proxy                   |
+|  -s  | Silent mode. It makes the curl output less verbose.|
+
+
+        BASIC SYNTAX.
+    --------------------
+EG.
+    curl [options] [url]
+
+
         USAGE
     -------------
-1) Download a File.
+SECTION 1: Basic GET Request.
     EG.
-        #!/bin/bash
+        curl http://httpbin.org/get 
 
-        url="https://download.microsoft.com/download/2/7/A/27AF1BE6-DD20-4CB4-B154-EBAB8A7D4A7E/officedeploymenttool_17531-20046.exe"
-        output="officedeploymenttool_17531-20046.exe"
+            - Sends a simple GET request.
+            - Returns the raw HTML/JSON response to your terminal.
+                EG. 
+                    {
+                        "args": {},
+                        "headers": {
+                            "Accept": "*/*",
+                            "Host": "httpbin.org",
+                            "User-Agent": "curl/8.14.1",
+                            "X-Amzn-Trace-Id": "Root=1-685ef609-38b70ea90673c3ef47b4a4ea"
+                        },
+                        "origin": "197.248.143.163",
+                        "url": "http://httpbin.org/get"
+                    }
 
-        curl -o $output $url
 
 
-2) Making a GET Request.
+SECTION 2: View Response Headers with -i 
     EG.
-        #!/bin/bash
+        curl -i http://httpbin.org/get 
 
-        url="https://api.example.com/data"
-        response=$(curl -s $url)
-        echo $response
+            - -i includes the HTTP response headers in the output (status line, content type, cookies, etc)
+                EG.
+                    HTTP/1.1 200 OK
+                    Date: Fri, 27 Jun 2025 19:53:14 GMT
+                    Content-Type: application/json
+                    Content-Length: 256
+                    Connection: keep-alive
+                    Server: gunicorn/19.9.0
+                    Access-Control-Allow-Origin: *
+                    Access-Control-Allow-Credentials: true
 
-            > -s : Silent mode. It makes the curl output less verbose.
-            > $url : The URL to which the GET request is sent.
-            > $response : Stores the response from the server.
+                    {
+                    "args": {},
+                    "headers": {
+                        "Accept": "*/*",
+                        "Host": "httpbin.org",
+                        "User-Agent": "curl/8.14.1",
+                        "X-Amzn-Trace-Id": "Root=1-685ef6aa-71a20680647538ca12f648a1"
+                    },
+                    "origin": "197.248.143.163",
+                    "url": "http://httpbin.org/get"
+                    }
 
 
-3) Making a POST Request.
+SECTION 3: save output to a File with -o and -O 
     EG.
-        #!/bin/bash
+        curl -o file.html http://example.com 
 
-        url="https://api.example.com/data"
-        data='{"key1":"value1","key2":"value2"}'
-        response=$(curl -s -X POST -H "Content-Type: application/json" -d "$data" $url)
-        echo $response
+            - saves output as file.html 
+                EG.
+                    curl -O http://example.com/index.html 
 
-            > -X POST : Specifies the request method as POST.
-            > -H "Content-Type: application/json" : Sets the content type of the request.
-            > -d "$data" : Specifies the data to be sent in the request body.
+                        - saves file with original name (index.html)
+                        - -o lets you specify a name 
+                        - -O uses the filename in the URL.
 
+
+SECTION 4: Send a POST Request with -d 
+    EG. 
+        curl -d "username=admin&password=1234" http://example.com/login 
+
+            - or specify content type.
+                EG.
+                    curl -X POST -M "Content-Type: application/x-www-form-urlencoded" -d "username=admin&password=1234" http://example.com/login 
+
+                    EG.
+                        curl -d "foo=bar" http://httpbin.org/post 
+
+                            - -d means POST by default unless overridden with -X 
+                            - sends application/x-www-form-urlencoded unless you specify otherwise.
+
+
+SECTION 5: Custom Headers with -H 
+    EG. 
+        curl -H "user-Agent: Cybertool/1.0" http://example.com 
+            EG.
+                curl -H "X-Custom-Header: test123" http://httpbin.org/headers 
+
+                    - Sends a custom HTTP header (e.g. to spoof a browser, API Key, etc )
+            
+
+SECTION 6: Use Cookies with -b and -c 
+    EG. (send cookies)
+        curl -b "sessionid=abc123" http://example.com/dashboard
+    
+    EG. (save cookies)
+        curl -c cookies.txt http://example.com 
+
+            -b sends cookies manually or from a file.
+            -c saves response cookies to a file.
+
+
+SECTON 7: Show Only Headers with -I (uppercase i)
+    EG. 
+        curl -I http://example.com 
+
+            - performs a HEAD request- show only response headers, not the body.
+
+
+SECTION 8: Follow Redirects with -L
+    EG.
+        curl -L http://example.com 
+            - Follows 3xx HTTP redirects (like 301, 302 ) until it gets a final response.
+
+
+SECTION 9: Set Request Type with -X 
+    EG. 
+        curl -X DELETE http://example.com/api/resource/1
+
+            - Forces a specific request method (useful for REST APIs)
+
+
+SECTION 10 : Download Multiple Files.
+    EG.
+        curl -O http://example.com/file1.jpg -O http://example.com/file2.jpg 
+
+            - Use mutliple -O options for batch downloads.
+
+
+SECTION 11: Authenticate with -u
+    EG.
+        curl -u admin:password http://example.com/protected 
+
+            - Perform basic HTTP authentication
+
+
+SECTION 12: Use Proxy with -x
+    EG.
+        curl -x http://127.0.0.1:8080 http://example.com 
+
+            - useful for intercepting traffic in Burp Suite or routing traffic trhough Tor/Proxy.
+
+
+SECTION 13 ; Inspect Everything with -V or --trace 
+    EG. (verbose)
+        curl -v http://example.com 
+
+    EG (Full trace)
+        curl --trace-ascii trace.txt http://example.com
+
+            -v shows request + response headers.
+            --trace shows raw bytes in a file.
+
+
+SECTION 14: User-Agent Spoofing 
+    EG. 
+        curl -A "Mozilla/5.0" http://example.com 
+
+            - Fakes a browser User-Agent to avoid bot detection or for testing.
+
+
+SECTION 15: Send JSON with -H and -d 
+    EG. 
+        curl -X POST http://example.com/api -H "Content-Type: application/json" -d '{"username":"admin", "password":"pass"}'
+
+            - Use this when working with modern REST APIs.
