@@ -30,8 +30,18 @@
             awk '/error/' file.txt
 
                 - /error/ matches lines containing the word "error".
-                - This uses regular expressions to find patterns.
+                - if found, prints the entire matching line.
+                - It is case sensitive.
 
+    - Search case-Insensitive 
+        EG.
+            awk 'BEGIN { IGNORECASE=1 } /Connected/' users.txt 
+
+                > works even if the line has Admin, ADMIN, etc 
+
+    - Search for Exact word match only.
+        EG.
+            
 
 4. Replace a substring.
     - Replace a substring in a column.

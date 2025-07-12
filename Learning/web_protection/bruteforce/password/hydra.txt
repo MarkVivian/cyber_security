@@ -267,16 +267,10 @@ EG.
 4. Specify a proxy.
     - You can route Hydra's traffic through a proxy server:
         EG.
-            hydra -l admin -P /path/to/password_list.txt -s 8080 -o output.txt -vV http-get://example.com/login -p <proxy_ip>:<proxy_port>
+            export http_proxy=http://<proxy_ip>:<proxy_port>
+            hydra -l admin -P /path/to/password_list.txt "http-get://example.com/login"
 
-                -s 8080:
-                    > Specifies the proxy port.
-
-                -o output.txt:
-                    > Saves the output of successful attempts to output.txt.
-
-                -p <proxy_ip>:<proxy_port>:
-                    > Specifies the proxy server.
+                -  users must set the http_proxy variable in their terminal before running Hydra to route traffic through a proxy.
 
 
 5. Using a Dictionary for Usernames and Passwords
@@ -300,7 +294,7 @@ EG.
         - This option will stop Hydra entirely after it finds the first successful login/password pair for any host in the list being tested.
         - Once it finds a successful login on any target, it will terminate the entire session.
             EG.
-                hydra -l admin -P /path/to/password_list.txt -F http-get://example.com/login http-get://another-example.com/login
+                hydra -l admin -P /path/to/password_list.txt -F htitp-get://example.com/login http-get://another-example.com/login
 
                     - In this case, if it finds the password for admin on example.com, it will stop testing both hosts immediately.
 

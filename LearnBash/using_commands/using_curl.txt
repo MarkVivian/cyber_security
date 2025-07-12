@@ -22,6 +22,7 @@
 | `-c` | Save cookies                |
 | `-x` | Use proxy                   |
 |  -s  | Silent mode. It makes the curl output less verbose.|
+|  -S  | when used with -s, shows error messages despite silent mode|
 
 
         BASIC SYNTAX.
@@ -100,7 +101,7 @@ SECTION 4: Send a POST Request with -d
 
             - or specify content type.
                 EG.
-                    curl -X POST -M "Content-Type: application/x-www-form-urlencoded" -d "username=admin&password=1234" http://example.com/login 
+                    curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -d "username=admin&password=1234" http://example.com/login 
 
                     EG.
                         curl -d "foo=bar" http://httpbin.org/post 
@@ -108,14 +109,24 @@ SECTION 4: Send a POST Request with -d
                             - -d means POST by default unless overridden with -X 
                             - sends application/x-www-form-urlencoded unless you specify otherwise.
 
+            - you can use -d multiple times.
+                EG.
+                    curl -d "param1=value1" -d "param2=value2" http://example.com
+                        OR WITH FILE 
+                   curl -d @data.txt http://example.com 
+
 
 SECTION 5: Custom Headers with -H 
     EG. 
-        curl -H "user-Agent: Cybertool/1.0" http://example.com 
+        curl -H "User-Agent: Cybertool/1.0" http://example.com 
             EG.
                 curl -H "X-Custom-Header: test123" http://httpbin.org/headers 
 
                     - Sends a custom HTTP header (e.g. to spoof a browser, API Key, etc )
+        
+        - it can be used multiple times.
+            EG.
+                curl -H "Header1: value1" -H "Header2: value2" http://example.com
             
 
 SECTION 6: Use Cookies with -b and -c 
@@ -129,7 +140,7 @@ SECTION 6: Use Cookies with -b and -c
             -c saves response cookies to a file.
 
 
-SECTON 7: Show Only Headers with -I (uppercase i)
+SECTION 7: Show Only Headers with -I (uppercase i)
     EG. 
         curl -I http://example.com 
 
@@ -170,7 +181,7 @@ SECTION 12: Use Proxy with -x
             - useful for intercepting traffic in Burp Suite or routing traffic trhough Tor/Proxy.
 
 
-SECTION 13 ; Inspect Everything with -V or --trace 
+SECTION 13: Inspect Everything with -v or --trace 
     EG. (verbose)
         curl -v http://example.com 
 
@@ -183,7 +194,7 @@ SECTION 13 ; Inspect Everything with -V or --trace
 
 SECTION 14: User-Agent Spoofing 
     EG. 
-        curl -A "Mozilla/5.0" http://example.com 
+        curl -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36" http://example.com 
 
             - Fakes a browser User-Agent to avoid bot detection or for testing.
 
@@ -193,3 +204,50 @@ SECTION 15: Send JSON with -H and -d
         curl -X POST http://example.com/api -H "Content-Type: application/json" -d '{"username":"admin", "password":"pass"}'
 
             - Use this when working with modern REST APIs.
+
+
+SECTION 16: Multipart/Form-Date upload with `-F`
+    EG.
+        curl -F "file=@exploit.lua" http://target/upload
+
+            - `-F` sends data as multipart/form-data. 
+            - its like filling out a web form that asks you to pick files from the terminal.
+            - use @filename to upload a file.
+                EG.
+                    curl -F "username=admin" -F "avatar=@pic.jpg" http://example.com/profile
+
+                        - it supports both file uploads and form fields.
+
+
+SECTION 17: Insecure SSL/TLS with `-k`/`--insecure`
+    EG.
+        curl -k https://self-signed.badssl.com/
+
+            - `-k` tells curl to skip certificate verification (userful for self-signed certs)
+            - `--insecure` is the full-name equivalent.
+            - Using -k skips certificate verification, which can expose you to risks like man-in-the-middle attacks. Use only for testing or trusted self-signed certificates.
+
+
+SECTION 18: Custom Timeout with `--max-time' and `--connect-timeout`
+    EG.
+        curl --connect-timeout 5 --max-time 10 http://example.com
+
+            - `--connect-timeout 5`: fail if no connection in 5 seconds.
+            - `--max-time 10`: overall operation timeout of 10 seconds.
+
+
+SECTION 19: Write-Out Variables with `-w`/`--write-out`
+    EG.
+        curl -o /dev/null -s -w "HTTP Code: %{http_code}\nTime: %{time_total}s\n" http://example.com
+
+            - `-w` allows printing metrics after the request (status, timings, size, etc.).
+
+
+SECTION 20: Retry on Transient Failures with `--retry`
+    EG.
+        curl --retry 3 --retry-delay 2 http://example.com/unreliable
+
+            - `--retry 3`: retry up to 3 times on transient errors.
+            - `--retry-delay 2`: wait 2 seconds between retries.
+
+

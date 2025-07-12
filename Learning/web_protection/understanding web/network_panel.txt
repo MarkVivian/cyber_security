@@ -1,0 +1,93 @@
+                        NETWORK PANEL
+                    ====================
+        3.1 Opening & Overview
+    -------------------------------
+- Open DevTools → Network tab.
+- Reload the page (F5); you’ll see all requests the browser makes: HTML, CSS, JS, images, and form submissions.
+
+ELI5: “Think of Network as your browser’s diary—it writes down every time it talks to the server.”
+
+
+        3.2 Key Columns
+    ----------------------------
+| Column        | Meaning                                    |
+| ------------- | ------------------------------------------ |
+| **Name**      | The resource or endpoint (e.g., `brute/`). |
+| **Method**    | HTTP method: GET, POST, etc.               |
+| **Status**    | Response code: 200 OK, 403 Forbidden, etc. |
+| **Type**      | Resource type: document, script, xhr, img. |
+| **Initiator** | What triggered the request (parser, JS).   |
+| **Time**      | Total round‑trip time.                     |
+| **Size**      | Response payload size.                     |
+
+
+3.3 Filtering & Searching
+Filter by type: Click “XHR” to see only AJAX/form requests.
+
+Search by URL substring in the filter box.
+
+Hide data URLs or preserve log (keep entries across navigations).
+
+Example: In DVWA, filter “XHR” to isolate the login POST when you submit credentials.
+
+3.4 Inspecting a Request
+Click the row for your login request (e.g., brute/?username=…).
+
+Two main sub‑panels appear:
+
+Headers
+
+General: URL, Request Method, Status Code, Remote Address.
+
+Request Headers: User‑Agent, Cookie, Content‑Type, etc.
+
+Response Headers: Server, Set‑Cookie, Content‑Length, etc.
+
+Payload / Request Body (for POST)
+
+Shows form fields (e.g., username=admin&password=1234).
+
+Useful to see exactly what data the server receives.
+
+Preview/Response
+
+View raw or rendered response (HTML, JSON, etc.).
+
+Example: Submit “admin”/“password” in DVWA brute page, click that POST entry → under Payload see:
+
+ini
+Copy
+Edit
+username=admin
+password=password
+Login=Login
+3.5 Replay & Edit & Resend
+Right‑click the request → Replay XHR (Firefox) or Resend (Chrome).
+
+Edit the method, URL, headers, or body before sending again.
+
+Use this to test different passwords without reloading the page.
+
+Example: Change the password field to “letmein” inline, resend, and observe the response code/status.
+
+3.6 Exporting & Importing
+Export HAR (HTTP Archive) for offline analysis or sharing with teammates:
+
+Right‑click → Save all as HAR.
+
+Import HAR into other tools (e.g., Burp Suite, Fiddler).
+
+3.7 Real‑World Pentest Use Cases
+Timing attacks: Measure Time column to detect delays (e.g., slow SQL responses).
+
+Cookie manipulation: Edit request headers to forge or remove cookies.
+
+Session fixation: Replay login with fixed session ID to test session controls.
+
+Checkpoint:
+
+Can you see and identify the DVWA login POST request?
+
+Were you able to inspect Headers and Payload?
+
+Try replaying it with a modified password field.

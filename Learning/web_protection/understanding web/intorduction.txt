@@ -1,0 +1,55 @@
+                        OPENING DEVTOOLS AND INTERFACE OVERVIEW.
+                    ======================================================
+
+            MAIN PANEL THAT WILL BE COVERED.
+        ----------------------------------------
+| Panel           | Purpose                                         |
+| --------------- | ----------------------------------------------- |
+| **Elements**    | View/edit the page’s HTML & CSS in real time.   |
+| **Console**     | See errors, run JavaScript commands, view logs. |
+| **Network**     | Inspect all network requests/responses.         |
+| **Sources**     | View/debug JavaScript files.                    |
+| **Application** | Explore cookies, localStorage, sessionStorage.  |
+| **Security**    | Check TLS certificate details.                  |
+
+
+            FIREFOX <-> CHROME DEVTOOLS PANEL MAPPING.
+        ------------------------------------------------
+| Firefox Panel     | Chrome DevTools Panel | Notes & Relevance for Web Attacks                                    |
+| ----------------- | --------------------- | -------------------------------------------------------------------- |
+| **Inspector**     | Elements              | Same purpose: view/edit HTML & CSS live.                             |
+| **Console**       | Console               | Same: JavaScript logs, errors, command REPL.                         |
+| **Debugger**      | Sources               | Same: view and step through JS code.                                 |
+| **Network**       | Network               | Same: all HTTP/S requests & responses.                               |
+| **Style Editor**  | — (within Elements)   | Chrome integrates CSS editing under Elements. Firefox splits it out. |
+| **Performance**   | Performance           | Profiling page load & runtime performance.                           |
+| **Memory**        | Memory                | Heap snapshots, GC profiling.                                        |
+| **Storage**       | Application → Storage | Firefox has Storage tab; Chrome groups under Application.            |
+| **Accessibility** | Accessibility         | Audit for a11y issues.                                               |
+| **Application**   | Application           | Chrome’s full app data: cookies, storage, manifests.                 |
+
+
+                WHY WE'RE FOCUSING ON SOME PANELS -- AND NOT OTHERS.
+            --------------------------------------------------------------
+1. Elements/Inspector, Console, Network, Sources/Debugger, Storage/Application
+    > These are directly useful for:
+        - Manipulating requests/responses (Network).
+        - Tinkering with page structure & scripts (Elements, Sources).
+        - Reading and tampering with cookies or localStorage (Storage/Application).
+        - Logging and running quick JS snippets (Console).
+
+2. Style Editor
+    > Useful if you need to bypass CSS‑based defenses or hide UI elements, but less central for DVWA attacks.
+    > We’ll mention it briefly.
+
+3. Performance & Memory
+    > Performance: Measures load times and script performance—important for optimizing real apps, but not central to attack mechanics.
+
+    > Memory: Tracks JavaScript heap and garbage collection—vital for debugging memory leaks, but again not core to web‑app attacks like brute force or SQLi.
+
+    > ELI5: “Think of Performance and Memory as tools to make the site run faster and use less memory—like tuning a car’s engine—whereas for hacking DVWA we’re more interested in how the site talks (Network) and what it shows (Elements), not engine tuning.”
+
+4. Accessibility
+    > Great for ensuring your own pages are accessible, but not directly relevant to most DVWA attack vectors.
+    
+

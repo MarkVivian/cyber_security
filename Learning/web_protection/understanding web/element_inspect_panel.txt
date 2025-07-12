@@ -1,0 +1,62 @@
+                            ELEMENT PANEL (INSPECTOR)
+                        =================================
+        Viewing the DOM Structure
+    --------------------------------
+- When you open Inspector/Elements, you see the page’s HTML as a collapsible tree.
+- Hover over elements in the tree → the page highlights the corresponding area.
+- Right‑click any element → Scroll into view or Edit as HTML.
+    EG.
+        In DVWA’s login page (http://localhost/DVWA/vulnerabilities/brute/), find:
+        <form action="..." method="POST">
+            <input type="text" name="username" />
+            <input type="password" name="password" />
+            <input type="submit" value="Login" />
+        </form>
+
+            - You can hover <input name="username"> to see the username field highlighted.
+
+
+        Editing HTML on the Fly
+    ------------------------------------
+- Right‑click an element → Edit as HTML or Add attribute.
+- Modify text, attributes, or even insert new tags.
+- Press Enter to apply and see changes immediately—no reload needed.
+    EG.
+         Bypass a disabled input. Suppose DVWA had:
+            <input type="text" name="secret" disabled>
+                
+                - Right‑click → Edit as HTML, remove disabled. Now you can type into secret.
+
+
+        Editing & Testing CSS Styles
+    ---------------------------------------------
+- The Styles sidebar shows CSS rules applied to the selected element.
+- Uncheck a rule to disable it, edit values inline, or add new rules.
+- You can test hiding/showing elements, changing colors, or overriding visibility.
+    EG.
+        Hide the login form to focus on error messages:
+            Select <form>.
+
+        In Styles, click + to add:
+            display: none;
+                
+                - The form disappears instantly.
+
+
+        Real‑World Pentesting Use‑Case
+    ----------------------------------------
+- Finding hidden CSRF tokens: Sometimes pages include <input type="hidden" name="token" value="...">.
+- Use the Inspector to locate hidden fields, copy their values for forging requests.
+- Modifying form targets: Change the action attribute to point at your intercepting proxy:
+    EG.
+        <form action="http://127.0.0.1:8080/">
+
+            → Now all credentials go through Burp Suite.
+
+- Copy Unique Selectors
+    > Right‑click an element → Copy → Copy selector
+    > Useful for scripting or targeting that element in automated tests.
+
+- Break on DOM Changes
+    > Right‑click → Break on → Attribute modifications / Node removal / Subtree modifications
+    > Pauses execution when that element changes—handy for catching dynamic JS behavior.
