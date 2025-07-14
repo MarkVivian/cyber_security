@@ -1,0 +1,33 @@
+                        COMMAND.
+                    ================
+- is a shell builtin in Bash (and POSIX shells). Its primary jobs are:
+    > Bypass functions or aliases: If you’ve defined a function or alias named ls, command ls runs the real external /bin/ls.
+    > Check for existence: With -v or -V, you can see where a name comes from.
+    > Invoke builtins explicitly: Though rarely needed, you can force a builtin rather than an external program.
+
+
+        EXAMPLES
+    ----------------
+1. Run the real ls even if you have a alias.
+    EG.
+        alias ls='ls --color=auto'
+        command ls /etc 
+
+            > what happens
+                ignores your ls alias and runs the system's ls on /etc.
+
+
+2. check what grep refers to 
+    EG.
+        command -v grep 
+
+            > what happens 
+                Prints the path to grep (e.g /usr/bin/grep) or "grep" if its a shell builtin.
+
+
+3. see verbose origin.
+    EG.
+        command -V cd 
+
+            > what happens.
+                Tells you that cd is a shell builtin, not an external command.

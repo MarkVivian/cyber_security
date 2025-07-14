@@ -27,3 +27,10 @@ Common comands:
 4) we can also run a command after ssh .
     EG.
         ssh user@remotehost <command to run> --> ssh user@remotehost ls ~       
+
+
+5. if you want to ssh and pass the password without going through the authenticator.
+    EG,
+        sshpass -p "yourpassword" ssh -p <port> user@host 
+
+            - warning the password will appear in ps listings or shell history.

@@ -237,7 +237,7 @@ case "$day" in
         echo "Today is Tuesday"
         ;;
     "Wednesday")
-        echo "Today is Wednesday"
+        echo "Today is Wednesday" 
         ;;
     *)  
         echo "Today is another day"
