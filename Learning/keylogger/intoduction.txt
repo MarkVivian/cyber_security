@@ -1,0 +1,94 @@
+1. Keylogger Attacker Methods (Real World Style)
+
+Let’s walk through how attackers try to capture passwords, especially around login, keystrokes, and interaction, including what works and what doesn’t.
+✅ A. Hooking Post-Login Events
+
+What it is:
+You hook into the keyboard API once the user is logged in.
+
+Tools & Techniques:
+
+    SetWindowsHookEx() in C++
+
+    PowerShell with Add-Type and custom DLLs (rare)
+
+    Malware installs a keylogger DLL into common processes (e.g., explorer.exe)
+
+What you capture:
+
+    Everything typed after login: passwords, messages, commands.
+
+Limitations:
+
+    You need user to log in first.
+
+    Antivirus may catch obvious behavior (DLL injection, low-level hooks).
+
+    Admin rights needed for system-wide hooks.
+
+✅ B. Fake Login Screens (Phishing UI)
+
+What it is:
+You simulate a real login prompt that tricks the user into typing their password again.
+
+How it's used:
+
+    Lock the screen and pop a fake credential window.
+
+    Windows Logon UI clone using WinForms, PyQT, or even Electron.
+
+What you get:
+
+    Cleartext credentials straight into your lap.
+
+Limitations:
+
+    User must be tricked.
+
+    Defender Smartscreen or security-conscious users might notice.
+
+    Requires full-screen control + app focus.
+
+✅ C. LSASS Dumping
+
+What it is:
+LSASS is the Windows process that holds credentials in memory. If you dump it, you can extract hashes or even plaintext passwords.
+
+Tools:
+
+    procdump64.exe -ma lsass.exe lsass.dmp
+
+    Mimikatz to extract from that dump
+
+    Pypykatz / NanoDump (for stealthier ops)
+
+Limitations:
+
+    Needs admin/system rights or a vulnerable system.
+
+    EDRs watch LSASS like hawks—dumping it triggers alerts.
+
+✅ D. Keyboard Driver or Filter Driver
+
+What it is:
+Low-level driver inserted into the OS that listens to keystrokes before login.
+
+How it's done:
+
+    Write a kernel-mode driver (C/C++, signed or bypassed via exploits).
+
+    Load during boot.
+
+Benefits:
+
+    Captures passwords typed into login prompt.
+
+    Nearly invisible to standard AV.
+
+Limitations:
+
+    Requires driver development.
+
+    Kernel signing or exploit needed.
+
+    Can BSOD the system if done wrong.

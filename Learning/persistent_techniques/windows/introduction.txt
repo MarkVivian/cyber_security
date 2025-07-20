@@ -1,0 +1,97 @@
+| Technique                  | Description                                                               | When It Runs                               | Admin Needed?                       | UI / Visibility                          | Notes                                                                                  |
+| -------------------------- | ------------------------------------------------------------------------- | ------------------------------------------ | ----------------------------------- | ---------------------------------------- | -------------------------------------------------------------------------------------- |
+| **WMI Event Subscription** | Sets up event-based script trigger using WMI. Lives in memory & registry. | On system events (e.g., login, USB insert) | ✅ Yes                               | ❌ No GUI, runs silently                  | Extremely stealthy. Lives until reboot (unless permanent class). Can be used for RATs. |
+| **DLL Hijacking**          | Drop a malicious DLL where a legitimate app expects one.                  | When app is launched                       | ✅ Yes (to write in protected paths) | ❌ No visible window unless DLL shows one | Requires target app with unquoted DLL search path. Classic red team method.            |
+| **Service Registry Abuse** | Modify `ImagePath` or `ServiceDLL` of an existing service.                | At service start                           | ✅ Yes                               | Depends on payload                       | If service auto-starts, payload runs at boot. Widely used in malware persistence.      |
+| **Startup Folder Drop**    | Drop `.lnk` or `.exe` into user’s `Startup` folder.                       | After user login                           | ❌ No                                | ✅ Visible app if GUI used                | Easy, but noisy. Limited to user-level persistence.                                    |
+| **Token Impersonation**    | Exploit SeImpersonatePrivilege to run as higher user (e.g., SYSTEM).      | On exploit trigger                         | ❌ No (if privilege exists)          | ❌ Often invisible                        | Used by tools like JuicyPotato, PrintSpoofer. Abuses Windows token system.             |
+
+**Introduction to Persistence Techniques (Windows & Linux)**
+
+Persistence techniques are methods used by attackers (or even sysadmins writing automation) to ensure that a script, payload, or binary remains active or re-executes even after a system reboot or user logout. In red teaming and malware operations, persistence is what gives your payload immortality. Let's break this down, ninja-style.
+
+---
+
+### 1. WMI Event Subscription (Windows Only)
+
+**What it is:** A method of creating a hidden, trigger-based task using Windows Management Instrumentation (WMI). It listens for specific system events like logon, USB insertion, or time-based triggers.
+
+**How it works:** You use `__EventFilter`, `CommandLineEventConsumer`, and `__FilterToConsumerBinding` in WMI to bind a script to a system event. It stores in the WMI repository (which isn't checked by Task Scheduler or startup folders).
+
+**Real-World Use Case:** You set a script to run every time the user logs in. It executes silently, living only in WMI memory and registry.
+
+**Persistence Strength:** Stealthy, fileless, difficult to detect without dedicated forensic tools.
+
+**Linux Equivalent:** Using `udev` rules or D-Bus to trigger shell scripts.
+
+---
+
+### 2. DLL Hijacking (Windows)
+
+**What it is:** Tricking a program into loading a malicious DLL (Dynamic Link Library) by exploiting the search order.
+
+**How it works:** Many apps look for DLLs in local folders before checking system folders. If an app tries to load `missing.dll`, and you’ve placed your malicious `missing.dll` in the app folder, it runs your code.
+
+**Do You Need C++?** Ideally yes. You write the malicious DLL in C/C++ or Rust and export the expected functions the app is looking for.
+
+**Use Case:** A legitimate app is installed in `C:\Program Files\CoolApp\`, and you drop `cool.dll` in that folder. The app unknowingly loads it and executes your code.
+
+**Persistence Strength:** File-based, low visibility. Requires file system access.
+
+**Linux Equivalent:** LD\_PRELOAD or hijacking `.so` libraries.
+
+---
+
+### 3. Service Registry Abuse (Windows)
+
+**What it is:** Modifying service registry keys like `ImagePath` or `ServiceDLL` so that Windows executes your payload when the service starts.
+
+**How it works:** You locate a service (preferably an auto-starting one), edit its registry entry so it points to your binary instead of the original executable or DLL.
+
+**Use Case:** Replace the binary path for a broken or rarely-used service. On next reboot, your EXE runs with SYSTEM privileges.
+
+**Persistence Strength:** Medium-high, admin-only.
+
+**Linux Equivalent:** Systemd service file modification.
+
+---
+
+### 4. Startup Folder Persistence (Windows)
+
+**What it is:** Dropping a `.lnk` (shortcut) or `.exe` file in the user's `Startup` folder.
+
+**How it works:** Anything placed in `%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup` runs automatically after the user logs in.
+
+**Use Case:** Drop `update.lnk` pointing to your payload. On next user login, it launches.
+
+**Persistence Strength:** Noisy but effective. Easily visible to user.
+
+**Linux Equivalent:** Placing `.desktop` files in `~/.config/autostart/`
+
+---
+
+### 5. Token Impersonation (SeImpersonatePrivilege)
+
+**What it is:** Abusing tokens in Windows to elevate from a low-privileged account to SYSTEM.
+
+**How it works:** Windows uses tokens to identify users. Some processes run as SYSTEM and allow impersonation. If your user has `SeImpersonatePrivilege`, you can impersonate SYSTEM using tools like `JuicyPotato` or `PrintSpoofer`.
+
+**Use Case:** You’re a regular user but your context has impersonation rights (common in IIS). You use PrintSpoofer to spawn a SYSTEM shell.
+
+**Persistence Strength:** Not persistence in itself, but powerful for privilege escalation and chaining with persistence.
+
+**Linux Equivalent:** SUID binary abuse, sudo misconfiguration.
+
+---
+
+### Bonus: Linux Techniques
+
+* **rc.local:** Append a script to `/etc/rc.local` for execution at boot.
+* **crontab:** Schedule recurring execution with `@reboot`.
+* **systemd:** Create `.service` files in `/etc/systemd/system`.
+* **bash\_profile:** Modify `~/.bash_profile` to run a script on shell startup.
+* **LD\_PRELOAD:** Inject `.so` libraries before legitimate ones.
+
+---
+
+In future sections, each of these will be expanded with code samples, detection methods, blue team countermeasures, and how attackers blend in to evade detection. But for now, this is your war map. Choose your battlefield wisely.

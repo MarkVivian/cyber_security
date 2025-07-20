@@ -1,7 +1,8 @@
                         SCHEDULED TASK.
                     =======================
-- It provides a set of cmdlets to create, delete, configure and manage scheduled tasks.
-- This module helps automate recurring tasks or run specific scripts at defined times.
+- Provides cmdlets to create, delete, configure, and manage scheduled tasks.
+- Automates recurring operations or runs scripts at defined times.
+- GUI alternative: Task Scheduler (Win+R → taskschd.msc).
 
 
             OVERVIEW
@@ -50,8 +51,13 @@
             EG.
                 $trigger = New-ScheduledTaskTrigger -AtStartup 
 
-                    -AtStartup: Runs the task at startup.
-                    Other options include -Daily, -Weekly, -AtLogon, etc.
+                    -AtStartup: Runs the task at startup.(before login)
+                    -AtLogon : Runs on user login, Most common for persistence.
+                    -OnIdle : Good for stealth. Waits for user to go idle. 
+                        : OnIdle isn’t guaranteed—it’s based on Windows power & idle settings.
+                        : Some users tweak or disable them.
+                    - Daily, weekly : Time-based triggers, Flexible.
+                    -OnEvent : Runs when a specific event is logged (e.g. login failed), Ninja level stuff.
 
             EG. (for daily trigger.)
                 $trigger = New-ScheduledTaskTrigger -Daily -At "6:00AM"
@@ -62,12 +68,35 @@
             EG.
                  $principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
 
-                    -UserId : Specifies the user account.
-                    -LogonType: Specifies the logon type. Common options include:
-                        - ServiceAccount: The task will run under a service account.
-                        - Interactive: The task will run interactively.
+                    -UserId : Specifies the user account/who runs the task.
+                            * "SYSTEM" : full privilege, can run before user logon.
+                            * "NT AUTHORITY\LOCAL SERVICE" : limited system account.
+                            * "DOMAIN\USER" or "ComputerName\User" : a specific user.
+                            | Feature           | **User Task**                    | **System Task**                           |
+                            | ----------------- | -------------------------------- | ----------------------------------------- |
+                            | Requires Admin?   | ❌ No                             | ✅ Yes                                  |
+                            | Trigger point     | After user logs in               | At boot, before or during login screen    |
+                            | Who runs it?      | Logged-in user                   | SYSTEM / NT AUTHORITY                     |
+                            | Visibility        | Visible to current user          | Only visible from Admin context           |
+                            | Safe Mode?        | ❌ Often doesn't run              | ✅ May run depending on Safe Mode type  |
+                            | Background / GUI? | Can pop up console unless hidden | Can run silent with `-WindowStyle Hidden` |
+
+                    -LogonType: Specifies the logon type/ when and how the task runs. Common options include:
+                        * ServiceAccount: The task will run under a service account(runs as NT AUTHORITY\SYSTEM, LocalService or Network Service).
+                            : doesn't require user login and runs in the background .
+                        * Interactive: The task will run interactively / after the user logs in.
+                            : Tasks run only when the specified user is logged in. (UI visible)
+                        * Password : Runs with stored credentials .
+                            : doesn't require user login but need creds. 
+                        * S4U (RunAs) : Runs similar to password without stored password.
+                            : doesn't require user to log in.
+                            : uses Kerberos delegation (LogonType=S4U)
+                        * Interactive Token: only with active user session.
+                            : requires the user to log in.
+                            : smilar to Interactive but stricter.
+
                     -RunLevel: Specifies the privileges for the task. Options include:
-                        LeastPrivilege: Runs with the least privileges.
+                        LeastPrivilege: Runs with the least privileges.(normal execution)
                         Highest: Runs with the highest privileges available to the user account.
 
 
@@ -79,6 +108,10 @@
                     -AllowStartIfOnBatteries : Allows the task to start if teh computer is running on battery power.
                     -DontStopIfGoingOnBatteries : Prevents the task from stopping if the computer switches to battery power.
                     -StartWhenAvailable : Starts the task as soon as possible after a scheduled start is missing.
+                    - StartWhenAvailable
+                    - RestartCount, RestartInterval
+                    - ExecutionTimeLimit
+                    - AllowHardTerminate
 
 
     > Register-ScheduledTask.
@@ -171,6 +204,25 @@
     > Get-ScheduledTaskTrigger.
         - Retrieves the triggers for a scheduled task.
             EG.
-                Get-ScheduledTaskTrigger -TaskName "DailyScriptTask"
+                (Get-ScheduledTask -TaskName "DailyScriptTask").Triggers
 
 
+    > Get-ScheduledTaskOptions
+        - This reveals hidden behaviours like:
+            > AllowDemandStart
+            > DisallowStartIfOnBatteries
+            > MultipleInstances
+            > ExecutionTimeLimit
+            > StartWhenAvailable
+                EG.
+                    (Get-ScheduledTask -TaskName "MyTask").Settings
+
+    > to get userId, Logontype, runlevel and id we can use:
+        EG.
+            (Get-ScheduledTask -TaskName "Your Task").Principal 
+
+                - UserId : who runs the task.
+                - LogonType : When/how it runs.
+                - RunLevel : Admin priveleges (Highest = Run As Administrator)
+
+NB: POWERSHELL DOESN'T SUPPORT RENAMING OR MOVING SCHEDULED TASK FOLDERS, SO YOU MUST DELETE AND RECREATE THE TASK UNDER A NEW FOLDER.

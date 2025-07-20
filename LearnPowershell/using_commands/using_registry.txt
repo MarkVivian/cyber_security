@@ -1,0 +1,294 @@
+                        WINDOWS REGISTRY.
+                    ========================
+- The Windows Registry is a hierarchical database used to store low-level settings for Windows and for applications.
+- Think of it as the brain of the OS — everything from startup programs to user profiles and hardware configurations is stored here.
+- It’s split into logical sections called hives, and each hive has keys (like folders) and values (like files with data).
+
+
+        MAIN REGISTRY HIVES.
+    -------------------------
+| Hive                         | Description                                 |
+| ---------------------------- | ------------------------------------------- |
+| `HKEY_LOCAL_MACHINE (HKLM)`  | Global/system settings for all users        |
+| `HKEY_CURRENT_USER (HKCU)`   | Settings for the currently logged-in user   |
+| `HKEY_CLASSES_ROOT (HKCR)`   | File extension and COM object data          |
+| `HKEY_USERS (HKU)`           | Contains all user profiles on the system    |
+| `HKEY_CURRENT_CONFIG (HKCC)` | Hardware info active during boot (volatile) |
+
+
+        REGISTRY KEYS VS VALUES.
+    -------------------------------
+Key = like a folder.
+Value = like a file inside a folder.
+
+- Each key can contain specific PropertyTypes:
+    > String (REG_SZ) – plain text
+        - use this for static strings like script paths, command-line flags, names, etc.
+            EG. (Running a powershell script at login)
+                Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run" -Name "TimeSync" -Value "C:\Scripts\timesync.ps1" -PropertyType String
+
+                    * The key stores the exact path as text. No environment variables support.
+                    * Runs only after the current user logs in.
+
+    > QWORD (REG_QWORD) – 64-bit numbers
+        - Rare. Used in performance counters or advanced settings.
+            EG.
+                Set-ItemProperty -Path "HKLM:\Software\MyApp" -Name "TimeDelay" -Value 9223372036854775807 -PropertyType QWORD
+
+                    * Only use when you know a setting demands a big interger value.
+
+    > DWORD (REG_DWORD) – 32-bit numbers
+        - Used for flags, on/off toggles, configuration numbers.
+            EG.(Enable AlwaysInstallElevated (dangerous))
+                Set-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\Installer" -Name "AlwaysInstallElevated" -Value 1 -PropertyType DWORD
+
+                    * 1 = Enable , 0 = Disable.
+                    * In this case, tells windows to allow .msi files to be installed as SYSTEM - MASSIVE PRIVELEGE ESCALATION VECTOR.
+
+    > Binary (REG_BINARY) – raw binary data
+        - Used for encoded data, certificates, or keys. Not human-friendly.
+            EG.(Write an encoded payload (rare, advanced))
+                Set-ItemProperty -Path "HKCU:\Software\Stealth" -Name "Payload" -Value ([byte[]](65,66,67,68)) -PropertyType Binary
+
+                    * This would store "ABCD" as hex.
+                    * Useful for hiding C2 beacons, state flags, or encoded data blobs.
+
+    > Multi-String (REG_MULTI_SZ) – list of strings
+        - Use when a registry value needs to store multiple entries (e.g. multiple allowed apps)
+            EG.
+                Set-ItemProperty -Path "HKCU:\Software\MyApp" -Name "TrustedPaths" -Value @("C:\App1", "D:\App2") -PropertyType MultiString
+
+                    * Stores each path on a seperate line.
+                    * Useful when software reads multiple values from a single key.
+
+    > Expandable String (REG_EXPAND_SZ) – Text that supports environment variables.
+        - Use when you want to include variables like %SystemRoot%, %UserProfile%, etc
+        - It gets expanded at runtime.
+            EG.
+                Set-ItemProperty -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\Run" -Name "Updater" -Value "%SystemRoot%\Scripts\updater.bat" -PropertyType ExpandString
+
+                    * %SystemRoot% becomes C:\Windows dynamically.
+                    * Helpful if you're deploying to many systems with different paths.
+
+
+        BASIC NAVIGATION AND COMMANDS.
+    ----------------------------------------
+1. Viewing keys (read)
+    EG.
+        Get-Item "HKCU:\Software"
+        Get-ChildItem "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run"
+
+
+2. Creating a key.
+    EG.
+        New-Item -Path "HKCU:\Software\MarkLabs\Keylogger"
+
+
+3. Adding a value.
+    EG.
+        New-ItemProperty -Path "HKCU:\Software\MarkLabs\Keylogger" -Name "Payload" -Value "C:\Windows\System32\keylogger.exe" -PropertyType String
+
+            - Fails if the value already exists.
+            
+
+4. modify an existing value.
+    EG.
+        Set-ItemProperty -Path "HKCU:\Software\MarkLabs\Keylogger" -Name "Payload" -Value "C:\Windows\System32\keylogger.exe" -PropertyType String
+
+            - it modifies the value if it exists or creates a new one if it doesn't.
+
+
+4. Deleting a value.
+    EG.
+        Remove-ItemProperty -Path "HKCU:\Software\MarkLabs\Keylogger" -Name "Payload"
+
+
+5. Deleting an entire key.
+    EG.
+        Remove-Item -Path "HKCU:\Software\MarkLabs\Keylogger" -Recurse
+
+
+            REGISTRY PERSISTENCE (STARTUP TRICKS)
+        ----------------------------------------------
+1. Startup program via Run Key.
+    EG.
+        Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run" -Name "Updater" -Value "C:\Users\Mark\update.exe"
+
+        > For SYSTEM-wide use:
+            EG.
+                Set-ItemProperty -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\Run" -Name "Updater" -Value "C:\Malware\win32.exe"
+
+        NB: WON'T RUN BEFORE LOGIN SCREEN. THIS IS POST-LOGIN PERSISTENCE.  
+
+
+            DEEP SYSTEM PERSISTENCE: WINLOGON.
+        ------------------------------------------
+1. Modifying the shell or useinit for login-time execution.
+    EG.
+        Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" -Name "Userinit" -Value "C:\Path\to\your\payload.exe,"
+
+        > Be careful - messing with this can lock you out of your system.
+
+
+                AUTORUNS LOCATIONS.
+            --------------------------
+1. Here are some more spots malware and red-teamers like to use:
+
+    > HKCU:\Software\Microsoft\Windows\CurrentVersion\Run
+        * Runs after login, only for the current user.
+        * use case: 
+            - You want to persist a script without admin rights.
+
+    > HKLM:\Software\Microsoft\Windows\CurrentVersion\Run
+        * Runs after login, only all users on the system.
+        * Use Case:
+            - You want a global script/payload to launch after login.
+
+    > HKLM:\System\CurrentControlSet\Services\
+        * Stores window services - each subkey is a service.
+        * Use Case:
+            - Replace a rarely used service's binary path (ImagePath) with your payload.
+            - useful for SYSTEM-level execution before user login.
+
+    > HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\
+        * Hook application launches using the Debugger key.
+            EG. (Intercept every time user opens notepad.exe)
+                [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\notepad.exe]
+                "Debugger"="C:\\Malware\\evil.exe"
+
+                    * Use case.
+                        - Replace a legitimate app with a payload.
+                    
+                    * Debugger key is not created by default.
+                    * only appears after you add it manually.
+                    * you must create it yourself:
+                        EG.
+                            New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\excel.exe" -Name "Debugger" -Value "C:\malware\evil.exe" -PropertyType String
+
+                                * Now excel is hijacked.
+
+    > HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon
+        * Controls login flow: userinit and shell.
+            - userinit : Points to userinit.exe (authenticates login)
+            - shell : points to explorer.exe (desktop/GUI)
+        * btw they only appear when you check on the powershell terminal not the gui application.
+        * if you modify these:
+            EG.
+                "Userinit"="C:\Malware\evil.exe, C:\Windows\System32\userinit.exe"
+
+                    * it runs evil.exe before the desktop shows up, silently.
+
+    * Runs once on next login and self_deletes after execution.    
+        > HKCU:\Software\Microsoft\Windows\CurrentVersion\RunOnce
+        > HKLM:\Software\Microsoft\Windows\CurrentVersion\RunOnce
+
+    * applies boot and logon scripts for all users or system and is a group-based script execution.
+        > HKCU:\SOFTWARE\Policies\Microsoft\Windows\System\Scripts\Logon 
+        > HKCU:\SOFTWARE\Policies\Microsoft\Windows\System\Scripts\Logoff
+        > HKLM:\SOFTWARE\Policies\Microsoft\Windows\System\Scripts\Startup 
+        > HKLM:\SOFTWARE\Policies\Microsoft\Windows\System\Scripts\Shutdown
+
+            - Think of it like a bossy set of rules created by an organization that tells all Windows machines how to behave.
+            - Group Policy tells computers:
+                * What apps to allow
+                * What settings to enforce
+                * What scripts to run on boot or login
+
+            - When IT says, “Make every employee’s PC run checkVPN.bat on login,” this is Group Policy.
+            - They are not user-created manually. 
+            - They're generated by the system when you configure them via the group policy editor (gpedit.msc)
+
+NB : IMAGEPATH IS THE FULL PATH TO THE EXECUTABLE THAT THE SERVICE RUNS.
+
+
+                CLARIFYING SHELL VS USERINIT IN WINLOGON.
+            ------------------------------------------------
+- Userinit 
+    > its the process responsible for user profile setup and launching the desktop.
+    > its duties.
+        * set up environment variables.
+        * Run group policy logon scripts.
+        * Launch explorer.exe.
+    > If you hijack UserInit.
+        * You can add your own script before explorer launches.
+        * The user still sees the desktop.
+        * Silent execution possible.
+            EG.
+                Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" -Name "Userinit" -Value "C:\malware\stealer.exe, C:\Windows\system32\userinit.exe"
+
+                    + your malware runs before the desktop even appears.
+
+    > if you remove Userinit entirely, user gets stuck, no desktop, no login, no logout.
+
+
+- Shell.
+    > The "shell" is the desktop environment - usually explorer.exe.
+    > if you modify shell:
+        * You replace the entire GUI.
+        * The user won't get desktop, taskbar or start menu.
+        * Only your program runs.
+            EG.
+                Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" -Name "Shell" -Value "C:\malware\stealer_gui.exe"
+
+                    + The user logs in, sees nothing but your program.
+
+    > replacing the shell , the GUI replaced but login still happens.
+    > You can't bypass login just by editing these. 
+    > if you want to replace login screen, you'd be looking at:
+        * Credential providers.
+        * Winlogon Notification Packages (dangerous, unstable, rarely used now)
+
+
+                REPLACING SHELL AND USERINIT.
+            -----------------------------------
+- Replacing only Shell (e.g., with malicious.exe)
+    > After login, Windows doesn’t load explorer.exe — your malware shows instead.
+    > BUT: The Userinit still runs, so your session is created.
+    >  You can open Task Manager with Ctrl+Shift+Esc, then:
+        * File > Run new task > powershell.exe
+        * Undo your registry changes from there.
+
+- Replacing only Userinit
+    > No profile setup = no explorer, no taskbar, no shell, no start menu
+    > Windows logs you out right after login (you get a flash of black then back to login screen).
+    > No access to Task Manager, Start, or desktop
+    > Even in Safe Mode, Userinit is required → it’s used before Safe Mode GUI even loads.
+
+- Replacing both Shell and Userinit?
+    > That’s how you soft-brick your user experience. Recovery = boot from WinRE or another OS, mount registry offline, and undo it manually.
+
+
+            PRIVILEGES ESCALATION.
+        --------------------------------
+1. AlwaysInstallElevated.
+    - if this DWORD is 1 under both HKLM and HKCU, any .msi file can be installed with SYSTEM privileges.
+
+2. Service Misconfigs.
+    - Replace ImagePath in:
+        EG.
+            HKLM\SYSTEM\CurrentControlSet\Services\SomeService
+
+                - With a malicious binary. On reboot or next start, SYSTEM executes your code.
+
+
+                DEFENSE EVASION / OBFUSCATION.
+            ---------------------------------------
+1. Encoded payloads.
+    - Store encrypted code in unused registry keys, decode at runtime.
+        EG.
+            $val = Get-ItemProperty -Path "HKCU:\Software\SystemPrefs" -Name "Blob"
+
+
+2. Run only once.
+    - Use RunOnce keys - after execution, it's deleted. For anti-forensics.
+
+
+                EXECUTION HIJACKING.
+            --------------------------
+1. IFEO Debugger.
+    - Redirect launching of benign programs to your malware.
+        EG.
+            [...Image File Execution Options\calc.exe]
+            "Debugger"="C:\MyMalware.exe"
+
+                - User launches calc? Surprise : shell spawns.

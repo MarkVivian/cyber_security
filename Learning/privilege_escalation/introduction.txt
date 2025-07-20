@@ -1,0 +1,93 @@
+| Name                        | What It Is                                                | Real World Example                                                                   | Requirements                       | Visibility |
+| --------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------ | ---------------------------------- | ---------- |
+| **Service Misconfig**       | Misconfigured service allows user write to EXE path       | User can overwrite EXE of auto-start service                                         | Admin service with weak ACL        | ❌ Silent   |
+| **Unquoted Path**           | Paths with spaces not quoted → attacker drops fake EXE    | Service uses `"C:\Program Files\Test Service\service.exe"` → inject `C:\Program.exe` | Write access to C:\\               | ❌          |
+| **AlwaysInstallElevated**   | Registry flag allows MSI with admin perms to run as admin | Run malicious `.msi` and instantly gain admin                                        | Flag set in registry (HKLM & HKCU) | ❌          |
+| **Token Duplication**       | Duplicate a token of a SYSTEM process                     | SeImpersonatePrivilege, spawn SYSTEM shell                                           | Web service context or DCOM        | ❌          |
+| **DLL Search Order Hijack** | Drop a malicious DLL in path checked first                | Target app checks local folder first for DLLs                                        | Know app behavior, write access    | ❌          |
+| **Task Scheduler Hijack**   | Overwrite existing task binary path                       | Target task runs with SYSTEM                                                         | Write access to task or path       | ❌          |
+
+🚨 3. Privilege Escalation Techniques – Windows & Linux (Deep Human Guide)
+✳️ What is Privilege Escalation?
+
+Gaining more access than your current context allows—like moving from basic user → admin → SYSTEM/root. Persistence is “stay alive.” PrivEsc is “get stronger.”
+🔼 Windows PrivEsc Techniques
+🔧 A. Unquoted Service Paths
+
+What:
+If a service binary path has spaces and no quotes, attacker can drop an exe into a path that Windows interprets first.
+
+Example path:
+
+C:\Program Files\My App\app.exe
+
+Windows might try:
+
+    C:\Program.exe
+
+    C:\Program Files\My.exe
+
+    C:\Program Files\My App\app.exe
+
+How to exploit:
+Drop a malicious Program.exe in C:\. Done.
+🔧 B. Weak Registry Permissions
+
+What:
+Some services store binary paths in registry. If you can write to that registry key—you win.
+
+Example:
+
+    Edit HKLM\SYSTEM\CurrentControlSet\Services\VulnerableService\ImagePath to point to your EXE.
+
+🔧 C. DLL Hijacking (Again!)
+
+Works for PrivEsc too. If a privileged service loads your DLL—you gain its privileges.
+🔧 D. Token Impersonation (SeImpersonatePrivilege)
+
+What:
+If you have this privilege (e.g. IIS worker), you can steal SYSTEM tokens.
+
+Tools:
+
+    JuicyPotato
+
+    PrintSpoofer
+
+    RoguePotato
+
+Visual:
+Imagine the SYSTEM process left their ID badge on the desk, and you just walked in wearing it.
+🔧 E. AlwaysInstallElevated (MSI abuse)
+
+What:
+If the registry key allows all .msi to install with SYSTEM, just make your own and run it.
+🐧 Linux PrivEsc Techniques
+🔧 A. Sudo Misconfigurations
+
+What:
+sudo allows user to run certain commands as root. If you can abuse them—you win.
+
+Example:
+
+sudo less /etc/shadow
+
+Then !sh gives root shell.
+🔧 B. SetUID Binaries
+
+What:
+Binaries with SUID bit run as the file owner (root), not the user.
+
+Example:
+
+find / -perm -4000 2>/dev/null
+
+If /usr/bin/vulnerable is SUID and lets you write files, replace /etc/passwd.
+🔧 C. Cron Jobs
+
+What:
+Automated scripts run as root. If you can write to the script or path—it’s game over.
+🔧 D. Kernel Exploits
+
+What:
+Old kernels = exploitable. Tools like dirtycow, stack clash, etc.
