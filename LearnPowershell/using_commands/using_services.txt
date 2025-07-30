@@ -1,0 +1,143 @@
+🔧 WHAT ARE WINDOWS SERVICES?
+
+    Services are background processes that start before or right after login.
+
+    They can run as:
+
+        LocalSystem (almost god-mode SYSTEM)
+
+        NetworkService (low-priv, but network-focused)
+
+        LocalService (least privilege)
+
+    You manage them with tools like:
+
+        services.msc
+
+        sc.exe
+
+        PowerShell: New-Service, Set-Service, Start-Service, etc.
+
+🧠 WHY SERVICES MATTER IN PERSISTENCE
+
+    Start before user logs in
+
+    Can run with no UI
+
+    SYSTEM by default if misconfigured
+
+    Persist through reboots
+
+    Often overlooked unless you're actively hunting
+
+🔥 COMMON RED TEAM ABUSES (AND LEGIT USE CASES)
+Technique	Description
+Install new service	Drop EXE, register as service = stealthy boot persistence
+Hijack existing service	Change the ImagePath in registry to point to your binary
+Replace ServiceDLL	For DLL-based services — drop malicious DLL
+Set to autostart	StartType = Auto means it starts with Windows
+Abuse binPath= to execute cmd.exe	Like: cmd.exe /c calc.exe to sneak execution
+✅ EXAMPLE: Create A New Service via PowerShell
+
+Imagine you have this script at C:\logger\keylogger.exe
+
+New-Service -Name "SysHealthMonitor" `
+            -BinaryPathName "C:\logger\keylogger.exe" `
+            -DisplayName "System Health Monitor" `
+            -Description "Monitors internal health checks" `
+            -StartupType Automatic
+
+    🧠 This creates a stealthy service called "System Health Monitor" that executes your logger silently at boot.
+
+To start it:
+
+Start-Service -Name "SysHealthMonitor"
+
+🩸 Abusing Existing Service via Registry
+
+    Find a service:
+
+Get-Service | Where-Object {$_.Status -eq "Stopped"}
+
+    Note its Name, e.g., "Fax"
+
+    Go to:
+
+HKLM:\System\CurrentControlSet\Services\Fax
+
+    Change ImagePath:
+
+Set-ItemProperty -Path "HKLM:\System\CurrentControlSet\Services\Fax" -Name "ImagePath" -Value "C:\logger\keylogger.exe"
+
+    Now every time the Fax service is started, it launches your payload instead 💀
+
+🧪 DLL-Based Services
+
+Some services use DLLs instead of EXEs.
+
+    Look for ServiceDll inside:
+
+    HKLM\SYSTEM\CurrentControlSet\Services\SomeService\Parameters
+
+    You can:
+
+        Replace the DLL with a malicious one
+
+        Or edit the path in the registry to point to your .dll
+
+📍 Detecting Suspicious Services
+
+Blue teams or IR folks look at:
+
+    Non-Microsoft executables in System32
+
+    Weird ImagePath like cmd /c something
+
+    Suspicious service names like UpdateTasker or DriverSupport
+
+    Get-WmiObject win32_service | select Name, StartName, PathName
+
+👮 Service Privilege Escalation (Privesc)
+
+Even if a service isn’t SYSTEM, you can abuse it if:
+
+    The binary is writable by your user → Replace it with yours
+
+    The service can be stopped/started by your user
+
+    The registry keys are writable → Change config to execute something else
+
+Tools like:
+
+    PowerUp
+
+    AccessChk
+
+    WinPEAS
+    can enumerate all weak service permissions.
+
+🔥 Pro Moves
+
+    Change StartType to Auto so your malware loads on boot:
+
+Set-Service -Name "SysHealthMonitor" -StartupType Automatic
+
+    Set Recovery to Relaunch on Failure (stealth persistence):
+
+sc.exe failure SysHealthMonitor reset= 0 actions= restart/5000
+
+🧼 Clean Up
+
+To remove:
+
+Stop-Service -Name "SysHealthMonitor"
+Remove-Service -Name "SysHealthMonitor"
+
+If registry-hijacked, reset ImagePath to original binary.
+💣 Final Warnings
+
+    Services are a goldmine for persistence, but abusing SYSTEM-level services is loud if not hidden well.
+
+    Combine this with obfuscated binaries and hidden folders for stealth.
+
+    You’ll often chain services with ScheduledTasks or registry for multi-layer persistence (harder to clean).
