@@ -1,5 +1,5 @@
-🔧 WHAT ARE WINDOWS SERVICES?
-
+                WHAT ARE WINDOWS SERVICES?
+            ---------------------------------------------------------------------------------
     Services are background processes that start before or right after login.
 
     They can run as:
