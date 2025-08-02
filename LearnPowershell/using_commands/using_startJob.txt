@@ -67,6 +67,14 @@ Start-Job -ScriptBlock { <Commands> }
         Remove-Job -Id $job.Id
 
             > You can check the status of your background job using Get-Job and retrieve the results with Receive-Job.
+                EG.
+                    $job = Start-Job { Start-Sleep 5; "done" }
+                    while ($job.State -ne 'Completed') {
+                        Write-Host "Waiting..."
+                        Start-Sleep 1
+                        $job = Get-Job -Id $job.Id
+                    }
+                    Receive-Job -Id $job.Id
 
 
 5) Running multiple jobs and waiting for completion.
@@ -115,3 +123,24 @@ Start-Job -ScriptBlock { <Commands> }
 
             > You can handle output and errors from jobs by using Receive-Job.
 
+
+7) Persistent job output retrieval (e.g., Recieve-Job -Keep)
+    EG.
+        Receive-Job -Id $job.Id -Keep  # So you can call it again later
+
+            - Without -Keep, the output is cleared after the first read.
+
+
+8) Return object  from advanced script.
+    EG.
+        Start-Job -ScriptBlock {
+            [PSCustomObject]@{
+                Status = "OK"
+                Time   = (Get-Date)
+            }
+        }
+
+
+9) Cleaning up zombie jobs.
+    EG.
+        Get-Job | Where-Object { $_.State -eq "Completed" } | Remove-Job

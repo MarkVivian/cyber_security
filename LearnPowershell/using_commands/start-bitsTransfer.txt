@@ -1,0 +1,154 @@
+                    START BITSTRASFER. (BITS Download Manager)
+                ================================================
+- A PowerShell cmdlet for **asynchronous**, **reliable**, and **resumable** file transfers over HTTP, HTTPS, or SMB.  
+- Leverages Windows’ Background Intelligent Transfer Service (BITS) for low-impact, fault-tolerant downloading.
+
+        BASIC SYNTAX
+    ------------------------
+EG.
+    Start-BitsTransfer -Source <string[]> -Destination <string[]> [-Asynchronous] [-Credential <pscredential>] [-Priority <string>] [-Description <string>] [-RetryInterval <int>] [-TransferPolicy <string>]
+
+
+        CORE PARAMETERS:
+    -----------------------------
+-Source         
+    → Required. URL(s) or UNC path(s) to download from.
+-Destination    
+    → Required. Local file(s) or folder(s) to save to.
+-Credential     
+    → Used for auth when accessing secured sources.
+-Asynchronous   
+    → Starts transfer in background; lets script continue.
+-RetryInterval  
+    → Time between retry attempts (in seconds).
+-TransferPolicy 
+    → Can limit based on costed network (e.g. mobile).
+-Priority       
+    → Foreground | High | Normal | Low. Affects speed.
+
+
+        BASIC FILE DOWNLOAD.
+    --------------------------
+1. Download a single file to Downloads folder.
+    EG.
+        $src = "https://download.sysinternals.com/files/Autoruns.zip"
+        $dst = "$env:USERPROFILE\Downloads\Autoruns.zip"
+        Start-BitsTransfer -Source $src -Destination $dst
+
+            - Multiple file download to folder.
+                EG.
+                    $urls = @(
+                        "https://example.com/a.zip",
+                        "https://example.com/b.zip"
+                    )
+                    $dest = "$env:USERPROFILE\Downloads"
+
+                    Start-BitsTransfer -Source $urls -Destination $dest
+
+
+2. Resumable/Fault-Tolerant Transfer.
+    Resume broken download (auto-handled by BITS)
+        EG.
+            # No changes needed — BITS resumes automatically if interrupted
+            Start-BitsTransfer -Source $src -Destination $dst
+
+    Retry failed transfers with delays.
+        EG.
+            Start-BitsTransfer -Source $src -Destination $dst -RetryInterval 60
+
+
+3. Authenticated Downloads.
+    Basic auth with credentials prompt.
+        EG.
+            $cred = Get-Credential
+            Start-BitsTransfer -Source "https://secure.site.com/file.zip" -Destination "C:\temp\file.zip" -Credential $cred
+
+    Access shared network folder. (UNC path)
+        EG.
+            Start-BitsTransfer -Source "\\server\share\file.iso" -Destination "C:\ISO\file.iso"
+
+
+4.  Asynchronous / Script-controlled downloads.
+    Start download in background and monitor it.
+        EG.
+            $job = Start-BitsTransfer -Source $src -Destination $dst -Asynchronous
+
+            while ($job.JobState -eq 'Transferring') {
+                Start-Sleep -Seconds 1
+                $job = Get-BitsTransfer -Id $job.JobId
+                Write-Host "Progress: $($job.BytesTransferred) / $($job.BytesTotal)"
+            }
+
+            Complete-BitsTransfer -BitsJob $job
+
+                - complete-BitsTransfer tells bits.
+                    > the transfer is done, everything is verified, now finalize the file.
+                        i. moves the file to final destination.
+                        ii. marks the job as complete.
+                        iii. deletes the job from BITS queue.
+
+                    > without it the job hangs in "Transferred" state - not yet finished.
+
+    Cancel a stuck job.
+        EG.
+            $job = Get-BitsTransfer | Where-Object { $_.JobState -eq 'Error' }
+            if ($job) {
+                Remove-BitsTransfer -BitsJob $job
+            }
+
+
+5. Download status and monitoring.
+    View all active BITS jobs.
+        EG.
+            Get-BitsTransfer 
+
+                - You can only manage jobs you created unless you use -AllUsers
+                    EG.
+                        Get-BitsTransfer -AllUsers 
+            
+    Filter by status and display details.
+        EG.
+            Get-BitsTransfer | Where-Object { $_.JobState -ne 'Transferred' } | Select-Object DisplayName, JobState, BytesTransferred, BytesTotal
+
+
+6. REAL-WORLD USE CASES.
+    - Deploy software installer silently.
+        EG.
+            $installer = "https://ninite.com/7zip/ninite.exe"
+            $localPath = "$env:TEMP\ninite7zip.exe"
+
+            Start-BitsTransfer -Source $installer -Destination $localPath
+            Start-Process $localPath /silent
+
+    - Batch download from script.
+        EG.
+            $jobs = @(
+                @{ url = "https://files.com/app1.exe"; dest = "C:\Tools\app1.exe" },
+                @{ url = "https://files.com/app2.exe"; dest = "C:\Tools\app2.exe" }
+            )
+
+            foreach ($j in $jobs) {
+                Start-BitsTransfer -Source $j.url -Destination $j.dest
+            }
+
+
+7. defining how aggressively BITS uses system/network resources.
+    | Value        | Meaning                                                                |
+    | ------------ | ---------------------------------------------------------------------- |
+    | `Foreground` | Fastest possible. Ignores power/network policies. Will eat your Wi-Fi. |
+    | `High`       | Prioritized over Normal/Low, but throttled with network limits.        |
+    | `Normal`     | Default. Transfers when not competing with other critical traffic.     |
+    | `Low`        | Slowest. Great for idle-time, low-impact, night jobs.                  |
+
+        EG.
+            Start-BitsTransfer -Source $url -Destination $dst -Priority Foreground
+
+                > Use Foreground if:
+                    - You're on Ethernet.
+                    - You want it now.
+                    - You're OK with high resource usage.
+
+                > Use Low if:
+                    - You're on battery or weak Wi-Fi 
+                    - Running at night.
+                    - Doing bbatch or passive transfers.

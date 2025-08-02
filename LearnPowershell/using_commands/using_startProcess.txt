@@ -49,13 +49,13 @@ Start-Process:
 
             COMMON USES.
         --------------------
-1) Starting an application.
+1. Starting an application.
     - This example starts Notepad.
         EG.
             Start-Process notepad.exe
 
 
-2) Running a script with arguments.
+2. Running a script with arguments.
     - This example runs a powershell script with arguments.
         EG.
             $scriptPath = "C:\Path\To\YourScript.ps1"
@@ -64,7 +64,7 @@ Start-Process:
             Start-Process powershell.exe -ArgumentList "-File $scriptPath $arguments"
 
 
-3) Opening a file with default application.
+3. Opening a file with default application.
     - This example opens a PDF file with the default PDF viewer.
         EG. 
             $filePath = "C:\Path\To\YourDocument.pdf"
@@ -72,13 +72,13 @@ Start-Process:
             Start-Process $filePath
 
 
-4)Running a process As Administrator.
+4. Running a process As Administrator.
     - This example starts powershell as an administrator.
         EG.
             Start-Process powershell.exe -Verb RunAs
 
 
-5) Run a script as admin.
+5. Run a script as admin.
     EG.
         # Path to the script to run
         $scriptPath = "C:\Path\To\YourScript.ps1"
@@ -150,3 +150,24 @@ Start-Process:
             $cscript_activation="cscript.exe `'$vbs_script`' /act"
 
             Start-Process Powershell -Verb RunAs -ArgumentList "-Command $cscript_command; $cscript_activation" -Verbose -Wait 
+
+
+7. Return the process object (when you want PID/logs/etc.)
+    EG.
+        $p = Start-Process notepad.exe -PassThru
+        Write-Host "Launched PID: $($p.Id)"
+
+
+8. Launch app hidden/in background.
+    EG.
+        Start-Process notepad.exe -WindowStyle Hidden 
+
+
+9. Handle output from CLI tools.
+    EG.
+        Start-Process cmd.exe -ArgumentList "/c dir > output.txt" -Wait
+
+
+10. Start elevated Powershell and pass complex script.
+    EG.
+        Start-Process powershell.exe -Verb RunAs -ArgumentList "-NoExit", "-Command `"Get-Service | Out-GridView`""

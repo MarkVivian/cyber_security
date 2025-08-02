@@ -1,10 +1,5 @@
-                          GET WMI(Windows Management Instrumentation) OBJECT.
-                    =======================
-- The Get-WmiObject cmdlet in PowerShell allows you to retrieve information about various aspects of your system by querying the WMI namespace. 
-- WMI provides a unified interface to access and manage hardware, software, and configuration settings on Windows machines.
-
-
-- Basic usage.
+        Basic usage.
+    ---------------------
     EG.
         Get-WmiObject Win32_Process
 
@@ -31,4 +26,134 @@
             - This retrieves only running services.
 
 
-- 
+# Get-WmiObject Deep Reference (PowerShell)
+
+                    GET-WMI(Windows Management Instrumentation) OBJECT (WMI QUERY TOOL)
+                ==========================================================================
+- `Get-WmiObject` is a PowerShell cmdlet for querying **Windows Management Instrumentation (WMI)** — a framework that exposes information and control over almost every component of the Windows operating system.
+- It allows you to **retrieve, filter, and manipulate data** about system services, processes, hardware, OS settings, networking, users, and more.
+
+
+        Basic Syntax
+    -----------------------
+EG
+    Get-WmiObject [-Class] <string> [-ComputerName <string>] [-Filter <string>] [-Property <string[]>]
+
+        > It connects to the WMI repository (default namespace `root\cimv2`) and returns objects for you to work with.
+
+
+        Why Use Get-WmiObject?
+    ------------------------------
+| Use Case               | Why Use It                               |
+| ---------------------- | ---------------------------------------- |
+| Hardware/OS inventory  | Pull CPU, BIOS, disk, memory info        |
+| Service auditing       | Path, start mode, account, status        |
+| Process inspection     | See command lines, PIDs, paths           |
+| System diagnostics     | Error logs, SMART status, uptime         |
+| Remote admin           | Query remote computers                   |
+| Pentesting/red teaming | Local recon, privilege escalation checks |
+
+
+         Commonly Used WMI Classes
+    -------------------------------------
+| Class                               | Description                            |
+| ----------------------------------- | -------------------------------------- |
+| `Win32_Service`                     | Details about Windows services         |
+| `Win32_Process`                     | All running processes                  |
+| `Win32_LogicalDisk`                 | Drive type, free/used space            |
+| `Win32_ComputerSystem`              | General system info (hostname, domain) |
+| `Win32_OperatingSystem`             | OS version, architecture, build info   |
+| `Win32_UserAccount`                 | Local user accounts and domain users   |
+| `Win32_BIOS`                        | BIOS version and serial number         |
+| `Win32_NetworkAdapter`              | Network hardware                       |
+| `Win32_NetworkAdapterConfiguration` | IPs, DNS, gateways                     |
+
+
+        Examples by Use Case
+    ------------------------------
+1. Get Running Processes
+    EG
+        Get-WmiObject Win32_Process
+
+            > Filter by process name:
+                EG.
+                    Get-WmiObject Win32_Process -Filter "Name = 'notepad.exe'"
+
+
+2. Query Services
+    EG
+        Get-WmiObject Win32_Service
+
+            > Get services running as SYSTEM:
+                EG.
+                    Get-WmiObject Win32_Service | Where-Object { $_.StartName -eq 'LocalSystem' }
+
+
+            > Detect suspicious paths:
+                EG.
+                    Get-WmiObject Win32_Service | Where-Object { $_.PathName -like '*AppData*' -or $_.PathName -like '*cmd*' }
+
+
+3. List Local User Accounts
+    EG.
+        Get-WmiObject Win32_UserAccount -Filter "LocalAccount='True'"
+
+
+4. Disk Info
+    EG.
+        Get-WmiObject Win32_LogicalDisk -Filter "DriveType=3" | Select DeviceID, Size, FreeSpace
+            
+            > DriveType 3 = Local Disk
+
+
+5. Network Details
+    EG.
+        Get-WmiObject Win32_NetworkAdapterConfiguration | Where-Object { $_.IPEnabled -eq $true }
+
+
+6. Remote Machine Query
+    EG.
+        Get-WmiObject -Class Win32_ComputerSystem -ComputerName "OtherPC"
+
+            > You must have proper permissions (admin + firewall must allow WMI).
+
+
+7. Filtering and Property Selection
+     Filter example (WQL-style):
+        EG.
+            Get-WmiObject Win32_Process -Filter "Name='powershell.exe'"
+
+    Select specific properties:
+        EG.
+            Get-WmiObject Win32_BIOS | Select SerialNumber, Manufacturer
+
+
+         Red Team & Audit Use Cases
+    ----------------------------------------
+- Find writable service paths (AppData, cmd, missing quotes):
+    EG.
+        Get-WmiObject Win32_Service | Where-Object { $_.PathName -like '*AppData*' -or $_.PathName -like '*cmd*' }
+
+- Unquoted path detection:
+    EG.
+        Get-WmiObject Win32_Service | Where-Object { $_.PathName -match ' ' -and $_.PathName -notmatch '"' }
+
+- Who am I running as?
+    EG.
+        (Get-WmiObject Win32_ComputerSystem).UserName
+
+- What domain am I joined to?
+    EG.
+        (Get-WmiObject Win32_ComputerSystem).Domain
+
+
+        Get-WmiObject vs Get-CimInstance
+    ---------------------------------------
+| Feature           | `Get-WmiObject`   | `Get-CimInstance`     |
+| ----------------- | ----------------- | --------------------- |
+| Speed             | Slower            | Faster                |
+| Remote compatible | COM (fragile)     | WSMan (more reliable) |
+| Output formatting | Legacy            | Cleaner objects       |
+| Preferred version | Legacy PowerShell | PowerShell 3+         |
+
+    > Use `Get-CimInstance` unless you're stuck in PowerShell 2.0 or legacy scripts.

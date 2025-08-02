@@ -1,0 +1,143 @@
+                    ARIA2C
+                ==============
+A powerful, lightweight, open-source **command-line download utility** that supports:
+    > HTTP/S  
+    > FTP  
+    > BitTorrent  
+    > Magnet URIs  
+    > Metalinks  
+    > Parallel segment downloading  
+    > Resuming  
+
+
+        BASIC SYNTAX:
+    ----------------------
+EG.
+    aria2c [options] <URL | torrent | magnet | metalink>
+
+
+        CORE FEATURES:
+    --------------------------
+-x <num>         
+    → Max number of connections per server (default 5)  
+
+-s <num>         
+    → Number of split segments per file  
+
+-c               
+    → Resume download  
+
+-d <path>
+    → Directory to save the file  
+
+-o <filename>    
+    → Output file name  
+
+--file-allocation=none/falloc/prealloc 
+    → Controls preallocation mode  
+
+--continue       
+    → Like `-c`, resumes download  
+
+--header         
+    → Add custom request headers  
+
+--check-certificate=false 
+    → Ignore SSL certs  
+
+--http-user / --http-passwd 
+    → HTTP Basic auth  
+
+
+            USAGE.
+        -------------
+1. DOWNLOAD A FILE (HTTP/HTTPS/FTP)
+    Basic download
+        EG
+            aria2c https://example.com/file.zip
+
+    Save to a custom file and folder.
+        EG.
+            aria2c -d ~/Downloads -o custom.zip https://example.com/file.zip
+
+    Resume download (like wget -c or BITS)
+        EG.
+            aria2c -c https://example.com/large.iso
+
+
+2. MULTITHREADED / PARALLEL DOWNLOADS
+    Speed boost with 16 connections (recommended)
+        EG.
+            aria2c -x 16 -s 16 https://example.com/big.iso 
+
+                -x : max connections per server.
+                -s : number of segments to split the file into
+
+                > like a free, scriptable version of internet download manager (IDM)
+
+
+3. AUTHENTICATION AND HEADERS.
+    HTTP basic auth.
+        EG.
+            aria2c --http-user=admin --http-passwd=secret https://secure.example.com/file
+
+    Bearer token (API auth)
+        EG.
+            aria2c --header="Authorization: Bearer TOKEN123" https://api.example.com/data.json
+
+    Custom user-agent
+        EG.
+            aria2c --header="User-Agent: aria2-client/1.0" https://target.site/api
+
+
+4. TORRENTS / MAGNET LINKS
+    Download a .torrent file
+        EG.
+            aria2c myfile.torrent
+
+    Download from a Magnet URI
+        EG.
+            aria2c "magnet:?xt=urn:btih:..."
+
+    Download multiple torrents at once
+        EG.
+            aria2c file1.torrent file2.torrent
+
+
+5. DOWNLOAD MULTIPLE FILES / FROM LIST
+    From a list of URLs (like wget -i)
+        EG.
+            aria2c -i urls.txt
+
+    From Metalink (XML file with mirrors/checksums)
+        EG.
+            aria2c myfiles.metalink
+
+
+6. ADVANCED USAGE – PROXY, SSL, RETRIES
+    Use HTTP proxy
+        EG.
+            aria2c --all-proxy="http://127.0.0.1:8080" https://example.com
+
+    Skip SSL certificate checks
+        EG.
+            aria2c --check-certificate=false https://insecure.local/file.zip
+
+    Set max retries and timeout
+        EG.
+            aria2c --max-tries=5 --timeout=60 https://example.com
+
+
+7. JSON-RPC & SCRIPT AUTOMATION (ADVANCED)
+    Control aria2c via JSON-RPC (aria2c must be started as a daemon):
+        EG.
+            aria2c --enable-rpc --rpc-listen-all
+
+    Send download jobs from PowerShell or Bash:
+        EG.
+            curl -X POST http://localhost:6800/jsonrpc -d '{
+            "jsonrpc":"2.0",
+            "id":"qwer",
+            "method":"aria2.addUri",
+            "params":[["https://example.com/file.zip"]]
+            }'

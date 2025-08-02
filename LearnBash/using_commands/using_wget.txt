@@ -1,11 +1,48 @@
                     WGET
                 ===========
-- used for non-interactive download of files from the web.
+- A lightweight, non-interactive command-line tool for **downloading files** via HTTP, HTTPS, or FTP.  
+- Built for scripting, batch processing, and resilient downloads (including resume support).
+
+
+        BASIC SYNTAX.
+    ---------------------
+EG.
+    wget [options] <url>
+
+
+        CORE FLAGS AND OPTIONS.
+    -------------------------------
+-O <filename>     
+     → Save the file with a specific name  
+
+-c                 
+    → Resume partially downloaded files  
+
+-P <folder>        
+    → Save to a specific folder  
+
+--limit-rate       
+    → Throttle download speed  
+
+--no-check-certificate 
+    → Skip SSL certificate errors  
+
+--user / --password 
+    → Use for basic auth  
+
+--quiet / -q       
+    → Suppress output  
+
+--header           
+    → Add custom headers  
+
+--post-data        
+    → Send POST requests with data
 
 
         USAGE
     -------------
-1) Downloading a file.
+1. Downloading a file.
     EG.
         #!/bin/bash
 
@@ -17,8 +54,12 @@
             > -O $output : Specifies the output file name.
             > $url : The URL from which to download the file.
 
+            > Save to a custom folder.
+                EG.
+                    wget -P ~/Downloads https://example.com/file.zip
 
-2) Making a GET Request.
+
+2. Making a GET Request.
     EG.
         #!/bin/bash
 
@@ -28,3 +69,83 @@
 
             > -q : Quiet mode. It makes the wget output less verbose.
             > -O - : Outputs the response to standard output.
+
+
+3. Resumable Downloads 
+    Resume after partial download.
+        EG.
+            wget -c https://example.com/bigfile.iso
+
+                > if the partially downloaded file exists in the current directory, it resumes from where it left off.
+
+
+4. Authentication Support.
+    Basic HTTP auth.
+        EG.
+            wget --user=username --password=secret https://secure.example.com/file
+
+    With custom headers (e.g. Bearer token)
+        EG.
+            wget --header="Authorization: Bearer TOKEN123" https://api.example.com/data.json
+
+
+5. POST / API interaction.
+    Send POST data.
+        EG.
+            wget --post-data="name=alice&age=25" https://api.example.com/form
+
+    Send JSON payload.
+        EG.
+            wget --method=POST --header="Content-Type: application/json" --body-data='{"name":"bob"}' https://api.example.com/users
+
+                > This is supported in Wget 1.18+
+                
+
+6. Redirection, proxy and Headers.
+    Follow redirects (enabled by default.)    
+        EG.
+            wget --max-redirect=10 https://short.link/redirect
+
+    use proxy.
+        EG.
+            export http_proxy=http://proxy.example.com:8080
+            wget http://example.com
+
+
+7. TROUBLESHOOTING & SAFETY
+    Ignore invalid SSL certs
+        EG.
+            wget --no-check-certificate https://selfsigned.example.com
+
+    Throttle download speed
+        EG.
+            wget --limit-rate=500k https://example.com/big.zip
+
+    Run silently (for scripts)
+        EG.
+            wget -q https://example.com/install.sh
+
+
+8. SCRIPT-FRIENDLY EXAMPLES
+    Download list of files:
+        EG.
+            wget -i urls.txt
+
+    Mirror a website (recursive):
+        EG.
+            wget --mirror --convert-links --adjust-extension --page-requisites --no-parent https://example.com
+
+    Check only (no download):
+        EG.
+            wget --spider https://example.com
+
+
+9. Compared to powershell.
+| Task                    | wget (Linux)                       | PowerShell                                |
+| ----------------------- | ---------------------------------- | ----------------------------------------- |
+| Download file           | `wget URL`                         | `Invoke-WebRequest -Uri ... -OutFile ...` |
+| Resume download         | `wget -c URL`                      | `Start-BitsTransfer` (auto)               |
+| POST form data          | `wget --post-data=...`             | `Invoke-RestMethod -Body ...`             |
+| Auth header             | `--header="Authorization: Bearer"` | `-Headers @{Authorization="Bearer"}`      |
+| Quiet/silent mode       | `wget -q`                          | `-ErrorAction SilentlyContinue`           |
+| Save to specific folder | `-P folder`                        | Pipe `-OutFile "C:\Path\file.txt"`        |

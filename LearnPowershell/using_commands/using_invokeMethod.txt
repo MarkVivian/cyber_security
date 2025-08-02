@@ -1,0 +1,160 @@
+                            INVOKE-RESTMETHOD.
+                        =============================
+- A PowerShell-native cmdlet built specifically for **RESTful web services**.  
+- It simplifies API interaction by **parsing JSON/XML responses into native PowerShell objects** automatically.
+
+
+            BASIC SYNTAX:
+        ----------------------
+EG.
+    Invoke-RestMethod -Uri <string> [-Method <string>] [-Headers <hashtable>] [-Body <object>] [-ContentType <string>] [-Credential <pscredential>] [-UseBasicParsing] [-SkipHttpErrorCheck]
+
+
+        CORE PARAMETERS:
+    -------------------------
+-Uri             
+    → Required. The API endpoint to hit.
+-Method          
+    → GET, POST, PUT, DELETE, PATCH (default = GET).
+-Headers         
+    → Custom headers (hashtable).
+-Body            
+    → Payload to send, usually a JSON string.
+-ContentType     
+    → MIME type, e.g., "application/json".
+-Credential      
+    → For Basic, NTLM, Windows auth (use `Get-Credential`).
+-SkipHttpErrorCheck 
+    → Allows access to 400/500 responses.
+
+
+
+            COMMON USES.
+        ---------------------
+1. GET REQUEST – FETCHING DATA
+    Fetch basic data from a public API
+        EG.
+            $response = Invoke-RestMethod -Uri "https://api.agify.io/?name=michael"
+            $response.age  # e.g. 69
+
+    GET with custom headers (e.g., tokens)
+        EG.
+            $headers = @{ Authorization = "Bearer TOKEN123" }
+            $response = Invoke-RestMethod -Uri "https://api.example.com/user/me" -Headers $headers
+
+
+2. POST DATA - JSON PAYLOADS.
+    Submit JSON data to an API.
+        EG.
+            $data = @{
+                name = "Alice"
+                age  = 30
+            } | ConvertTo-Json
+
+            $response = Invoke-RestMethod -Uri "https://api.example.com/users" -Method Post -Body $data -ContentType "application/json"
+
+    POST with authentication.
+        EG.
+            $headers = @{ Authorization = "Bearer TOKEN123" }
+            $data = @{ product = "PowerShell"; version = "7.4" } | ConvertTo-Json
+
+            Invoke-RestMethod -Uri "https://api.example.com/submit" -Method Post -Headers $headers -Body $data -ContentType "application/json"
+
+
+3. PUT/ PATCH/ DELETE EXAMPLES 
+    Update a user with PUT.
+        EG.
+            $data = @{ email = "new@email.com" } | ConvertTo-Json
+            Invoke-RestMethod -Uri "https://api.example.com/users/5" -Method Put -Body $data -ContentType "application/json"
+
+    DELETE a record.
+        EG.
+            Invoke-RestMethod -Uri "https://api.example.com/posts/44" -Method Delete
+
+
+4. AUTHENTICATION - CREDENTIALS AND TOKENS.
+    Prompts for credentials (Basic Auth)
+        EG.
+            $cred = Get-Credential
+            Invoke-RestMethod -Uri "https://secure.site.com/data" -Credential $cred
+
+    OAuth / Bearer token.
+        EG.
+            $headers = @{ Authorization = "Bearer YOUR-TOKEN-HERE" }
+            Invoke-RestMethod -Uri "https://api.service.com/account" -Headers $headers
+
+
+5. PARSE JSON/XML RESPONSES AUTOMATICALLY
+    Parse JSON response
+        EG.
+            $response = Invoke-RestMethod -Uri "https://api.github.com/repos/microsoft/winget-cli"
+            $response.full_name   # Output: microsoft/winget-cli
+            $response.owner.login # Output: microsoft
+
+    XML response parsing (less common)
+        EG.
+            $response = Invoke-RestMethod -Uri "https://www.w3schools.com/xml/note.xml"
+            $response.note.body
+
+
+6. DEBUGGING + ERROR HANDLING
+     View raw content if parsing fails
+        EG.
+            $response = Invoke-RestMethod -Uri "https://api.badsite.com" -ErrorAction Stop
+            $response | Format-List *
+
+    Graceful error handling
+        EG.
+            try {
+                Invoke-RestMethod -Uri "https://api.nonexistent.com" -ErrorAction Stop
+            } catch {
+                Write-Warning "❌ Failed: $($_.Exception.Message)"
+            }
+
+    Skip HTTP error throwing
+        EG.
+            $response = Invoke-RestMethod -Uri "https://example.com/does-not-exist" `
+                -SkipHttpErrorCheck
+            Write-Host "Status: $($response.StatusCode)"
+
+
+7. ADVANCED USAGE – FORMS, FILES, PAGINATION
+    Multipart form data (file upload)
+        EG.
+            $form = @{
+                file = Get-Item "C:\upload\report.csv"
+            }
+            Invoke-RestMethod -Uri "https://api.example.com/upload" -Method Post -Form $form
+
+    Pagination handling
+        EG.
+            $page = 1
+            do {
+                $result = Invoke-RestMethod -Uri "https://api.site.com/items?page=$page"
+                $result.items | ForEach-Object { Write-Host $_.name }
+                $page++
+            } while ($result.nextPage -ne $null)
+
+
+8. REAL-WORLD APPLICATIONS
+    Automate service status check
+        EG.
+            $status = Invoke-RestMethod "https://api.statuspage.io/v1/status"
+            if ($status.indicator -ne 'none') {
+                Write-Warning "🚨 Service issue detected!"
+            }
+
+    Fetch GitHub release tags
+        EG.
+            $releases = Invoke-RestMethod "https://api.github.com/repos/powershell/powershell/releases"
+            $releases | Select-Object tag_name, published_at
+
+
+9. DIFFERENCE VS INVOKE-WEBREQUEST.
+    | Feature          | `Invoke-RestMethod`     | `Invoke-WebRequest`               |
+    | ---------------- | ----------------------- | --------------------------------- |
+    | Auto-parses JSON | ✅ Yes (into objects)    | ❌ No (you have to parse manually) |
+    | Meant for APIs   | ✅ Built for REST APIs   | ❌ Built for webpages / scraping   |
+    | HTML parsing     | ❌ No                    | ✅ Yes (.Links, .ParsedHtml)       |
+    | File downloads   | ❌ Not intended for that | ✅ Use `-OutFile`                  |
+    | Verbosity        | Cleaner for APIs        | More verbose response             |
