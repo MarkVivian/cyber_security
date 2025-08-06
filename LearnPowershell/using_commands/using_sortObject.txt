@@ -1,38 +1,92 @@
                         SORT OBJECT
-                    ================
-- We sort using:
-    EG.
-        Get-Content .\file\path | Sort-Object
+                    =================
+- Sorts objects by one or more of their properties.
+- Ascending and case-insensitive by default. You can flip it, compound it, or even shuffle it (sort of).
 
-            - if you want to sort in reverse we use:
+
+            BASIC SYNTAX.
+        --------------------
+EG.
+    Sort-Object [-Property] <string[]> [-Descending] [-Unique] [-Culture <string>] [-CaseSensitive]
+
+        > it works on:
+            Strings
+            Numbers
+            Dates
+            Booleans
+            ScriptBlock expression (advanced)
+
+
+            USAGE.
+        -------------
+1. Sorting Process List Alphabetically by Name.
+    EG.
+        Get-Process | Sort-Object RAM
+
+            - By default, sorts ascending - smallest first.
+            - Case-insensitive by default.
+
+            - Sort Descending by CPU 
                 EG.
-                    Get-Content $filePath | Sort-Object -Descending
+                    Get-Process | Sort-Object CPU -Descending 
 
 
-- sort by file length numerically:
+2. Sort by multiple properties.
     EG.
-        Get-ChildItem $path | Sort-Object { $_.Length -descending }
+        Get-ChildItem | Sort-Object Extension, Name
 
-            -  we sort by file length numerically in descending order. 
-            - You can replace Length with any numeric property of the file object (e.g., LastWriteTime).
-            - The code snippet inside {} defines the sorting criteria.
+            - First it sorts by Extension, then within that group by Name.
 
 
-- Sort based on specific column (Space\Tab Delimited)
+3. Sort Unique Values.
     EG.
-        Get-Content $filePath | Select-Object -ExpandProperty { $_ -split ' ' }[1] | Sort-Object
+        Get-Process | Sort-Object Name -Unique 
 
-            - This assumes your file is space-delimited. 
-            - It :
-                = reads the content, 
-                = splits each line by spaces, 
-                = selects the second element (index 1) containing the desired column, 
-                = and sorts based on that element. Adjust the delimiter (' ') and index ([1]) based on your actual file structure.
+            - Removes duplicates after sorting (first match wins)
 
 
-- ignore case sensetivity.
+4. Sort files by last modified date.
     EG.
-        Get-ChildItem $path | Sort-Object Name -ignorecase
+        Get-ChildItem C:\Logs | Sort-Object LastWriteTime -Descending
 
-            - This sorts filenames alphabetically while ignoring case sensitivity using -ignorecase.
 
+5. Get Top 5 Largest Files (by size)
+    EG.
+        Get-ChildItem -Path C:\Windows -Recurse -File -ErrorAction SilentContinue | Sort-Object Length -Descending | Select-Object Name, Length -First 5
+
+
+6. Sort based on specific column (Space\Tab Delimited)
+    EG.
+       Get-childItem -File | 
+        Sort-Object Name -Descending | 
+        Select-Object -First 20 Name, @{Name="first_letter"; Expression={($_ -split '')[1]}} | 
+        Sort-Object first_letter
+
+
+7. ignore case sensetivity.
+    EG.
+        Get-ChildItem $path | Sort-Object Name -CaseSensitive
+
+            - it will sort the capitalized letters first then the smaller case words last.
+
+
+8. Locale/Culture sensitivity in Sort-Object (-Culture)
+    - The -Culture parameter affects how strings are sorted, especially when letters with accents or special characteres are involved (e.g., é, ü, ß, etc.)
+        EG. 
+            $data = "zebra", "äpfel", "apfel", "Öl", "ohr"
+
+            # German culture
+            $data | Sort-Object -Culture "de-DE"
+
+            # Swedish culture
+            $data | Sort-Object -Culture "sv-SE"
+
+                - Output varies depending on how each culture treats umlauts and letter combinations.
+                - Why this matters.
+                    > "ä" in German is treated like "ae" and sorted after a
+                    > In Swedish, "ä" is its own letter, sorted after z
+
+                - if your sorting usernames, filenames, or display names in an international app/script, this absolutely matters.
+                - You can check your current culture with:
+                    EG.
+                        Get-Culture.

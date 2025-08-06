@@ -1,0 +1,117 @@
+                                GROUP OBJECT. 
+                            ==================
+- Takes a list of objects and groups them by the values of a specific property.
+- It outputs a new object for each group with:
+    > The property value. (Name)
+    > A count
+    > A list of group members.
+
+- This is invaluable(important) for:    
+    > Counting duplicates.
+    > Summarizing data.
+    > Building pivot-style outputs.
+    > Analyzing behavior, logs, file types, process types, etc.
+
+
+                SYNTAX.
+            ---------------
+EG
+    Group-Object [-Property] <string[]> [-AsHashTable] [-AsString] [-NoElement]
+
+
+            USAGE.
+        ------------
+1. Group Processes by Name
+    EG.
+        Get-Process | Group-Object -Property Name
+
+            - Sample output.
+                EG.
+                    Count Name                      Group
+                    ----- ----                      -----
+                      10  chrome                    {...}
+                        3 powershell                {...}
+                        2 svchost                   {...}
+
+
+2. Group Files by Extension.
+    EG.
+        Get-ChildItem -Path C:\Users\Mark\Downloads | Group-Object Extension
+
+            > Count of .exe, .zip, .pdf, .png, .jpg etc.
+
+
+3. Group by nested calculated property.
+    EG.
+        Get-ChildItem | Group-Object -Property {
+            if ($_.Length -gt 10MB) {
+                "Large"
+            } elseif ($_.Length -gt 1MB) {
+                "Medium"
+            } else {
+                "Small"
+            }
+        }
+
+            > Your classifying files into buckets using custom logic.
+
+
+4. Group Files by day of week.
+    EG.
+        Get-ChildItem | Group-Object -Property { $_.LastWriteTime.DayOfWeek }
+
+            - You can also group by start date (ignoring time).
+                EG.
+                    Get-Process | Group-Object @{Expression = { $_.StartTime.Date }}
+
+
+5. Group by process start user.
+    EG.
+        Get-WmiObject Win32_Process | Group-Object -Property {
+            $_.GetOwner().User
+        }
+
+            - Audit processes running under specific user accounts.
+            - The {} tells group-object:
+                > “Hey, instead of grouping by a static property like Name, use this logic:
+                > Take each item, look at LastWriteTime, and extract the .DayOfWeek.”
+                > its executed once for each object , using $_ to refer to the current item in the pipeline.
+
+            - if you omit the {}, powershell expects a literal property name.
+                EG.
+                    Group-Object -Property LastWriteTime
+
+
+6. Just show group Names and count (No group data)
+    EG.
+        Get-Process | Group-Object Name -NoElement
+
+            - Output only shows count and name (lighter memory footprint)
+
+
+7. Group by stringified values (-AsString)
+    EG.
+        Get-ChildItem | Group-Object Length -AsString.
+
+            - useful when values are numeric or mixed types but you want them grouped by their string represent.
+
+
+8. Create a hashtable from group-object (-AsHashTable) to access them.
+    EG.
+        $grouped = Get-Process | Group-Object Name -AsHashTable -AsString
+        $grouped["chrome"]
+
+            > This gives you:
+                - A hash table with keys as group names {chrome, powershell}
+                - Each key maps to an array of objects.
+
+            > now you can access process groups directly using [string] keys.
+            > MUST USE -AsString WITH -AsHashTable TO USE STRING KEYS.
+
+
+9. Group Events by Event ID.
+    EG.
+        Get-EventLog -LogName System -Newest 1000 | Group-Object EventID | Sort-Object Count -Descending
+
+            - See which events are most frequent (incident triage , log analysis)
+

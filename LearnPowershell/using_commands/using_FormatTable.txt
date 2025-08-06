@@ -1,0 +1,79 @@
+                                        FORMAT TABLE.
+                                    ====================
+- Controls how powershell displays tabular data in the console.
+- It's the visual decorator, not the data manipulator.
+
+- Powershell pipelines end in:
+    > Data Output (objects -> Default view)
+    > or formatting output (textual display -> e.g. Format-Table)
+
+- IT IS FOR DISPLAY ONLY.
+- if you use it too early, it breaks the pipeline for further processing.
+
+
+                BASIC SYNTAX.
+            ----------------------
+EG.
+    Format-Table [-Property] <string[]> [-AutoSize] [-Wrap] [-GroupBy <expression>] [-HideTableHeaders]
+
+
+            USAGE.
+        ------------
+1. Clean output of process info.
+    EG.
+        Get-Process | Format-Table Name, Id, CPU
+
+            - Use when Select-Object output is too wide or ugly.
+
+
+2. Auto-Size columns for tighter layout.
+    EG.
+        Get-Process | Format-Table Name, CPU -AutoSize
+
+            - Without -AutoSize columns reserve max possible width, which can look... chunky.
+
+
+3. Wrap text that would otherwise get cut off.
+    EG.
+        Get-Service | Format-Table Name, DisplayName, Status -Wrap
+
+            - Helpful for long service names or descriptions.
+
+
+4. Group output by property.
+    EG.
+        Get-Process | Format-Table Name, CPU -GroupBy PriorityClass
+
+            - Output shows each group labeled, with items below:
+                EG.
+                    High
+                    ----
+                    powershell           12.44
+
+                    Normal
+                    ------
+                    chrome               30.55
+                    explorer             2.33
+
+
+5. Combine with custom properties.
+    EG.
+        Get-Process | Select-Object Name,
+            @{Name="RAM_MB"; Expression={[math]::Round($_.WS / 1MB, 2)}} |
+            Format-Table -AutoSize
+
+                - Use Select-Object to prep your data, then Format-Table to display it.
+
+
+6. Hide headers (niche, but possible)
+    EG.
+        Get-Process | Format-Table Name, CPU -HideTableHeaders
+
+            - Use this for minimal visual output (e.g., when parsing raw lines visually or in tools)
+
+
+| Issue                                  | Fix                                                    |
+| -------------------------------------- | ------------------------------------------------------ |
+| Data turns into useless text           | You used `Format-Table` **too early** in the pipeline. |
+| Want to process or export data?        | Use `Select-Object`, `Export-Csv` — not `Format-*`     |
+| `-AutoSize` takes time on huge outputs | Avoid for massive data; it scans entire output first   |

@@ -4,44 +4,128 @@
 - Its syntax might seem complex at first glance, but it offers great flexibility for various filtering needs.
 
 
-- In most situations when we are using attributes like Name, Length etc we get them using:
+                BASIC SYNTAX.
+            -------------------
+- Script block shorthand ($_) - legacy style
     EG.
-        <process name> | Get-Member
-            EG.
-                Get-ChildItem .\Documents\ | Get-Member
+        Where-Object { $_.Property -eq 'Value' }
 
-                
-1) Filter processes by name
+- Parameter binding syntax - modern style (powershell 4+)
+    EG.
+        Where-Object Property -EQ 'Value'
+
+            - Modern syntax is easier for simpler comparisons, but old-school script blocks are more flexible.
+
+| Operator       | Description                       |
+| -------------- | --------------------------------- |
+| `-eq`          | Equal                             |
+| `-ne`          | Not equal                         |
+| `-gt`          | Greater than                      |
+| `-lt`          | Less than                         |
+| `-ge`          | Greater than or equal             |
+| `-le`          | Less than or equal                |
+| `-like`        | Wildcard match                    |
+| `-notlike`     | Wildcard non-match                |
+| `-match`       | Regex match                       |
+| `-notmatch`    | Regex non-match                   |
+| `-contains`    | Value in collection (exact match) |
+| `-notcontains` | Value not in collection           |
+| `-in`          | Value is in collection            |
+| `-notin`       | Value not in collection           |
+| `-is`          | Type check                        |
+| `-as`          | Cast to type                      |
+
+- By default.
+    > -eq, -like, -match are case-insensitive
+    > if you want case-sensitive, use c prefix:
+        EG.
+            # Case-sensitive match
+            "PowerShell" -cmatch "Shell"  # False
+
+            # Case-sensitive equality
+            "admin" -ceq "Admin"  # False
+
+    > Same applies to their negative counterparts too (-cne, -cnotmatch, etc.).
+
+
+        USAGE.
+    ------------              
+1. Filter processes by name
     EG.
         Get-Process | Where-Object {$_.Name -eq "notepad"}
                 OR
-        
         Get-Process | Where-Object {$_.Name -match "notepad"} # if the name notepad is sorounded by other words eg. /files/notepad
 
             - This filters running processes and displays only those named "notepad" (case-insensitive).
             - The name should be exact for it to work.
 
 
-2) Filter with wildcards characters.
+2. Filter with wildcards characters.
     EG.
         Get-childItem .\Documents\ | where-object {$_.Name -Like "Wifi*"}
 
             - Will get any file that has Wifi in it.
+                > * = wildcard for any charactere.
+                > ? = wildcard for a single character.
 
             - For the inverse we do.
                 EG.
                     Get-childItem .\Documents\ | where-object {$_.Name -NotLike "Wifi*"}
 
 
-3) Filter files by size.
+3. Filter processes by size (RAM).
     EG.
-        Get-ChildItem "C:\*.txt" | Where-Object {$_.Length -gt 1024}
+        Get-Process | Where-Object {$_.WS -gt 100MB}
+            OR MODERN : 
+        Get-Process | Where-Object WS -GT 100MB 
+        
+            - Get files larger than 1MB 
+                EG.
+                    Get-Childitem -File | Where-Object {$_.Length -gt 1MB}
+                            OR MODERN :
+                    Get-Childitem -File | Where-Object Length -GT 1MB
+                    
 
-            - This filters text files in the C:\ directory and displays only those with a size greater than 1024 bytes.
-
-
-4) selecting object after filter.
+4. selecting object after filter.
     EG.
        Get-childItem .\Documents\ | where-object {$_.Name -Like "Wifi*"} | select-object Name 
 
             - selects the name atribute from the filtered selection.
+
+            - Filter using Select-String for file content.
+                EG.
+                    Get-ChildItem -Recurse -Filter *.log | Select-String -Pattern "error" | Where-Object { $_.LineNumber -lt 50 }
+
+
+5. Filter by name pattern (regex)
+    EG.
+        Get-Process | Where-Object {$_.Name -match '^c.*e$' }
+
+            - Find processes whose name starts with "c" and ends with "e" (chrome, code, etc)
+
+
+6. Filter with multiple conditions.
+    EG.
+        Get-Process | Where-Object { $_.CPU -gt 5 -and $_.WS -gt 100MB }
+            OR 
+        Get-Process | Where-Object { $_.Name -like '*chrome*' -or $_.Name -like '*edge*' }
+
+
+7. Filter based on custom logic.
+    EG.
+        Get-ChildItem | Where-Object { ($_.Extension -eq ".ps1") -and ($_.Length -lt 1KB) }
+
+            - Find tiny PowerShell scripts — could be stagers, droppers, etc.
+
+
+8. Get only directories (not files)
+    EG.
+        Get-ChildItem | Where-Object { $_.PSIsContainer }
+
+            - This checks the special property PSIsContainer to filter folders.
+
+
+9. Filter services set to start automatically but are not running.
+    EG.
+        Get-WmiObject Win32_Service |
+          Where-Object { $_.StartMode -eq "Auto" -and $_.State -ne "Running" }

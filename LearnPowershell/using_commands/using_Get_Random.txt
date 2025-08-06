@@ -1,0 +1,55 @@
+                                            GET RANDOM
+                                        =================
+- This is a built-in cmdlet that pulls:
+    > A random element from a list (array | Get-Random)
+    > A random number from a range (Get-Random -Minimum 0 -Maximum 10)
+
+
+                COMMON USES.
+            ------------------
+1. Get a radnom number from a range.
+    EG.
+        Get-Random -Minimum 10 -Maximum 100
+
+            - Get-Random -Minimum 1 -Maximum 1 will never return anything.
+
+
+2. Random element from an array.
+    EG.
+        $colors = @("Red", "Green", "Blue")
+        Get-Random -InputObject $colors 
+
+
+3. Random file from a folder. (non-recursive)
+    EG.
+        $img = Get-ChildItem -Path "C:\Wallpapers" -Include *.jpg, *.png
+        $randomImage = $img | Get-Random
+        $randomImage.FullName
+
+
+4. Random file from a folder recursively.
+    EG.
+        $img = Get-ChildItem -Path "C:\Wallpapers" -Include *.jpg, *.png -Recurse -File
+        $img | Get-Random | Select-Object -ExpandProperty FullName
+
+
+5. Random line from a text file.
+    EG.
+        Get-Content "C:\Users\Public\payload.txt" | Get-Random 
+
+
+6. Generate a random string (basic)
+    EG.
+        -join ((65..90) + (97..122) + (48..57) | Get-Random -Count 12 | ForEach-Object {[char]$_})
+
+
+7. Pick multiple random values.
+    EG.
+        $names = "Alice", "Bob", "Charlie", "Dave", "Eve"
+        Get-Random -InputObject $names -Count 3
+
+
+8. Seeded randomness (reproducible)
+    EG.
+        $rand = Get-Random -SetSeed 1337
+        $rand # Always returns the same value for same seed

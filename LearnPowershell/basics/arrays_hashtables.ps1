@@ -2,6 +2,13 @@
 # ARRAY
 $names = @("mark", "taby", "lucy")
 
+# array of numbers.
+# the range operator .. creates a range of numbers.
+$numbers = @(1..10)
+# IT MUST ALWAYS BE TWO DOTS.
+# we can also create the array in reverse.
+$numbers = @(10..1)
+
 foreach ($name in $names) {
     Write-Host "hello $name"
 }
@@ -11,6 +18,17 @@ $hashtable = @{
     name = "mark"
     age = 10
 }
+# we can also use PSCustomObject to create hash tables.
+$hashtable = [PSCustomObject]@{
+    name = "mark"
+    age = 10
+}
+# we use PSCustomObject to create objects that are easy to :
+# 1. export to CSV
+# 2. sort 
+# 3. filter
+# 4. pipeline
+# see file in using command to learn more
 
 # accessing values in an array and hash table.
 Write-Host "the user $($hashtable.name) is of age $($hashtable.age)"

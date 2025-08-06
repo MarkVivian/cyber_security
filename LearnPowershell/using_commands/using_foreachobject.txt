@@ -1,8 +1,24 @@
                         FOR EACH OBJECT.
                     =======================
-- `ForEach-Object` processes each item in a collection (pipeline input) by executing a script block.
+- `ForEach-Object` performs an action on every item that passes through the pipeline.
 
-1) Looping through an Array.
+
+            SYNTAX.
+        -------------
+EG.
+    command | ForEach-Object { <code> }
+            OR WITH NAMED PARAMETERS.
+    command | ForEach-Object -Process { <code> } -Begin { <init> } -End { <cleanup> }
+
+        $_ = the current object in the loop
+        -Begin {} = runs once before the loop
+        -Process {} = runs for each item
+        -End {} = runs once after the loop
+
+
+            USES.
+        -----------
+1. Looping through an Array.
     EG.
         $array = 1..5
         $array | ForEach-Object {
@@ -10,7 +26,7 @@
         }
 
 
-2) Modifying items in a collection.
+2. Modifying items in a collection.
     EG.
         $numbers = 1..5
         $numbers | ForEach-Object {
@@ -18,7 +34,7 @@
         }
 
 
-3) Using Aliases.
+3. Using Aliases.
     - `ForEach-Object` has an alias `%`.
         EG.
             $array = 1..5
@@ -27,4 +43,80 @@
             }
 
 
-4) 
+4. Print each item's name.
+    EG.
+        Get-Process | ForEach-Object { $_.Name }
+
+            - $_ is the current process object, .Name is the property.
+
+
+5. Kill all chrome processes.
+    EG.
+        Get-Process chrome | ForEach-Object { $_.Kill() }
+
+            - Be careful with this one. 
+            - This is how malware automates cleanup for browsers.
+
+
+6. Rename files with a prefix.
+    EG.
+        Get-ChildItem -File | ForEach-Object {
+            Rename-Item $_ -NewName ("[scanned]_" + $_.Name)
+        }
+
+            - Rename every file to include [scanned]_ at the front.
+
+
+7. Calculate and output RAM usage in MB.
+    EG.
+        Get-Process | ForEach-Object {
+            [PSCustomObject]@{
+                Name = $_.Name
+                RAM_MB = [math]::Round($_.WS / 1MB, 2)
+            }
+        }
+
+            - The PSCustomObject allows you to create variables inside the script block {}.
+            - the variables are accessible outside the script block.
+                EG.
+                    Get-Process | ForEach-Object {
+                        [PSCustomObject]@{
+                            Name = $_.Name
+                            RAM_MB = [math]::Round($_.WS / 1MB, 2)
+                        }
+                    } |
+                    Select-Object RAM_MB 
+
+
+8. Use -Begin , -Process and -End.
+    EG.
+        1..5 | ForEach-Object -Begin {
+            "Starting loop..."
+        } -Process {
+            "Processing $_"
+        } -End {
+            "Loop done!"
+        }
+
+            OUTPUT.
+                Starting loop...
+                Processing 1
+                Processing 2
+                Processing 3
+                Processing 4
+                Processing 5
+                Loop done!
+
+            > Great when you need setup, execution and cleanup phases.
+
+
+9. Write results to a file line by line.
+    EG.
+        Get-ChildItem -File | ForEach-Object {
+            $_.Name | Out-File -Append -FilePath "filenames.txt"
+        }
+
+            - Avoids loading huge arrays into memory.
+
+
+10. 

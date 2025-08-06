@@ -1,0 +1,87 @@
+                                                        PS CUSTOM OBJECT.
+                                                ===========================
+- It creates a structured object with named properties.
+- You get full control over:
+    > The property names
+    > Their values
+    > Their order (unlike New-Object)
+    > And the object is treated as a "real" object, not a hashtable or string blob
+
+
+                SYNTAX.
+            ----------------
+EG.
+    [PSCustomObject]@{
+        PropertyName1 = <value or expression>
+        PropertyName2 = <value or expression>
+    }
+
+        - You must use @{} -> the hashtable syntax.
+        - But with [PSCustomObject] in front, you're saying:
+            > "Convert this hashtable into a full blown custom object."
+
+
+                USAGE.
+            --------------
+1. Creating a structured log entry.
+    EG.
+        $log = [PSCustomObject]@{
+            User = "Admin"
+            Action = "Login"
+            Timestamp = (Get-Date)
+        }
+
+
+2. Returning structure output from a function.
+    EG.
+        function Get-Snapshot {
+            return [PSCustomObject]@{
+                Time = (Get-Date)
+                FreeSpace = (Get-PSDrive C).Free / 1GB
+            }
+        }
+
+
+3. Building reports.
+    EG.
+        $results = @()
+
+        foreach ($file in Get-ChildItem -File) {
+            $results += [PSCustomObject]@{
+                Name = $file.Name
+                SizeKB = [math]::Round($file.Length / 1KB, 2)
+            }
+        }
+
+        $results | Export-Csv -NoTypeInformation -Path "Report.csv"
+
+
+4. You can pipe it.
+    EG.
+        $custom = [PSCustomObject]@{
+            A = 1
+            B = 2
+        }
+
+        $custom | Select-Object A
+
+
+5. Nested [PSCustomObject]
+    EG.
+        [PSCustomObject]@{
+            Name = "Test"
+            Details = [PSCustomObject]@{
+                OS = "Windows"
+                RAM = "8GB"
+            }
+        }
+
+Hashtable @{}:
+    > Works for quick lookups
+    > Like a dictionary/map
+    > Bad for exporting, piping, filtering, sorting
+
+[PSCustomObject]@{}:
+    > Creates a real, typed object
+    > Perfect for scripts, exports, data reporting
+    > Used in 95% of real-world automation and tools

@@ -1,0 +1,78 @@
+                                                FORMAT LIST.
+                                            ==================
+- This is a vertical, verbose dump - every property on its own line.
+
+- Use it when:
+    > You need to see all properties, especially long/complex ones.
+    > You're inspecting objects with nested properties.
+    > Output is too wide for a table.
+
+
+            SYNTAX.
+        --------------
+EG.
+    Format-List [-Property] <string[]> [-GroupBy] [-Force]
+
+
+            EXAMPLES.
+        -----------------
+1. Format entire object vertically.
+    EG.
+        Get-Process | Format-List
+
+            - Will output every property of every process.
+            - Expect of scroll.
+
+
+2. Format only specific properties.
+    EG.
+        Get-Process | Format-List Name, Id, CPU
+
+            - Cleaner than full dump.
+            - Easier to read than a table if values are long.
+
+
+3. Inspect deeply nested object properties.
+    EG.
+        Get-WmiObject Win32_OperatingSystem | Format-List *
+
+            - WMI objects can have 50+ properties. 
+            - This gives you full detail.
+
+
+4. Wildcard selection.
+    EG.
+        Get-Service | Format-List *name*
+
+            - Shows all properties that contain "name" in them: Name, DisplayName, ServiceName, etc...
+
+
+5. Group Output.
+    EG.
+        Get-Process | Format-List Name, CPU -GroupBy PriorityClass
+
+            - Output will be grouped just like with Format-Table, but in a vertical layout:
+                EG.
+                        High
+                        ----
+                        Name : powershell
+                        CPU  : 12.25
+
+                        Normal
+                        ------
+                        Name : chrome
+                        CPU  : 30.55
+                        ...
+
+
+6. Force show hidden properties.
+    - Some properties are hidden in default view (like raw .psobject metadata). Force them out:
+        EG.
+            $object | Format-List * -Force
+
+
+| Issue                               | Fix                                               |
+| ----------------------------------- | ------------------------------------------------- |
+| Piped to `Export-Csv` gives garbage | `Format-List` outputs text, not structured data   |
+| Output is very verbose              | Use specific properties, or `Select-Object` first |
+| Hidden properties missing           | Use `-Force`                                      |

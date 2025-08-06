@@ -1,0 +1,103 @@
+                                POWERSHELL DATE AND TIME 
+                            ===============================
+        CORE CMDLET.
+    -------------------
+EG.
+    Get-Date 
+
+        > This returns the current system date and time as a System.DateTime object.
+            EG OUTPUT.
+                Tuesday, August 6, 2025 3:08:11 AM
+
+        > You can access parts of it directly.
+            EG.
+                (Get-Date).Year        # 2025
+                (Get-Date).Month       # 8
+                (Get-Date).Day         # 6
+                (Get-Date).DayOfWeek   # Tuesday
+                (Get-Date).Hour        # 3
+                (Get-Date).TimeOfDay   # 03:08:11.7032456
+
+                    > This are real properties not string parsing.
+
+
+            CUSTOM FORMATTING WITH -Format.
+        --------------------------------------
+EG.
+    Get-Date -Format "<format string>"
+
+        > Examples:
+            Get-Date -Format "yyyy-MM-dd"          # 2025-08-06
+            Get-Date -Format "HH:mm:ss"            # 03:08:11
+            Get-Date -Format "dddd, MMM dd yyyy"   # Tuesday, Aug 06 2025
+            Get-Date -Format "yyyy-MM-ddTHH:mm:ss" # ISO 8601 style
+
+                | Code   | Meaning          | Example |
+                | ------ | ---------------- | ------- |
+                | `yyyy` | 4-digit year     | 2025    |
+                | `MM`   | Month (01–12)    | 08      |
+                | `dd`   | Day (01–31)      | 06      |
+                | `HH`   | Hour (24h)       | 14      |
+                | `mm`   | Minute           | 09      |
+                | `ss`   | Second           | 59      |
+                | `ddd`  | Day abbreviation | Tue     |
+                | `dddd` | Day full         | Tuesday |
+                | `tt`   | AM/PM            | AM      |
+
+
+            CULTURE-SPECIFIC FORMATTING (-UFormat and -Culture)
+        ---------------------------------------------------------
+- You can override the system's default locale:
+    EG.
+        Get-Date -Format "D" -Culture "fr-FR"
+
+            > Output.
+                mardi 6 août 2025
+
+        Get-Date -Format "dddd, dd MMMM yyyy" -Culture "ja-JP"
+
+            > Output.
+                火曜日, 06 8月 2025
+
+        - Use this to create logs or reports for international teams.
+
+
+                Date Arithmetic.
+            -------------------------
+- You can add or subtract time.
+    EG.
+        (Get-Date).AddDays(-7)       # 7 days ago
+        (Get-Date).AddHours(3)       # 3 hours in the future
+        (Get-Date).AddMinutes(-30)   # 30 minutes ago
+        (Get-Date).AddYears(1)       # 1 year from now
+
+            - useful for things like:
+                EG.
+                    Get-ChildItem | Where-Object {
+                        $_.LastWriteTime -lt (Get-Date).AddDays(-30)
+                    }
+                        
+                        - Get files older than 30 days.
+
+                
+                OTHER USEFUL DATE TRICKS.
+            -------------------------------
+1. Convert to short/long date string.
+    EG.
+        (Get-Date).ToShortDateString()   # 8/6/2025
+        (Get-Date).ToLongDateString()    # Tuesday, August 6, 2025
+
+
+2. Get UNIX-style timestamp.
+    EG.
+        [int][double]::Parse((Get-Date -UFormat %s))   # Seconds since 1970
+
+
+3. Convert string to DateTime.
+    EG.
+        [datetime]::Parse("2025-08-01 12:00")
+
+            - or using Get-Date:
+                EG.
+                    Get-Date "2025-08-01 12:00"
+

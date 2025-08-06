@@ -1,45 +1,41 @@
                             MEASURE OBJECT.
                         ===================
-- Measure-Object is used to calculate properties of objects, such as counting the number of objects, summing, finding averages, and more.
+- Measure-Object is used to calculate properties of objects, such as counting the number of objects, summing, finding averages, min/max and more.
+- Use Measure-Object to:
+    > Count how many objects you have.
+    > Get the total/average/min/max value of a property.
+    > measure text content (line/word/char count)
+    > Create summaries for automation/logging reports
+
 
         SYNTAX.
     =============
     EG.
-        Measure-Object [[-Property] <String[]>] [-Sum] [-Minimum] [-Maximum] [-Average] [-StandardDeviation] [-Line] [-Character] [-Word] [-InputObject <PSObject>] [<CommonParameters>]
+        Measure-Object [-Property] <string[]> [-Sum] [-Average] [-Maximum] [-Minimum] [-InputObject <psobject>]
+
+            - It accepts objects via pipeline or -InputObject.
 
 
             BASIC USAGE.
         ==================
-1. Counting Objects in a Collection
+1. Counting how many files in a folder.
     EG.
-        # Counts the number of files in the current directory
-        Get-ChildItem | Measure-Object
+        Get-ChildItem -Path .\Downloads | Measure-Object
+
+            > it counts how many objects were piped in.
+
+
+2. count, Sum, average the size of files.
+    EG.
+        Get-ChildItem -Path "C:\Files\*.txt" | Measure-Object -Property Length -Sum -Minimum -Maximum -Average
 
         OUTPUT.
-            Count    : 10
-
-
-2. Summing the size of files.
-    EG.
-        # Sums the sizes of all .txt files in a directory
-        Get-ChildItem -Path "C:\Files\*.txt" | Measure-Object -Property Length -Sum
-
-        OUTPUT.
-            Count    : 5
-            Sum      : 10240  # Total size in bytes
-
-
-3. Finding Minimum, Maximum, and Average Values
-    EG.
-        # Calculates min, max, and average file sizes
-        Get-ChildItem -Path "C:\Files\*.txt" | Measure-Object -Property Length -Minimum -Maximum -Average
-
-        OUTPUT.
-            Count    : 5
-            Average  : 2048
-            Sum      : 10240
-            Maximum  : 4096
-            Minimum  : 512
+            Count    : 609
+            Average  : 1813266.48604269
+            Sum      : 1104279290
+            Maximum  : 12566060
+            Minimum  : 103887
+            Property : Length
 
 
 4. Counting Lines, Words, and Characters in Text Files
@@ -64,14 +60,12 @@
                 Sum      : 20
 
 
-6. Standard Deviation Calculation
-    - You can calculate the standard deviation of numeric properties.
+6. Get Stats for custom-calculated fields.
+    - You can't script blocks directly inside Measure-Object, so you need to precalculate.
         EG.
-            # Calculates standard deviation of file sizes
-            Get-ChildItem -Path "C:\Files\*.txt" | Measure-Object -Property Length -StandardDeviation
-            OUTPUT.
-                Count              : 5
-                StandardDeviation  : 1414.2135623731
+            Get-ChildItem | ForEach-Object { $_.Length / 1MB } | Measure-Object -Sum -Average
+
+                - Convert size to MB before measuring.
 
 
 3. Measure-Object with Grouping

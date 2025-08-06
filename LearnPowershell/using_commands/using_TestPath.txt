@@ -1,0 +1,133 @@
+                                        TEST PATH.
+                                    ==================
+- Test-Path checks if a path (file, folder, registry key, or even a PSDrive) exists.
+
+
+            BASIC SYNTAX.
+        --------------------
+EG.
+    Test-Path [-Path] <string[]> [-PathType {Any | Container | Leaf}] [-IsValid] [-Credential] [CommonParameters]
+
+        - Returns True if it exists else Returns False if not.
+        - Does not throw on missing path (makes it script-safe)
+        - Support wildcards, PSDrives, UNC paths, registry keys, certs and more.
+
+
+            USE CASES.
+        ----------------
+1. Checking a file exists before running a script.
+    EG.
+        Test-Path "C:\Windows\System32\cmd.exe"
+
+            - check if a directory exists.
+                EG.
+                    Test-Path "C:\Program Files"
+
+
+2. Registry use cases.
+    Check if a registry key exists.
+        EG.
+            Test-Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\Run"
+
+                - Enumeration of persistence locations (autoruns, LPE vectors)
+
+    Check if a registry value exists.
+        - Test-Path can only verify keys not individual values.
+        - So to check for values, you must read and test manually.
+            EG.
+                # Check if the value MyValueName exists within MyNewKey:
+                if (Get-ItemProperty -Path "HKCU:\Software\MyNewKey" -Name "MyValueName" -ErrorAction SilentlyContinue) {
+                    Write-Output "Value exists!"
+                } else {
+                    Write-Output "Value does not exist!"
+                }
+
+
+3. Edge cases and weirdness 
+    Check if a mounted drive exists (mapped letters)
+        EG.
+            Test-Path "Z:\"
+
+                - If you're scripting network shares, or login scripts, this is clutch.
+
+    $null or empty strings as input.
+        EG.
+            Test-Path $null         # Returns False, no error
+            Test-Path ""            # Returns False
+
+                - Validate dynamic vars before use.
+
+
+4. Checking if a path is syntactically valid (but might not exist).
+    EG.
+        Test-Path -Path "Z::\not\legal" -IsValid   # False
+        Test-Path -Path "C:\Definitely\Valid" -IsValid  # True
+
+            - Validate dynamic input before using it in scripts or remote commands.
+
+
+5. Check if a path is a file or folder.
+    EG.
+        Test-Path -Path "C:\Windows\System32\cmd.exe" -PathType Leaf     # True (file)
+        Test-Path -Path "C:\Windows" -PathType Container                 # True (folder)
+
+            - Validate directory structure vs file structure.
+            - if you check for -PathType Leaf on a folder, it returns False, not error.
+
+
+6. Wildcard matching.
+    EG.
+        Test-Path "C:\Windows\System32\*.dll"       # True if at least one DLL exists
+        Test-Path "C:\DoesNotExist\*.txt"           # False
+
+            - Check if any files of a certain type exist in a directory.
+            - Only returns True if at least one match is found.
+
+
+7. UNC path check (network shares)
+    EG.
+        Test-Path "\\ServerName\ShareName\payload.exe"
+
+            - Pentesters checking for weaponized shares or scripts verifying availability of mapped shares.
+            - Must have permissions.
+            - If the remote machine is offline, it may hang unless you catch it with timeout logic.
+
+
+8. Cert Store use cases.
+    - The cert store is mapped as a PSDrive: Cert:\
+
+    Check if certs exist in a given store.
+        EG.
+            Test-Path "Cert:\CurrentUser\My"
+
+                - Scripts use to check for user-installed certs. (e.g. evil root certs)
+
+    Check for specific certs by thumbprint.
+        EG.
+            Test-Path "Cert:\CurrentUser\My\THUMBPRINTGOESHERE"
+                
+                - use for persistence or malware detection tools checking for implant certs.
+
+
+9. Practical Security use cases.
+    LPE Enumeration - AlwaysInstallElevated.
+        EG.
+            Test-Path "HKCU:\Software\Policies\Microsoft\Windows\Installer"
+            (Get-ItemProperty "HKCU:\Software\Policies\Microsoft\Windows\Installer").AlwaysInstallElevated
+
+                - confirms the key exists.
+                - Then confirm the value = 1.
+
+    UAC Bypass Registry Check.
+        EG.
+            Test-Path "HKCU:\Software\Classes\ms-settings\shell\open\command"
+
+    Scheduled Task Binary path check.
+        EG.
+            $taskBin = (Get-ScheduledTask -TaskName "Backup").Actions.Execute
+            Test-Path $taskBin
+
+                - Validate the binary still exists before relying on task data.
+
+
+10. 

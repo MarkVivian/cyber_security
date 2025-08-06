@@ -24,6 +24,9 @@ EG.
         Get-Process | Select-Object Name, Id
 
             - This command retrieves all running processes and displays only the Name and Id properties for each process using Select-Object.
+            - if you want a full object dump for recon
+                EG.
+                    Get-Process | Select-Object *
 
 
 2. wildcard characters.
@@ -42,7 +45,7 @@ EG.
 
 4. Format output 
     EG.
-        Get-Process | Select-Object Name, CPU -Format Table
+        Get-Process | Select-Object Name, CPU | Format-Table
 
             - This displays Name and CPU properties of processes in a table format.
 
@@ -76,3 +79,98 @@ EG.
             Get-Process | Select-Object Name -Unique
 
             - This will show the unique process names, removing duplicates.
+
+
+8. Select computed and nested properties .
+    select computed properties (i.e create custom columns)
+        EG.
+            Get-Process | Select-Object Name, @{Name="RAMMB";Expression={[math]::Round($_.WS / 1MB, 2)}}
+
+                > Lets break it down.
+                    @{} 
+                        - this is a hashtable (Powershell's dictionary-like structure)
+                        - its used to define a new custom property in the output.
+
+                    Name="RAAMB"
+                        - This defines the name of the column in the output - like renaming or aliasing the property.
+
+                    Expression={...}
+                        - This is the logic that tells powershell how to calculate the value for that column.
+                        - Inside the script block {}, powershell runs whatever you write for each object passed down the pipeline.
+                    
+                    $_ 
+                        - This refers to the current object in the pipeline.
+                        - So for each process returned by Get-Process, $_ refers to that specific process object.
+
+                    $_.WS   
+                        - WS is a property on the process object that refers to working set memory (basically RAM usage in bytes).
+                        - 1MB is an automatic constant in powershell: 1MB = 1024 * 1024.
+                
+                > so the expression Divides bytes to convert to megabytes and rounds it to 2 decimal places.
+
+    select nested properties with flattening.
+        EG.
+            Get-ChildItem | Select-Object Name, @{Name="SizeKB";Expression={($_.Length/1KB).ToString("F2")}}
+
+                > Break it down:
+                    $_ 
+                        - Each file in the folder.
+
+                    Length 
+                        - file size in bytes.
+                    
+                    Divided by 1KB to convert to kilobytes
+
+                    ToString("F2")
+                        - formats number to 2 decimal places.
+
+    process RAM in MB and GB
+        EG.
+            Get-Process | Select-Object Name, 
+                @{Name="RAM_MB"; Expression={[math]::Round($_.WS / 1MB, 2)}}, @{Name="RAM_GB"; Expression={[math]::Round($_.WS / 1GB, 3)}}
+
+    Show Process start time and uptime.
+        EG.
+            Get-Process | Select-Object Name, StartTime,
+                @{Name="Uptime_Minutes"; Expression={((Get-Date) - $_.StartTime).TotalMinutes.ToString("F1")}}
+
+    Detect suspicious parent process Name.
+        EG.
+            Get-WmiObject Win32_Process | Select-Object Name, ProcessId, ParentProcessId,
+                @{Name="ParentName"; Expression={(Get-Process -Id $_.ParentProcessId -ErrorAction SilentlyContinue).Name}}
+
+    Check if File is older than x days.
+        EG.
+            Get-ChildItem C:\Logs -File | Select-Object Name, LastWriteTime,
+                @{Name="DaysOld"; Expression={(New-TimeSpan -Start $_.LastWriteTime).Days}},
+                @{Name="Stale"; Expression={((New-TimeSpan -Start $_.LastWriteTime).Days -gt 30)}}
+
+    Combine properties into a new string.
+        EG.
+            Get-Process | Select-Object Id, Name,
+                @{Name="Info"; Expression={"[$($_.Id)] $($_.Name)"}}
+        
+    Output File Permissions in friendly format.
+        EG.
+            Get-ChildItem C:\SomeFolder | Select-Object Name,
+                @{Name="Owner"; Expression={(Get-Acl $_.FullName).Owner}},
+                @{Name="Rights"; Expression={(Get-Acl $_.FullName).AccessToString}}
+
+    Show Total file count and size in folder.
+        EG.
+            Get-ChildItem C:\Stuff -Directory | Select-Object Name,
+                @{Name="FileCount"; Expression={(Get-ChildItem $_.FullName -File -Recurse | Measure-Object).Count}},
+                @{Name="TotalMB"; Expression={[math]::Round((Get-ChildItem $_.FullName -File -Recurse | Measure-Object -Property Length -Sum).Sum / 1MB, 2)}}
+
+    Check running services and their start type.
+        EG.
+            Get-Service | Select-Object Name, Status,
+                @{Name="StartType"; Expression={(Get-WmiObject Win32_Service -Filter "Name='$($_.Name)'").StartMode}}
+
+    Generate CSV-safe output with derived fields.
+        EG.
+            Get-Process | Select-Object Name, Id,
+                @{Name="IsIdle"; Expression={($_.CPU -eq $null)}},
+                @{Name="UserName"; Expression={(Get-WmiObject Win32_Process -Filter "ProcessId=$($_.Id)").GetOwner().User}}
+
+    

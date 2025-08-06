@@ -1,0 +1,51 @@
+                                                    COMPARE OBJECT.
+                                                =======================
+- takes two input collections and tells you the differences between them.
+- Perfect for:
+    > Finding files that exist in one folder but not another
+    > Comparing before/after snapshots
+    > Analyzing user or process differences
+    > Detecting changes between datasets
+
+
+            BASIC SYNTAX.
+        ---------------------
+EG.
+    Compare-Object -ReferenceObject <listA> -DifferenceObject <listB>
+
+        EG.
+            Compare-Object -ReferenceObject @("apple", "banana", "cherry") -DifferenceObject @("banana", "cherry", "durian")
+
+                OUTPUT.
+                    InputObject SideIndicator
+                    ------------ -------------
+                    apple        <=
+                    durian       =>
+
+                    <= in reference only.
+                    => in difference only.
+
+
+                USE CASE.
+            ---------------
+1. Compare Running processes on Two Machines.
+    EG.
+        $local  = Get-Process | Select-Object -ExpandProperty Name
+        $remote = Invoke-Command -ComputerName REMOTE-PC { Get-Process | Select-Object -ExpandProperty Name }
+
+        Compare-Object -ReferenceObject $local -DifferenceObject $remote
+
+            - Shows what processes are unique to each machine.
+
+
+2. Detect file differences in two folders.
+    EG.
+        $folder1 = Get-ChildItem "C:\FolderA" | Select-Object -ExpandProperty Name
+        $folder2 = Get-ChildItem "C:\FolderB" | Select-Object -ExpandProperty Name
+
+        Compare-Object $folder1 $folder2
+
+            - Use -IncludeEqual if you want matching entries too:
+                EG.
+                    Compare-Object $folder1 $folder2 -IncludeEqual
+
