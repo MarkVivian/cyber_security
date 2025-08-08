@@ -1,0 +1,138 @@
+                                        SPLIT.
+                                    =============
+- It slices. It dices. It’ll turn "Admin,User,Guest" into a neat little array of bite-sized labels.
+- But it can also go regex-ninja on you when used recklessly (or cleverly).
+
+
+            BASIC SYNTAX.
+        -------------------
+EG.
+    -split <string>
+    <string> -split <delimiter>
+    <string> -split <delimiter, maxCount>
+
+        - Powershell supports unary and binary versions just like -join, but -split goes a step further with regex support and limit control.
+
+
+                BASIC EXAMPLES.
+            --------------------
+1. Simple comma split.
+    EG.
+        "Admin,User,Guest" -split ','
+
+            OUTPUT.
+                Admin
+                User
+                Guest
+
+            - Now you have an array of roles. Useful for:
+                > Looping 
+                > Filtering.
+                > validation.
+
+
+2. Whitespace split (default)
+    EG.
+        -split "one two   three"
+
+            OUTPUT.
+                one
+                two
+                three
+
+            - Multiple spaces are treated as a single delimiter by default here.
+            - Clean and lean.
+
+
+3. Use with maxCount.
+    EG.
+        "Mark:Cybersecurity:PowerShell" -split ':', 2
+
+            OUTPUT.
+                Mark
+                Cybersecurity:PowerShell
+
+            - Useful when:
+                > Only the first part matters (like username:something)
+                > Avoiding over-splitting log lines or paths.
+
+
+4. Regex split : Split on multiple delimiters.
+    EG.
+        "apple, banana; cherry orange" -split '[,; ]+'
+
+            OUTPUT.
+                apple
+                banana
+                cherry
+                orange
+
+            - The delimiter can be a regex pattern.
+            - This gives -split superpowers over mere mortals like split(',').
+
+            EG.
+                "https://example.com/page" -split '://|/'
+
+                    - Split on multiple delimiters :// OR /.
+
+
+6. Gotchas and Edge cases.
+    It's case-insensitive unless you ask otherwise.
+        EG.
+            "ABCabc" -split 'a'
+
+                OUTPUT.
+                    BC
+                    bc
+
+                - Want case-sensitive.
+                    EG.
+                        "ABCabc".Split('a')  # .NET method, case-sensitive
+
+    Empty entries are preserved.
+        EG.
+            "one,,two" -split ','
+
+                OUTPUT.
+                    one
+                    (empty string)
+                    two
+
+                - if you want to remove empty entries.
+                    EG.
+                        "one,,two" -split ',' | Where-Object { $_ -ne '' }
+
+                - or use regex to skip empty.
+                    EG.
+                        "one,,two" -split ',+'
+
+    Use -split with pipelines.
+        EG.
+            "1,2,3" | ForEach-Object { $_ -split ',' }
+
+                - Useful for batch processing strings, logs, etc.
+
+    Splitting file paths.
+        EG.
+            "C:\Users\Mark\Documents\test.txt" -split '\\'
+
+                OUTPUT.
+                    C:
+                    Users
+                    Mark
+                    Documents
+                    test.txt
+
+                - For more elegant path handling, use Split-Path or [System.IO.Path] methods — but this still works when you want raw parts.
+
+        Regex split to grap IPs or delimiters.
+            EG.
+                "192.168.1.1" -split '\.'
+                    
+                    OUTPUT.
+                        192
+                        168
+                        1
+                        1
+
+                    - Want to preserve delimiters? regex trickery required - not directly with -split.

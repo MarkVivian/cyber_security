@@ -1,0 +1,40 @@
+                                        -IS AND -AS 
+                                    ==================
+-is : Type Checking.
+    - Tests if an object is already a specific .NET type.
+
+        SYNTAX.
+            <object> -is <type>
+
+                EG : Simple checks.
+                    "hello" -is [string]      # True
+                    42 -is [int]              # True
+                    3.14 -is [double]         # True
+                    $true -is [bool]          # True
+
+
+-as : Type Casting.
+    - Attempts to convert (cast) the object into the specified type.
+    - Returns:
+        > the casted value if successful 
+        > $null if it fails (instead of throwing an error like TryCast())
+
+            SYNTAX.
+                <object> -as <type>
+
+                    EG. Casting.
+                        "123" -as [int]          # 123
+                        "abc" -as [int]          # null (can't convert)
+
+
+Don't confuse this with -like or -eq 
+    EG.
+        "42" -eq 42       # True (PowerShell auto-converts string to int)
+        "42" -is [int]    # False (still a string)
+
+
+Casting to complex types.
+    EG.
+        $date = "2025-01-01" -as [datetime]
+        $date.GetType().FullName
+        # System.DateTime

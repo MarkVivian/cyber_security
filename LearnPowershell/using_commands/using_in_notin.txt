@@ -1,0 +1,66 @@
+                                        -IN AND -NOTIN 
+                                    ====================
+-in.
+    EG.
+        <scalar_value> -in <collection>
+
+            - Returns True if the scalar value exists in the collection. (array, list, etc)
+
+
+-notin.
+    EG.
+        <scalar_value> -notin <collection>
+
+            - Returns True if the value is not present in the collection.
+
+| Operator         | Checks if...                 | Example                       |
+| ---------------- | ---------------------------- | ----------------------------- |
+| `-contains`      | Array contains value         | `$array -contains $value`     |
+| `-in`            | Value is in array (reversed) | `$value -in $array`           |
+| `-notin`         | Value is **not** in array    | `$value -notin $array`        |
+| `-cin`/`-cnotin` | Case-sensitive versions      | `"Admin" -cin @("admin")` → ❌ |
+
+
+            USE CASES.
+        -------------------
+1. Classic Use
+    EG.
+        "bob" -in @("alice", "bob", "charlie")       # True
+        "dan" -notin @("alice", "bob", "charlie")    # True
+
+            - Same logic as:
+                EG.
+                $names = @("alice", "bob", "charlie")
+                $names -contains "bob"        # Also True
+                -not ($names -contains "dan") # Also True
+
+            - But the -in version is more elegant, especially when your test value comes first.
+
+
+2. IP Allowlist Check
+    EG.
+        $allowedIPs = @("10.0.0.1", "192.168.1.1")
+        $remoteIP = "192.168.1.1"
+
+        if ($remoteIP -in $allowedIPs) {
+            "Access granted"
+        }
+
+            - Cleaner than flipping logic with -contains.
+
+
+3.  File Extension Filter
+    EG.
+        $filename = "report.pdf"
+        $allowedExtensions = ".txt", ".log", ".md"
+
+        if ($filename -notin $allowedExtensions) {
+            "Blocked file type"
+        }
+
+
+4. Case-insensitive by default
+    - Use -cin / -cnotin for case-sensitive checks.
+        EG.
+            "Admin" -in @("admin")       # True
+            "Admin" -cin @("admin")      # False

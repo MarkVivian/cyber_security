@@ -35,27 +35,4 @@
         Line 3
         "@ | Out-File -FilePath "C:\path\to\your\file.txt" -Append
 
-
-                    ADD-CONTENT
-                ===================
-1) The Add-Content cmdlet is specifically designed for appending content to a file.  
-    EG. 
-        Add-Content -Path "path\to\file" -Value "New content to append."
-
-
-2) Appending multiple lines.
-    EG. 
-        $lines = @(
-            "Line 1",
-            "Line 2",
-            "Line 3"
-        )
-        Add-Content -Path "C:\path\to\your\file.txt" -Value $lines
-
-
-3) Appending text with timestamp.
-    EG.
-        $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-        $content = "[$timestamp] New log entry"
-        Add-Content -Path "C:\path\to\your\log.txt" -Value $content
  

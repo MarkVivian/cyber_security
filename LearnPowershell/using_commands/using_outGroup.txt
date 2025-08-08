@@ -1,0 +1,140 @@
+                                        OUT-* GROUP - OUTPUT REDIRECTION CMDLETS.
+                                    ===============================================
+- This group includes:
+    > Out-File 
+        * Redirect output to a text file.
+
+    > Out-Host 
+        * Force output to console.
+        
+    > Out-Null 
+        * Discard output like it never existed.
+
+    > Out-GridView 
+        * Send ouput to a GUI window (when available)
+
+    > Out-Printer
+        * Send output to a printer (yes, really)
+
+    > Out-String 
+        * converts output to string.
+
+
+                        OUT-FILE 
+                    ===============
+- Is the powershell way of redirecting output to a file, much like > or >> in bash, but with much more control and structure.
+
+
+            SYNTAX.
+        ---------------
+EG.
+    <Command> | Out-File [-FilePath] <String> [-Append] [-Force] [-Encoding <String>] [-Width <Int>] [-NoClobber] [-WhatIf] [-Confirm]
+
+
+            COMMON PARAMETERS.
+        -------------------------
+1. -FilePath 
+    - Path to the file to write to.
+    - Can be relative or absolute.
+        EG.
+            "Logging info" | Out-File -FilePath "log.txt"
+
+
+2. -Append 
+    - Adds to the end of the file instead of overwritting.
+        EG.
+            "Another log entry" | Out-File -FilePath "log.txt" -Append
+
+
+3. -Force 
+    - Overrides read-only attributes or writes to hidden/system files.
+        EG.
+            "Hidden log" | Out-File -FilePath "C:\Hidden\log.txt" -Force
+
+
+4 -Encoding 
+    - Sets the character encoding of the file.
+    - Values: ASCII, BigEndianUnicode, Byte, Default, OEM, Unicode, UTF7, UTF8, UTF8BOM, UTF8NoBOM, UTF32
+        EG.
+            "Éléphant" | Out-File -FilePath "utf8.txt" -Encoding UTF8
+
+                - If you're exporting non-ASCII characters or working with multilingual files/scripts, setting -Encoding matters a lot.
+
+
+5. -Width 
+    - Sets the number of characters per line.
+    - Output is wrapped to fit this width.
+        EG.
+            Get-Process | Out-File -FilePath "process.txt" -Width 50
+
+                - Useful for forcing readable wrapping in log files.
+
+
+6. -NoClobber 
+    - Prevents overwriting an existing file.
+    - Will throw an error if the file already exists.
+        EG.
+            "Don't overwrite me" | Out-File -FilePath "log.txt" -NoClobber
+
+
+7. -WhatIf / -Confirm 
+    - Simulation and confirmation prompts .
+        EG.
+            "Try it" | Out-File -FilePath "try.txt" -WhatIf
+
+
+                            OUT-NULL.
+                        ===============
+- It discards output, similar to redirecting to /dev/null in Linux or using > $null in PowerShell.
+- It’s the cmdlet version of "shut up and go away."
+- Why not just use $null = <command>
+    > Also works but only captures the first object in some scenarios.
+    > With Out-Null, everything is thrown away.
+    > So:
+        * Use $null=... for assignment based silencing.
+        * Use Out-Null for pipeline-wide murder of output.
+
+
+            SYNTAX.
+        -----------------
+EG.
+    <command> | Out-Null
+
+
+            USAGE.
+        -----------
+1. Suppress output.
+    EG.
+        Get-Process | Out-Null
+
+            - All processes are retrieved, but you'll never see them.
+
+
+2. Run a command for its side effect only.
+    EG.
+        Stop-Service -Name Spooler | Out-Null
+            
+            - The Stop-Service executes, but Powershell doesn't spit out the confirmation message.
+
+
+3. In a loop to suppress intermediate noise.
+    EG.
+        1..5 | ForEach-Object { "Step $_" | Out-Null }
+
+            - Loop runs, does nothing visible.
+            - You might be prepping state for something else.
+
+
+4. Used in function pipelines to shut up chatty functions.
+    EG.
+        function Do-Stuff {
+            "Running task..."
+            # other code
+        }
+        Do-Stuff | Out-Null
+
+            - Output suppressed.
+            - Side effects remain.
+
+
+5. 

@@ -25,6 +25,16 @@ EG.
                     <= in reference only.
                     => in difference only.
 
+| Option              | Purpose                                       |
+| ------------------- | --------------------------------------------- |
+| `-ReferenceObject`  | Baseline data (e.g., “before”)                |
+| `-DifferenceObject` | Data to compare against (“after”)             |
+| `-IncludeEqual`     | Show matching values too                      |
+| `-ExcludeDifferent` | Hide mismatches, only show matches            |
+| `-PassThru`         | Output raw values instead of diff table       |
+| `-Property`         | Compare only this property on complex objects |
+| `-CaseSensitive`    | Enforce casing differences                    |
+
 
                 USE CASE.
             ---------------
@@ -48,4 +58,38 @@ EG.
             - Use -IncludeEqual if you want matching entries too:
                 EG.
                     Compare-Object $folder1 $folder2 -IncludeEqual
+
+
+3. Use -Passthru to get raw values.
+    EG.
+        Compare-Object $list1 $list2 -PassThru
+
+            - Instead of a diff table, it gives you the actual objects that differ.
+
+
+4. Compare complex objects by property.
+    EG.
+        $list1 = Get-Process | Select-Object -First 5
+        $list2 = Get-Process | Select-Object -Last 5
+
+        Compare-Object $list1 $list2 -Property Name
+
+            - You can compare objects based on a specific property like Name, Id, StartTime.
+
+
+5. Case sensitivity.
+    - Its case-insensitive by default.
+        EG.
+            Compare-Object @("Mark") @("mark")
+
+                - No diff shown.
+    
+    - Use -CaseSensitive to change that:
+        EG.
+            Compare-Object @("Mark") @("mark") -CaseSensitive
+
+                - Output.
+                    Mark <=
+                    mark =>
+
 

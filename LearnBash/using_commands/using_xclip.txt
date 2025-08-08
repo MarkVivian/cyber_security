@@ -1,0 +1,62 @@
+                                            XCLIP.
+                                        ============
+1. Installing xclip.
+    On Debian/Ubuntu/Kali:
+        EG.
+            sudo apt install xclip
+
+    On Arch/Manjaro.
+        EG.
+            sudo pacman -S xclip.
+
+    on RHEL/CentOS.
+        EG.
+            sudo yum install xclip.
+
+
+                    BASIC CONCEPTS OF XCLIP.
+                ------------------------------
+- You can ineract with selections, not just "the clipboard":
+    | X11 Selection | Description                                       |
+    | ------------- | ------------------------------------------------- |
+    | `primary`     | What you *select* (highlight with mouse)          |
+    | `secondary`   | Rarely used (historical legacy)                   |
+    | `clipboard`   | What you *Ctrl+C* or `xclip -selection clipboard` |
+
+        - We only care about clipboard for scripting purposes.
+
+
+                    USAGE.
+                --------------
+1. xclip for copying (writing to clipboard)
+    Copy from a string.
+        EG.
+            echo "Hacked the mainframe!" | xclip -selection clipboard
+
+    Copy from a file.
+        EG.
+            xclip -selection clipboard -i /etc/passwd
+
+    Copy command output.
+        EG.
+            ifconfig | xclip -selection clipboard.
+
+
+2. xclip for pasting (reading from clipboard)
+    Paste to terminal.
+        EG.
+            xclip -selection clipboard -o 
+
+    Save clipboard to a file.
+        EG.
+            xclip -selection clipboard -o > copied_output.txt
+
+
+3. Copy image to clipboard.
+    EG.
+        xclip -selection clipboard -t image/png -i image.png
+
+            - Paste (e.g. into GIMP)
+                > just open GIMP -> Edit > Paste 
+
+                

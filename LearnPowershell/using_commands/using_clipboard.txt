@@ -1,0 +1,98 @@
+                                                CLIPBOARD.
+                                            =================
+- Cmdlets in this category:
+    Set-Clipboard 
+        > Copies data to the clipboard.
+    Get-Clipboard.
+        > Retrieves data from the clipboard.
+
+
+                        SET CLIPBOARD.
+                    =====================
+            SYNTAX.
+        ---------------
+EG.
+    Set-Clipboard [-Value] <Object> [-Append]
+
+
+                USAGE.
+            -----------
+1. Normal copy.
+    EG.
+        "Hello world!" | Set-Clipboard
+
+
+2. From variables.
+    EG.
+        $info = "Access granted"
+        Set-Clipboard $info
+
+
+3. With -Append (Yes, it exists!)
+    EG.
+        "Line 1" | Set-Clipboard
+        "Line 2" | Set-Clipboard -Append
+
+            - Pasting will give:
+                Line 1
+                Line 2
+
+            -Append only works properly with text.
+                > if you try  append objects or structured data, you're in "undefined behaviour" land.
+
+
+                        GET CLIPBOARD.
+                    ========================
+            SYNTAX
+        ----------------
+EG.
+    Get-Clipboard [-Format <ClipboardFormat>] [-TextFormatType <TextDataFormat>]
+
+
+                USAGE.
+            --------------
+1. Normal copy.
+    EG.
+        Get-Clipboard.
+
+            - Returns whatever is currently on your clipboard. Text, file paths, images (base64), you name it.
+
+
+2. Round trip .
+    EG.
+        Get-Process | Out-String | Set-Clipboard
+
+            - Then later.
+                EG.
+                    $clip = Get-Clipboard
+                    $clip | Out-File "process_list.txt"
+
+
+3. Clipboard formats.
+    - Use -Format or -TextFormatType for fine control.
+    - Text Formats.
+        EG.
+            Get-Clipboard -TextFormatType UnicodeText
+            Get-Clipboard -TextFormatType Rtf
+            Get-Clipboard -TextFormatType Html
+
+    - File drop format (when files are copied)
+        EG.
+            Get-Clipboard -Format FileDropList
+
+                - You can try this after copying files in explorer.
+                    EG.
+                        Get-Clipboard -Format FileDropList | ForEach-Object { Copy-Item $_ -Destination "C:\Backup" }
+
+
+4. Clean Multiline text before pasting.
+    EG.
+        (Get-Clipboard) -replace "`r`n", " " | Set-Clipboard
+
+            - Turns a pasted multiline string into a single line.
+
+
+5. Clearing the clipboard.
+    - there is no native Clear-Clipboard. You have to hack it:
+        EG.
+            "" | Set-Clipboard 

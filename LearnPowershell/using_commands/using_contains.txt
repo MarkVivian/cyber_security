@@ -1,0 +1,65 @@
+                                        CONTAINS.
+                                    ===============
+- It checks if a collection (array, list, etc) contains a specific object.
+
+
+            SYNTAX.
+        ---------------
+EG.
+    <collection> -contains <value>
+
+        - Returns True if the value exists exactly in the array.
+        - Uses equality, not pattern matching.
+        - Order doesn’t matter.
+
+
+            USAGE.
+        --------------
+1. Basic value check
+    EG.
+        $nums = 1, 2, 3, 4, 5
+        $nums -contains 3     # True
+        $nums -contains 10    # False
+
+
+2. Works with strings in an array
+    EG.
+        $names = "alice", "bob", "charlie"
+        $names -contains "bob"     # True
+        $names -contains "b"       # False
+
+            - Because "b" is not a whole element in the array — no partial match.
+
+
+3. Case-insensitive by default
+    EG.
+        $names -contains "BOB"     # True
+
+            - PowerShell uses case-insensitive comparisons unless you use -ccontains (case-sensitive version).
+                EG.
+                    $names -ccontains "BOB"     # False 
+
+
+4. Test if a file exists in a list
+    EG.
+        $files = Get-ChildItem *.txt
+        $files.Name -contains "notes.txt"
+
+
+5. Misuse Example (DOESN’T WORK as intended):
+    EG.
+        "PowerShell" -contains "Shell"  #  False
+
+            - Because "PowerShell" is treated as a scalar, not a collection, and it doesn’t contain "Shell" as an item — just as a substring.
+            - Use this instead:
+                EG.
+                    "PowerShell" -like "*Shell*"     # True
+                    "PowerShell".Contains("Shell")   # True
+
+            | Expression                          | Use Case          | Returns | Works On          |
+            | ----------------------------------- | ----------------- | ------- | ----------------- |
+            | `"PowerShell" -contains "Shell"`    | Array test? ❌     | False   | Strings (misused) |
+            | `@("PowerShell") -contains "Shell"` | In array? ❌       | False   | Arrays            |
+            | `"PowerShell".Contains("Shell")`    | Substring match ✅ | True    | Strings           |
+            | `"PowerShell" -like "*Shell*"`      | Wildcard match ✅  | True    | Strings           |
+

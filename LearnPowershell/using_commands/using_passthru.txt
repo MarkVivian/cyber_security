@@ -1,0 +1,23 @@
+                                            WHAT DOES PASS THRU DO.
+                                        =============================
+- The -PassThru parameter is used in many PowerShell commands that make changes or perform side-effects, but don’t return any output by default.
+- It tells the command:
+    > “After you’re done doing your job, give me the objects back too.”
+
+        EG. (Compare-Object)
+            Compare-Object $list1 $list2 -PassThru
+
+                > without -PassThru 
+                    * You get a nice table with <= and =>.
+                    
+                > With -PassThru
+                    * You get the actual values (objects) that were different.
+
+        - Great for piping those results forward or saving them.
+
+
+        EG. (Remove-item)
+            Remove-Item "test.txt" -PassThru
+
+                > Normally this deletes the file silently.
+                > With -PassThru, it returns the file object that was just deleted.

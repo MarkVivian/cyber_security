@@ -1,0 +1,153 @@
+                                        MEMBERS.
+                                    ==============
+- The two stars:
+    Get-Member 
+        > Find out what an object is made of.
+
+    Add-Member 
+        > slap on new parts like a mad scientist.
+
+
+                                GET-MEMBER 
+                            ===================
+= used to see what properties, methods, type an object has.
+    EG.
+        Get-Process | Get-Members
+
+            OUTPUT.
+                   TypeName: System.Diagnostics.Process
+
+                    Name       MemberType     Definition
+                    ----       ----------     ----------
+                    Name       Property       string Name {get;}
+                    Id         Property       int Id {get;}
+                    Kill       Method         void Kill()
+                    ...
+
+                        - This tells you:
+                            > What you can access: .Name, .Id, .StartTime, etc.
+                            > What you can do: .KILL(), .CloseMainWindow(), etc 
+
+
+= Useful flags.
+    Filtering by specific attribute or MemberType.
+        EG.
+            Get-Member -MemberType Method.
+
+                - will show you only the methods in MemberType in the output.
+
+    Show hidden members too.
+        EG.
+            Get-Members -Force 
+
+
+                    
+                            ADD-MEMBER.
+                        ===================
+= Add custom properties or methods to an existing object.
+= Perfect when you:
+    > Need to enrich existing data.
+    > Want to dynamically tag or reshape output.
+    > Are scripting reusable functions.
+
+| MemberType       | What It Does                                    | Example Status |
+| ---------------- | ----------------------------------------------- | -------------- |
+| `AliasProperty`  | Adds an alias to an existing property name      | ✅ Shown below  |
+| `CodeProperty`   | Connects a .NET method to a property            | ✅ Shown below  |
+| `MemberSet`      | Groups members logically (rare in scripts)      | ✅ Shown below  |
+| `Properties`     | Collection of properties (used internally)      | 📌 Mentioned   |
+| `PropertySet`    | Group of properties to show in views            | ✅ Shown below  |
+| `ScriptProperty` | A property whose value is calculated via script | ✅ Shown below  |
+| `Method`         | Alias of ScriptMethod (already skipped)         | 🚫 Skipped     |
+| `NoteProperty`   | Simple static property (already known)          | 🚫 Skipped     |
+
+- Other types (for completeness, rarely used)
+    | MemberType                        | Used in Scripting?                     | Notes                  |
+    | --------------------------------- | -------------------------------------- | ---------------------- |
+    | `Method`                          | No (alias of `ScriptMethod`)           | Skip                   |
+    | `Properties`                      | Internal                               | Skip creating manually |
+    | `Events`, `Event`, `EventHandler` | For event-driven scripting or GUI apps | Advanced only          |
+
+
+            BASIC SYNTAX.
+        ---------------------
+EG.
+    Add-Member -InputObject <object> -MemberType NoteProperty -Name <PropName> -Value <Value>
+
+
+            USAGE.
+        -------------
+1. Add a custom tag to a process.
+    You can add NoteProperty to an object.
+        EG.
+            $p = Get-Process | Select-Object -First 1
+            Add-Member -InputObject $p -MemberType NoteProperty -Name "Category" -Value "Test"
+            $p | Format-List Name, Id, Category
+
+                - You just added a property that wasn't originally there.
+
+
+    ScriptMethod 
+        EG.
+            $person = [PSCustomObject]@{ Name = "Mark" }
+            Add-Member -InputObject $person -MemberType ScriptMethod -Name "Greet" -Value { "Hello, $($this.Name)!" }
+            $person.Greet()
+
+
+    Script Property.
+        - This property has a getter (and optionally a setter).
+            EG.
+                $obj = [PSCustomObject]@{ Inches = 12 }
+                Add-Member -InputObject $obj -MemberType ScriptProperty -Name "Centimeters" -Value { $this.Inches * 2.54 }
+                $obj.Centimeters
+
+                    OUTPUT.
+                        30.48
+
+                    - Ideal for dynamic calculations or deriving values from internal state.
+
+        - You can even add a setter.
+            EG.
+                Add-Member -InputObject $obj -MemberType ScriptProperty -Name "CM" -Value { $this.Inches * 2.54 } -SecondValue { param($value); $this.Inches = $value / 2.54 }
+
+                    - Now you can set $obj.CM = 50 and it updates inches.
+
+
+    CodeProperty.
+        - Only works with types that already exist in .NET.
+        - You're wiring .NET directly to powershell objects.
+        - This is rare in scripting but seen in advanced modules.
+            EG.
+                $service = Get-Service | Select-Object -First 1
+                Add-Member -InputObject $service -MemberType CodeProperty -Name "Display" -Value ([System.Diagnostics.Process].GetProperty("ProcessName"))
+
+                    - Complex and type-restricted; useful when wrapping .NET types.
+
+
+    PropertySet .
+        - Used by powershell formatting system to show only selected props.
+            EG. (processes show only)
+                Handles, NPM(K), PM(K), WS(K), VM(M), CPU(s), Id, ProcessName
+
+                    - You can ovveride it with PropertySet, but it's rarely used manually.
+
+
+    MemberSet.
+        - Used by powershell internally (e.g., all events, all methods), usually not needed in hand-written scripts.
+        - you might see this when calling:
+            EG.
+                $obj | Get-Member
+
+                    - But you rarely add them yourself unless you're defining new PowerShell types or building modules.
+
+
+2. Or mutate in a loop.
+    EG.
+        Get-Process | Select-Object -First 5 | ForEach-Object {
+            Add-Member -InputObject $_ -MemberType NoteProperty -Name "Timestamp" -Value (Get-Date)
+            $_
+        }
+
+            - Now every object has a timestamp field.
+
+

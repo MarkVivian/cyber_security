@@ -1,11 +1,109 @@
                         JOIN
                     ===========
-- -join is an operator used to concatenate elements of an array into a single string, separated by a specified delimiter. 
-- It is not specific to file system paths.
+It takes an array of strings and glues them together using a delimiter (or not).
 
+
+        BASIC STRUCTURE.
+    ----------------------
+    EG.
+        -join <array>
+        <string[]> -join <delimiter>
+
+            - There are two ways to use -join:
+                > unary 
+                    * -join followed by an array.
+
+                > Binary.
+                    * [array] -join 'delimiter'
+
+
+            BASIC USAGE. 
+        ------------------
+1. Join without seperator. (just smashing strings together)
+    EG.
+        -join ('H', 'e', 'l', 'l', 'o')
+
+            OUTPUT.
+                Hello
+
+            - No seperator? it just slaps all items together.
+
+
+2. Join with a seperator.
     EG.
         $parts = @("C:", "Users", "Mark", "Desktop", "Scripts", "powershell")
         $joinedPath = $parts -join "\"
         Write-Host "Joined Path: $joinedPath"
 
-            - Using `-Join` to concatenate array elements.
+            OUTPUT.
+                Red, Green, Blue
+
+            - delimiter is before the operator, unlike in many other languages. You’re saying:
+                > "Take this array and join it using this glue"
+                EG.
+                    $ips = @('192.168.1.1', '192.168.1.2')
+                    $cmd = "ping " + ($ips -join ' & ping ')
+
+                        OUTPUT.
+                            ping 192.168.1.1 & ping 192.168.1.2
+
+
+3. Join numbers by converting to string.
+    EG.
+        @(1, 2, 3) -join '-'
+
+            OUTPUT.
+                1-2-3
+
+            - PowerShell will auto-stringify elements if needed. No need to ToString() each one. Lazy elegance.
+
+
+4. Join oly specific properties (objects)
+    EG.
+        Get-Process | Select-Object -First 5 -ExpandProperty Name | -join ', '
+
+            OUTPUT.
+                svchost, chrome, powershell, explorer, notepad
+
+            - This is useful in scripting when you need:
+                > CSV headers.
+                > Short summaries.
+                > Human-readable output without clutter.
+
+
+5. Multi-line strings : combine with newline.
+    EG.
+        $lines = @("Line 1", "Line 2", "Line 3")
+        $combined = $lines -join "`n"
+
+            OUTPUT.
+                Line 1
+                Line 2
+                Line 3
+
+            - Use this in logs, reports, email bodies, etc.
+
+
+6. Nulls and empty strings.
+    - Nulls vanish quietly.
+        EG.
+            -join @("one", $null, "two")
+
+                OUTPUT.
+                    onetwo
+
+                - No warnings. 
+                - No errors, just silent deletion.
+
+
+7. Comparison with .Join() in C#/.NET 
+    - You can also do this:
+        EG.
+            [string]::Join(', ', @('A', 'B', 'C'))
+                SAME AS.
+            @('A', 'B', 'C') -join ', '
+
+                - Use [string]::Join() when:
+                    > You're deep in >NET interop.
+                    > You're forced into static method hell (e.g. inside Add-Type scripts.)
+                    

@@ -1,0 +1,116 @@
+                                        EXPORT CSV.
+                                    =================
+- Export-Csv takes structured PowerShell objects and writes them to a .csv file, turning memory-resident data into cold, hard disk-based ASCII spreadsheets.
+- You use then when:
+    > You want to log data (processes, services, custom objects).
+    > You’re prepping data for Excel, reporting, or downstream scripts.
+    > You want to preserve object structure in a readable, portable format.
+
+
+            BASIC SYNTAX.
+        ----------------------
+EG.
+    Get-Process | Export-Csv -Path "C:\output\procs.csv" -NoTypeInformation
+
+        
+                UNDER THE HOOD
+            ----------------------
+- Powershell objects have:
+    > Properties.
+        * These are your columns.
+    > Values 
+        * These becomes rows
+
+- Export csv serializes this into comma-separated values without flattening into text—the structure is preserved.
+    EG.
+        Get-Service | Export-Csv services.csv 
+
+            - Exports services objects with columns like:
+                > Name 
+                > Status
+                > DisplayName
+                > DependentServices.
+                > ServiceType.
+
+            - It's not human-readable until you open it in excel or notepad ++.
+
+
+                    PARAMETER BREAKDOWN.
+                --------------------------
+| Parameter            | Meaning                                                         |
+| -------------------- | --------------------------------------------------------------- |
+| `-Path`              | Destination file path                                           |
+| `-Append`            | Add to existing file (beware: header issues)                    |
+| `-Force`             | Overwrite without whining                                       |
+| `-NoTypeInformation` | Removes that annoying `#TYPE System.Diagnostics.Process` header |
+| `-Encoding`          | Set encoding (`UTF8`, `ASCII`, etc.)                            |
+| `-Delimiter`         | Use something other than commas (e.g., `;`)                     |
+
+
+                USAGE.
+            -------------
+1. Basic export.
+    EG.
+        Get-Process | Export-Csv -Path "C:\temp\processes.csv" -NoTypeInformation
+
+            - Exports live process list.
+            - Output 
+                > Rows for each process, columns include Id, Name, CPU, etc.
+
+
+2. Custom Object to CSV.
+    EG.
+        $users = @(
+            [pscustomobject]@{Name="Alice"; Role="Admin"; Age=32}
+            [pscustomobject]@{Name="Bob"; Role="User"; Age=27}
+        )
+
+        $users | Export-Csv -Path ".\users.csv" -NoTypeInformation
+
+            - Custom PSCustomObject makes predictable CSVs - great for reporting.
+
+
+3. Appending to Existing file.
+    EG.
+        $moreUsers = @(
+            [pscustomobject]@{Name="Charlie"; Role="User"; Age=29}
+        )
+
+        $moreUsers | Export-Csv -Path ".\users.csv" -Append -NoTypeInformation
+
+            - If the structure doesn't match the existing csv (e.g, you add a new property), it'll either:
+                > Break formatting 
+                > ignore the property silently.
+
+
+4. Custom Delimiter.
+    EG.
+        Get-ChildItem | Export-Csv -Path ".\files.csv" -Delimiter ";" -NoTypeInformation
+
+            - This gives you a semicolon-separated file—e.g., for countries where comma is used as a decimal separator.
+
+
+5. UTF8 Encoding (fixing excel garbage)
+    EG.
+        Get-Service | Export-Csv -Path ".\services.csv" -NoTypeInformation -Encoding UTF8
+
+            - Use -Encoding UTF8 if special characters (e.g., in service names) go sideways in Excel or Notepad.
+
+
+6. Export specific properties.
+    EG.
+        Get-Process |
+        Select-Object Name, Id, CPU |
+        Export-Csv -Path ".\lightweight.csv" -NoTypeInformation
+
+            - Instead of exporting a bloated set of properties , hand-pick what matters.
+            - Cleaner output, smaller file.
+
+
+7. Cleanup tip.
+    EG.
+        Remove-Item .\*.csv -Force 
+
+            - Because exporting stuff during testing will carpet-bomb your folder with CSVs.
+
+            

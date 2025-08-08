@@ -1,0 +1,90 @@
+                                        TRIM
+                                    ============
+- It quietly removes leading and trailing clutter — spaces, tabs, newlines.
+
+
+                BASIC SYNTAX.
+            ---------------------
+EG.
+    <string>.Trim()
+    <string>.TrimStart()
+    <string>.TrimEnd()
+
+        
+                USAGE.
+            --------------
+1. Remove spaces from both ends.
+    EG.
+        "  Mark V  ".Trim()
+
+            OUTPUT.
+                Mark V
+
+            - It trims 
+                > Spaces (' ')
+                > Tabs ("t)
+                > Newlines ('n)
+                > Carriage returns ('r)
+
+
+2. Trim only the start.
+    EG.
+        "    Too early".TrimStart()
+
+            OUTPUT.
+                Too early.
+
+            - Useful when :
+                > Input from users has weird spacing.
+                > parsing config files or raw text.
+
+
+3. Trim only the end.
+    EG.
+        "Cut me off   ".TrimEnd()
+
+            OUTPUT.
+                Cut me off 
+
+
+4. Cleaning imported data.
+    EG.
+        Import-Csv data.csv | ForEach-Object {
+            $_.Name = $_.Name.Trim()
+            $_
+        }
+
+            - Whitespace in a CSV field makes comparisons fail silently.
+
+
+5. Handling clipboard / user input.
+    EG.
+        $userInput = Get-Clipboard
+        $userInput.Trim()
+
+
+6. Trimming specific characters.
+    EG.
+        "!!!Warning!!!".Trim("!")
+
+            OUTPUT.
+                Warning
+
+            - You can pass any character(s) you want to remove:
+                EG.
+                    "xxMARKxx".Trim("x")  # => MARK
+
+
+7. Regex alternative 
+    EG.
+        "PREFIX_logfile_SUFFIX" -replace '^PREFIX_|_SUFFIX$', ''
+
+            OUTPUT.
+                logfile
+
+            - .Trim() is character-based, not pattern-based — so use -replace when you need full surgical regex control.
+
+
+8. .Trim() is not global.
+    - it doesn't touch inside the string - just the outer crust.
+    - use -replace '\s' or -replace ' +', ' ' for internal cleaning.

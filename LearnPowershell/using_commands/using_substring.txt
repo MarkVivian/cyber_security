@@ -1,0 +1,87 @@
+                                    SUBSTRING()
+                                ================
+-  is a .NET string method that lets you grab a chunk of a string by specifying:
+    > where to start 
+    > how many characters to grab 
+
+
+            SYNTAX.
+        --------------------
+EG.
+    <string>.Substring(startIndex)
+    <string>.Substring(startIndex, length)
+
+        startIndex 
+            - Zero-based index to begin slicing.
+        length(optional)
+            - How many characters to grab.
+
+        - No regex, no fluff - just precision stabbing.
+
+
+                USAGE.
+            --------------
+1. Basic substring from position.
+    EG.
+        "PowerShell".Substring(5)
+
+            OUTPUT.
+                Shell 
+
+            - Starts at index 5, goes to the end.
+                P = index 0, o = index 1, and so on.
+
+
+2. Substring with length.
+    EG.
+        "PowerShell".Substring(0, 5)
+
+            OUTPUT.
+                Power 
+
+            - From index 0 grab 5 characters.
+
+
+3. Extract domain from email.
+    EG.
+        "john.doe@example.com".Substring(9)
+
+            OUTPUT.
+                @example.com 
+
+            - But if you want the part " after the @ " , do it smarter.
+                EG.
+                    $email = "john.doe@example.com"
+                    $email.Substring($email.IndexOf('@') + 1)
+
+                        OUTPUT.
+                            example.com 
+
+
+4. Extracting file names.
+    EG.
+        $path = "C:\Users\Mark\document.txt"
+        $filename = $path.Substring($path.LastIndexOf('\') + 1)
+
+            OUTPUT.
+                document.txt 
+
+            - Prefer Split-Path or [System.IO.Path]::GetFileName() when possible, but .Substring() works when you're forced into custom logic.
+
+
+5. always validate string length first.
+    EG.
+        if ($string.Length -ge 10) {
+            $string.Substring(9)
+        }
+
+            - if index out of range then it crashes.            
+
+
+6. It's not flexible with delimiters.
+    EG.
+        "file-123.log".Substring(5)  # blindly starts at position 5
+
+            - Better.
+                EG.
+                    $string.Substring($string.IndexOf('-') + 1)

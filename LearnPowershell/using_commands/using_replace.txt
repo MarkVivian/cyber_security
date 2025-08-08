@@ -9,89 +9,210 @@
 EG.
     $string -replace <pattern>, <replacement>
 
-        $string: The original string on which you want to perform the replacement.
-        <pattern>: The regular expression pattern you want to search for in the string.
-        <replacement>: The text that you want to replace the matched pattern with.
+        $string: 
+            > The original string on which you want to perform the replacement.
+        <pattern>:
+            > The regular expression pattern you want to search for in the string.
+        <replacement>:
+            > The text that you want to replace the matched pattern with.
 
 Key Points:
-    Regular Expressions: The -replace operator uses regular expressions (regex) to search for patterns, so you can use advanced pattern matching techniques.
-    Case Sensitivity: By default, the -replace operator is case-insensitive.
-    Global Replacement: The -replace operator replaces all occurrences of the pattern in the string.
+    Regular Expressions:
+        > The -replace operator uses regular expressions (regex) to search for patterns, so you can use advanced pattern matching techniques.
+    Case Sensitivity:
+        > By default, the -replace operator is case-insensitive.
+    Global Replacement:
+        > The -replace operator replaces all occurrences of the pattern in the string.
 
 
-EXAMPLES:
-    Example 1: Simple String Replacement
+            USAGE.
+        ----------------
+1.  Simple String Replacement
+   EG.
         $string = "Hello World!"
         $newString = $string -replace "World", "PowerShell"
         Write-Host $newString
 
-        Output:
-            Hello PowerShell!
+            Output:
+                Hello PowerShell!
 
-                - Here, the word "World" is replaced with "PowerShell".
+            - Here, the word "World" is replaced with "PowerShell".
 
     
-    Example 2: Replace All Spaces with Underscores
+2. Replace All Spaces with Underscores
+    EG.
         $string = "This is a test string."
         $newString = $string -replace " ", "_"
         Write-Host $newString
 
-        Output:
-
-        This_is_a_test_string.
+            Output:
+                This_is_a_test_string.
 
             - This replaces all spaces (" ") with underscores ("_").
 
     
-    Example 3: Removing Leading and Trailing Spaces (Trimming)
+3. Removing Leading and Trailing Spaces (Trimming)
+    EG.
         $string = "    Hello PowerShell!   "
         $newString = $string -replace "^\s+|\s+$", ""
         Write-Host $newString
 
-        Output:
+            Output:
+                Hello PowerShell!
 
-        Hello PowerShell!
+            ^\s+:
+                > Matches one or more spaces at the beginning of the string.
+            \s+$:
+                > Matches one or more spaces at the end of the string.
+            |: 
+                > Acts as an OR operator, so this pattern matches spaces at both ends of the string.
 
-            ^\s+: Matches one or more spaces at the beginning of the string.
-            \s+$: Matches one or more spaces at the end of the string.
-            |: Acts as an OR operator, so this pattern matches spaces at both ends of the string.
 
-
-    Example 4: Replace Digits with a Placeholder
+4. Replace Digits with a Placeholder
         $string = "My phone number is 123-456-7890."
         $newString = $string -replace "\d", "X"
         Write-Host $newString
 
-        Output:
+            Output:
+                My phone number is XXX-XXX-XXXX.
 
-        My phone number is XXX-XXX-XXXX.
-
-            \d: Matches any digit (0-9).
+            \d: 
+                > Matches any digit (0-9).
+            
             In this example, every digit in the string is replaced by "X".
 
 
-Example 5: Case-Insensitive Replacement
+5. Case-Insensitive Replacement
+    EG.
         $string = "Hello world"
-        $newString = $string -replace "world", "PowerShell", 1
+        $newString = $string -replace "world", "PowerShell"
         Write-Host $newString
 
-        Output:
-
-        Hello PowerShell
+            Output:
+                Hello PowerShell
 
             - By default, -replace is case-insensitive, so it doesn't matter if "world" is lowercase or uppercase.
             - If you want to make it case-sensitive, you can use the -creplace operator instead.
+                EG.
+                    $string = "Hello World"
+                    $newString = $string -replace "world", "PowerShell"
+                    Write-Host $newString
 
-            
-Example 6: Using -replace with Capturing Groups
+                        Output:
+                            Hello World
+
+
+  6. Removing part of a string.
+    EG.
+        "Admin_User" -replace "_User", ""
+
+            OUTPUT.
+                Admin
+
+            - Empty string as replacement = delete match. 
+
+
+7. Using -replace with Capturing Groups
         # You can also use regular expression capturing groups to reference parts of the match in the replacement string.
         $string = "My name is John Doe."
         $newString = $string -replace "My name is (\w+) (\w+)", "Hello, $2 $1"
         Write-Host $newString
 
-        Output:
-
-        Hello, Doe John
+            Output:
+                Hello, Doe John
 
             (\w+): This captures the first and last names as groups.
             - In the replacement string, $1 refers to the first captured group (John), and $2 refers to the second captured group (Doe).
+
+
+8. Replace multiple words.
+    EG.
+        "Red Blue Green" -replace "Red|Green", "Color"
+            
+            OUTPUT  
+                Color Blue Color 
+
+                    - You're using a regex OR here - very powerful.
+
+
+9. Extract parts with capture groups.   
+    EG.
+        "John.Doe@example.com" -replace '^(.+?)\..+@', '$1'
+
+            OUTPUT.
+                John
+
+            Explanation:
+                (.+?)
+                    > capture first name.
+                \. 
+                    > dot.
+                .+@
+                    > everything after till @
+                $1
+                    > the first capture group.
+
+
+10. Replace file extensions.
+    EG.
+        "document.pdf" -replace '\.pdf$', '.docx'
+
+            OUTPUT.
+                document.docx 
+
+                    - The $ ensures it only replaces the .pdf at the end. 
+
+
+11. Regex characters must be escaped.
+    EG.
+        "1.2.3.4" -replace '\.', '-'
+
+            OUTPUT.
+                1-2-3-4
+
+            - You can't just use . to match literal dot.
+            - in regex it means any character, escape it with \.
+
+
+12. Regex greediness.
+    EG.
+        "[abc] [def]" -replace '\[.*\]', ''
+
+            - there will be no output.
+            - because .* is greedy.
+            - It grabs everything between the first [ and the last ]. to fix.
+                EG.
+                    '\[.*?\]'  # lazy match
+
+
+13. When to use .Replace() instead.
+    EG.
+        "PowerShell".Replace("Shell", "Ranger")
+
+            OUTPUT.
+                PowerRanger.
+
+            - That's literal, no regex. So use .Replace() if:
+                > You don't need regex.
+                > You want better performance.
+                > You hate regex and want less grief.
+
+            - otherwise use -replace for the power and pattern control.
+
+
+14. Clean user input (e.g. remove special chars)
+    EG.
+        $username = "a*b@!c"
+        $username -replace '[^a-zA-Z0-9]', ''
+
+            OUTPUT.
+                abc 
+
+
+15. Anonymize log data.
+    EG.
+        "User: mark IP: 192.168.1.50" -replace '\d{1,3}(\.\d{1,3}){3}', '[REDACTED]'
+
+            OUTPUT.
+                User: mark IP: [REDACTED]
+

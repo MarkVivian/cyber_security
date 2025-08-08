@@ -1,0 +1,272 @@
+                                                CONTEXT.
+                                            =================
+- We'll go from least-destructive to most-destructive.
+    > Get-Content 
+        * Reading a file 
+    > Add-Content 
+        * Appending to a file.
+    > Set-Content 
+        * Overwriting /replacing content.
+    > Clear-Content 
+        * Wiping out the content (but not deleting the file)
+
+- This order helps you:
+    > Read -> Append -> Overwrite -> Nuke (logical risk escalation)
+
+
+                    GET-CONTENT (The file reader)
+                ==================================
+- Reads the contents of a file line by line (by default) and returns an array of strings, each string being a line.
+
+
+            SYNTAX.
+        -------------
+EG.
+    Get-Content [-Path] <string[]> [-Encoding <string>] [-Raw] [-Tail <int>] [-TotalCount <int>] [-Wait] [-Force] [CommonParameters]
+
+
+            CORE PARAMETERS.
+        ----------------------
+1. -Path 
+    - Specifies the file or files to read.
+        EG.
+            Get-Content -Path "C:\Logs\system.log"
+
+
+2. -Raw 
+    - Returns entire content as a single string, instead of an array of lines.
+    - Useful for reading JSON, XML, HTML, or a one-shot paste.
+        EG.
+            $json = Get-Content -Path "C:\Data\data.json" -Raw
+
+                - Without -Raw, JSON parsing fails more often because it's split into lines.
+                - Do not use for large files since it will eat up your RAM.
+
+3. -Encoding 
+    - For choosing how the file is read.
+        > ascii, utf7, utf8, utf32, unicode, bigendianunicode, default, oem
+            EG.
+                Get-Content -Path "file.txt" -Encoding UTF8
+
+                    - Use when working with files across platforms, like linux-generated logs in windows.
+
+
+4. -Tail <int>
+    - Only return the last N lines of the file. like tail in linux.
+        EG.
+            Get-Content -Path "log.txt" -Tail 20
+
+
+5. -TotalCount <int>
+    - Only read the first N lines of the file.
+        EG.
+            Get-Content -Path "log.txt" -TotalCount 10
+
+
+6. -wait.
+    - Keeps the file open and waits for new lines - useful for live logs.
+        EG.
+            Get-Content "C:\Logs\web.log" -Wait
+
+                - Like tail -f in linux.
+                - can't be used with -Raw or -TotalCount.
+
+
+7. -Force
+    - Reads hidden/system files that would otherwise be skipped.
+        EG.
+            Get-Content -Path "C:\Hidden\secret.txt" -Force
+
+
+                            ADD-CONTENT (APPEND DATA TO FILES)
+                        =========================================
+- Adds content to the end of a file.
+- It doesn't overwrite 
+
+
+                SYNTAX.
+            ---------------
+EG.
+    Add-Content [-Path] <string[]> [-Value] <string[]> [-Encoding <string>] [-Force] [-PassThru] [CommonParameters]
+
+
+            CORE PARAMETERS. 
+        ----------------------
+1. -Path 
+    - The target file(s) to append content to.
+        EG.
+            Add-Content -Path "C:\logs\app.log" -Value "New log entry"
+
+
+2. -Value 
+    - The actual text/data you want to append.
+        > Can be a string, an array of strings or even variables.
+        > If the file doesn't exist and you use -Force , it will create it.
+            EG.
+                Add-Content -Path "notes.txt" -Value "Don't forget backups!"
+                Add-Content -Path "report.txt" -Value @("Line 1", "Line 2")
+
+
+3. -Encoding.
+    - Controls how text is encoded.
+    - Options.
+        > ascii
+        > bigendianunicode.
+        > unicode
+        > utf7
+        > utf8 (default)
+        > utf8BOM 
+        > utf8NoBOM
+        > utf32
+        > default (legacy .NET default, usually ANSI )
+        > oem (code page used in command prompt)
+
+            EG.
+                Add-Content -Path "data.log" -Value "✓" -Encoding utf8
+
+
+4. -Force 
+    - Creates the file if it doesn't exist. Also allows appending to hidden/system files.
+        EG.
+            Add-Content -Path "C:\hidden\secret.txt" -Value "🔒 appended" -Force
+
+                - Without -Force, powrshell will error out if the file doesn't exist or is hidden.
+
+
+5. -PassThru 
+    - Outputs the new content to the pipeline after appending it.
+    - Without this, Add-Content is silent.
+        EG.
+            Add-Content -Path "test.txt" -Value "Pipeline test" -PassThru
+
+    - Returns 
+        Pipeline test 
+
+    - Useful for chaining.
+    - Only returns what you just appended - not the whole file.
+
+
+                                SET-CONTENT (Overwriting File Cotent)
+                            ===========================================
+- Wipes out the current content of the file and replaces it with whatever you feed it.
+- If the file doesn’t exist, it creates it. Think of this as "reset and replace."
+- It doesn't delete the file, just empties it.
+
+                    SYNTAX.
+                ----------------
+EG.
+    Set-Content [-Path] <string[]> [-Value] <string[]> [-Encoding <string>] [-Force] [-PassThru] [CommonParameters]
+
+
+                CORE PARAMETERS.
+            --------------------------
+1. -Path 
+    - Specifies the file or files to write to.
+        EG.
+            Set-Content -Path "C:\report.txt" -Value "Replaced!"
+
+
+2. -Value 
+    - The actual data (text or objects converted to string) you want to write.
+        EG.
+            Set-Content -Path "example.txt" -Value "First line."
+            Set-Content -Path "file.txt" -Value @("Line 1", "Line 2")
+
+                - That Writes 
+                    Line 1
+                    Line 2
+
+
+3. -Encoding 
+    - controls the text format just like Add-Content:
+        > ascii
+        > bigendianunicode.
+        > unicode
+        > utf7
+        > utf8 (default)
+        > utf8BOM 
+        > utf8NoBOM
+        > utf32
+        > default (legacy .NET default, usually ANSI )
+        > oem (code page used in command prompt)
+            
+            EG.
+                Set-Content -Path "unicode.txt" -Value "✓ overwriting" -Encoding unicode
+
+
+4. -Force 
+    - Allows overwriting files that are:
+        > Hidden 
+        > System 
+        > Read-Only (in some cases depeding on ACLs)
+        > Or creating a file if it doesn't exist.
+            EG.
+                Set-Content -Path "C:\secret\info.txt" -Value "Overwritten data" -Force
+
+
+5. -PassThru 
+    - Outputs the written content back to the pipeline.
+        EG.
+            Set-Content -Path "newfile.txt" -Value "Hello world" -PassThru
+    
+    - Returns 
+        Hello world.
+
+
+6. Wipe a file and leave a single line.
+    EG.
+        Set-Content -Path "crashlog.txt" -Value "Log cleared at $(Get-Date)"
+
+
+                                    CLEAR-CONTENT. (Wipe File contents without Deleting the file)
+                                ==================================================================
+- Deletes only the content inside a file (or multiple files), leaving the file itself intact.
+- Like hitting Ctrl+A and Delete inside a file editor—but programmatically.
+
+
+                SYNTAX.
+            -------------
+EG.
+    Clear-Content [-Path] <string[]> [-Force] [-Filter <string>] [-Include <string[]>] [-Exclude <string[]>] [-WhatIf] [-Confirm] [CommonParameters]
+
+
+                PARAMETERS.
+            -------------------
+1. -Path 
+    - Path(s) to file(s) you want to empty out.
+        EG.
+            Clear-Content -Path "C:\logs\error.log"
+
+
+2. -Force 
+    - Lets you clear content from hidden, read-only, or system files.
+        EG.
+            Clear-Content -Path "C:\.hiddenfile" -Force
+
+                - Without -Force, Powrshell would say: "Nope, too dangerous"
+
+
+3. -Filter, -Include, -Exclude 
+    - Used for targeting files inside a folder.
+        EG. (Empty only .log files, but exclude those with "critical" in the name)
+            Clear-Content -Path "C:\logs\*" -Include *.log -Exclude *critical*
+
+
+4. -WhatIf
+    - Simulates the action.
+    - Shows what would happen, without doing it.
+        EG.
+            Clear-Content -Path "C:\logs\error.log" -WhatIf
+
+        OUTPUT.
+            What if: Performing the operation "Clear Content" on target "Item: C:\logs\error.log".
+
+
+5. -Confirm 
+    - Prompts you for confirmation before executing.
+        EG.
+            Clear-Content -Path "C:\logs\error.log" -Confirm
+
+        OUTPUT.
+            Are you sure you want to perform this action?
+            [Y] Yes  [A] Yes to All  [N] No  [L] No to All  [S] Suspend  [?] Help (default is "Y"):

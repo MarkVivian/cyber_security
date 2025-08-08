@@ -1,0 +1,61 @@
+                                    .TOUPPER() AND .TOLOWER().
+                                ================================
+- These are .NET string methods, not PowerShell cmdlets. 
+- That means you use them with dot notation directly on string objects.
+
+
+                SYNTAX.
+            -------------
+EG.
+    <string>.ToUpper()
+    <string>.ToLower()
+
+
+                USAGE.
+            ------------
+1. Basic Upper/Lower.
+    EG.
+        "PowerShell".ToUpper()
+
+            OUTPUT.
+                POWERSHELL.
+
+        "Powershell".ToLower()
+
+            OUTPUT.
+                powershell
+
+
+2. Case-insensitive comparison (when -eq isn't enough)
+    EG.
+        $userInput = "AdMiN"
+        $expected = "admin"
+
+        if ($userInput.ToLower() -eq $expected) {
+            "Access granted"
+        }
+
+            -Why not just use -ieq? You can — but sometimes you're working with lists, hash keys, or external systems that demand normalization first.
+
+
+3. Transform collections.
+    EG.
+        @('One', 'Two', 'Three') | ForEach-Object { $_.ToUpper() }
+
+            OUTPUT.
+                ONE
+                TWO
+                THREE
+
+            - Useful in:
+                > Exported reports.
+                > Menu formatting.
+                > String array normalization.
+
+
+4. only works with strings.
+    - if you're dealing with mixed types.
+        EG.
+            $number.ToString().ToUpper()
+
+        

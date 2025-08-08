@@ -1,0 +1,87 @@
+                                        [MATH]::
+                                    ===============
+- PowerShell uses the .NET [math] class to access powerful, static methods for advanced number handling.
+- This isn't a calculator. It's a scalpel.
+
+
+                BASIC SYNTAX.
+            -------------------------
+EG.
+    [Math]::MethodName(argument)
+
+        > These methods are static - meaning no object needed, just call and go.
+
+
+                    CATEGORIES OF [MATH]:: METHODS.
+                ------------------------------------
+1. Basic math.
+    EG.
+        [Math]::Abs(-42)       # 42
+        [Math]::Max(10, 50)    # 50
+        [Math]::Min(10, 50)    # 10
+        [Math]::Sign(-10)      # -1 (negative), 0 (zero), 1 (positive)
+
+            - Cleaning up values or making logical decisions based on sign or magnitude.
+
+
+2. Rounding.
+    EG.
+        [Math]::Round(3.14159, 2)  # 3.14
+        [Math]::Ceiling(4.2)       # 5 (rounds **up** to nearest int)
+        [Math]::Floor(4.8)         # 4 (rounds **down** to nearest int)
+        [Math]::Truncate(4.9)      # 4 (drops decimal, no rounding)
+
+
+3. Power and roots.
+    EG.
+        [Math]::Pow(2, 10)     # 1024
+        [Math]::Sqrt(49)       # 7
+
+
+4. Logs and exponentials.
+    EG.
+        [Math]::Log(100)           # Natural log (base e)
+        [Math]::Log10(100)         # Base-10 log
+        [Math]::Exp(2)             # e^2
+
+
+5. Trigonometry.
+    EG.
+        [Math]::Sin(1.57)          # ~1 (radians!)
+        [Math]::Cos(0)
+        [Math]::Tan(0.785)
+        [Math]::Asin(1)            # Inverse sin
+        [Math]::Atan(1)
+
+            - input is in radians, not degrees.
+            - Want degrees convert manually:
+                EG.
+                    $degrees = 90
+                    $radians = $degrees * [math]::PI / 180
+                    [Math]::Sin($radians)  # ≈ 1
+
+
+6. Constants
+    EG.
+        [Math]::PI          # 3.14159...
+        [Math]::E           # 2.71828...
+
+
+7. Randomly generate and round.
+    EG.
+        $val = Get-Random -Minimum 1 -Maximum 10
+        [Math]::Round($val / 3, 2)
+
+
+8. Clamp a value within a range.
+    EG.
+        $value = 120
+        $clamped = [math]::Min([math]::Max($value, 0), 100)
+        # ensures it's between 0 and 100
+
+
+9. Combine [math] with pipelines.
+    EG.
+        1..5 | ForEach-Object { [Math]::Pow($_, 2) }
+        # 1, 4, 9, 16, 25
+
