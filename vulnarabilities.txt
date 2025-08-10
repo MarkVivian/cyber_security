@@ -41,3 +41,42 @@
     
     > CVE Lists + Public Exploits:
         - If you're looking to practice on specific vulnerabilities, searching for CVEs and trying them on machines in VulnHub or Metasploit is a great way to learn.
+
+
+WINDOWS.
+OFFENSIVE (RED TEAM )
+| Resource                   | Description                                                                                                         |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| **TryHackMe Rooms**        | "Windows PrivEsc", "AttackBox", and "Red Team Ops" — all hands-on                                                   |
+| **HackTheBox Machines**    | Look for boxes tagged with Windows and Privilege Escalation                                                         |
+| **LOLBAS Project**         | [https://lolbas-project.github.io/](https://lolbas-project.github.io/) – Lookup abuse methods for built-in binaries |
+| **PayloadsAllTheThings**   | Actual commands/scripts to abuse PowerShell/Services/Tasks                                                          |
+| **PwnLab/RedTeamOps CTFs** | AD and privilege abuse using realistic scenarios                                                                    |
+| **ADLab/DetectionLab**     | Your own lab: Simulate domain, GPO, user permissions, etc                                                           |
+
+DEFENSIVE (BLUE TEAM)
+| Resource                        | Description                                         |
+| ------------------------------- | --------------------------------------------------- |
+| **Sysmon Config + Sigma Rules** | Log like a hawk and write rules to detect behaviors |
+| **BlueTeamLabs.online**         | Interactive puzzles based on real forensics         |
+| **MITRE ATT\&CK Navigator**     | Map TTPs to defensive coverage                      |
+| **Wazuh / ELK Stack + Sysmon**  | Build your own detection lab (goes with above)      |
+
+
+LINUX.
+OFFENSIVE (RED TEAM )
+| Resource                          | Description                                                  |
+| --------------------------------- | ------------------------------------------------------------ |
+| **GTFOBins**                      | [https://gtfobins.github.io](https://gtfobins.github.io)     |
+| **TryHackMe - Linux PrivEsc**     | Very playground-heavy and good progression                   |
+| **HackTheBox Machines**           | Look for "Linux", "Enumeration", and "Root via Exploit" tags |
+| **LinPEAS + LinEnum**             | Automate enum for priv esc with real examples                |
+| **OverTheWire – Bandit / Narnia** | Command logic + escape training                              |
+
+DEFENSIVE (BLUE TEAM)
+| Resource                          | Description                                                      |
+| --------------------------------- | ---------------------------------------------------------------- |
+| **Auditd Rules Playground**       | [https://audit.rules](https://audit.rules/)                      |
+| **Splunk Boss of the SOC (BOTS)** | Real-world log scenarios                                         |
+| **Wazuh**                         | Free SIEM platform, can collect logs from both Linux and Windows |
+| **Logwatch / Logrotate**          | Learn log maintenance and how rotation hides logs                |

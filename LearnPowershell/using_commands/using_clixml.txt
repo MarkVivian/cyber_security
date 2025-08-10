@@ -1,0 +1,122 @@
+                                    CLIXML
+                                -------------
+- Clixml stands for "Common Language Infrastructure XML", which is just a fancy way of saying:
+    > “We’re saving your PowerShell objects into XML format — and preserving every quirk, property, and method so we can rehydrate them later with no data loss.”
+
+- Think of it like a freeze ray for .NET/PS objects.
+- You freeze them (Export), throw them in a file, and unfreeze them later (Import) — and they're just as smart as they were when you froze them.
+- Most output formats like:
+    > CSV (Export-Csv)
+    > JSON (ConvertTo-Json)
+    > Plain text
+
+    - flatten your data.
+    - You lose nested properties, methods, object types, etc.
+    - They’re great for humans or third-party tools, but not for reconstructing the actual object.
+
+Clixml:
+    > Retains exact data types
+    > Maintains nested objects
+    > Preserves methods and metadata
+
+This means you can do this:
+    EG.
+        $process = Get-Process -Name "notepad"
+        $process | Export-Clixml -Path .\notepad.xml
+
+        # Later or in another session:
+        $reloaded = Import-Clixml -Path .\notepad.xml
+        $reloaded.Kill()   # Yep, the method still works!
+
+            - You can kill a process you saved in XML. You're basically saving live object state, not just data.
+
+- It contains two commands:
+    > Export-Clixml 
+    > Import-Clixml 
+
+- When to use it:
+    > Persistence between sessions.
+        * Save objects between scripts runs with full fidelity.
+    > State sharing
+        * Pass complex objects between machines/scripts without losing structure.
+    > Deep debugging:
+        * Capture exact object state during failure for later inspection.
+    > Offline storage:
+        * Save something like Get-WmiObject, use it for testing without needing the original system again.
+
+- When Not to use it:
+    > When you need human-readable output (use JSON or CSV).
+    > When sharing with systems that don’t understand PowerShell or .NET.
+    > When file size matters. XML with type info = chonk.
+    > When you only need simple key/value pairs or flat data.
+
+
+                            EXPORT-CLIXML 
+                        ====================
+            SYNTAX.
+        -------------
+EG.
+    Export-Clixml [-Path] <string> [-InputObject] <PSObject> [-Depth <int>] [-Force] [-Encoding <Encoding>] [-NoClobber]
+
+        - Key Options: 
+            -Path 
+                > File to save to 
+            -InputObject 
+                > The object to serialize
+            -Depth 
+                > Controls how deep nested properties are serialized.
+            -Force 
+                > Overwrites read-only or hidden files.
+            -Encoding.
+                > Encoding for the xml file (utf8, utf16, etc)
+            -NoClobber 
+                > Prevents overwriting an existing file.
+
+
+            USAGE.
+        --------------
+1. Save Running Services.
+    EG.
+        Get-Service | Where-Object {$_.Status -eq 'Running'} | 
+        Export-Clixml -Path .\RunningServices.xml
+
+
+2. Save and reload a complex object.
+    EG.
+        $user = [PSCustomObject]@{
+            Name = "Mark V"
+            Role = "Cybersecurity"
+            Skills = @("PowerShell", "Linux", "Reverse Engineering")
+        }
+
+        Export-Clixml -Path .\user.xml -InputObject $user
+
+        # Later:
+        $loadedUser = Import-Clixml .\user.xml
+        $loadedUser.Skills
+
+
+                            IMPORT-CLIXML
+                        ===================
+            SYNTAX.
+        --------------
+EG.
+    Import-Clixml [-Path] <string>
+
+        - That’s it — you point it at an XML file that was previously exported with Export-Clixml, and you get your original object back.
+            EG.
+                $restored = Import-Clixml -Path .\RunningServices.xml
+                $restored | Get-Member
+
+                    - You’ll see that $restored is a collection of System.ServiceProcess.ServiceController objects — not strings, not hash tables, but the real deal.
+
+
+            PRO TIPS.
+        ----------------
+1. -Depth is your friend.
+    - If your object has deep nesting, use -Depth to control how far into child proeprties it serializes.
+        EG.
+            Get-ADUser -Identity "MarkV" -Properties * | 
+            Export-Clixml -Path .\user.xml -Depth 5
+
+                - Default depth is 2 so nested madness like WMI Objects will get cut off without it.

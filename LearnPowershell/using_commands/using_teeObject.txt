@@ -1,0 +1,63 @@
+                                TEE OBJECT.
+                            ================
+- used when  you want to see data pass through the pipeline, but also store it (e.g., to a file or variable) at the same time.
+- What it does:
+    > Takes input from the pipeline.
+    > Saves a copy to a file or variable.
+    > Passes the original data downstream, untouched.
+
+
+                SYNTAX.
+            ------------
+EG.
+    Tee-Object [-FilePath] <string>
+    Tee-Object [-Variable] <string>
+
+        - Use cases.
+            > Logging while processing.
+                * You want to see what's going through your pipeline and save it to a file at the same time.
+
+            > Debugging pipelines.
+                * You're building a big pipeline and want to peak in the middle without breaking the flow.
+
+            > Split workflows.
+                * Send data to two places: a file and the next command.
+
+| Parameter      | Purpose                                          | Example                       |
+| -------------- | ------------------------------------------------ | ----------------------------- |
+| `-FilePath`    | Path to store the data as text                   | `-FilePath 'output.txt'`      |
+| `-Variable`    | Name of a variable to store the object in memory | `-Variable savedResult`       |
+| `-InputObject` | Manual input (if not using pipeline)             | `-InputObject $(Get-Process)` |
+| `-Encoding`    | How to write the file (ASCII, UTF8, etc.)        | `-Encoding UTF8`              |
+| `-Append`      | Don’t overwrite file; add to it                  | `-Append`                     |
+
+
+                USAGE
+            --------------
+1. You want to get a list of processes, Save them, and also sort them by memory.
+    EG.
+        Get-Process | Tee-Object -FilePath "C:\temp\procs.txt" | Sort-Object WorkingSet -Descending
+
+            > The raw list of processes is written to procs.txt.
+            > The pipeline continues flowing, now sorting by memory.
+
+
+2. You want to store the output but still pass it forward.
+    EG.
+        Get-Service | Tee-Object -Variable allServices | Where-Object Status -eq 'Running'
+
+            > allServices contains everything, not just running ones.
+            > The rest of the pipeline filters only running ones.
+
+
+3. Check File Sizes, Save Results, and process further.
+    EG.
+        Get-ChildItem -Recurse | Tee-Object -FilePath "C:\temp\files.log" | Where-Object Length -gt 1MB
+
+
+4. Check file sizes, save results, and process further.
+    EG.
+        Get-ChildItem -Recurse | Tee-Object -FilePath "C:\temp\files.log" | Where-Object Length -gt 1MB
+
+            > A full dump of all files into the log file.
+            > Only files > 1MB going to the next part of the pipeline.

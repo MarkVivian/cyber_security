@@ -1,0 +1,104 @@
+                                                ARGUMENT LIST.
+                                            ===================
+- It’s a catch-all parameter that supplies arguments to another process, object, method, or session.
+- It doesn’t do anything on its own — it’s a delivery boy: "Here’s your constructor args, sir."
+
+- But its behavior depends 100% on the cmdlet you're using.
+
+| Cmdlet                           | Purpose                                    |
+| -------------------------------- | ------------------------------------------ |
+| `New-Object`                     | Constructor parameters for .NET/COM object |
+| `Start-Process`                  | Arguments to a new process                 |
+| `Invoke-Command`                 | Scriptblock argument binding               |
+| `Start-Job`                      | Arguments passed to a script block         |
+| `Invoke-WmiMethod`               | Parameters to a WMI method                 |
+| `New-PSSessionConfigurationFile` | Initial script parameters                  |
+| `Register-ScheduledTask`         | Script argument list                       |
+| Custom methods via `&`           | Less common, still possible                |
+
+
+1. New-Object -ArgumentList (Most important one)
+    Purpose 
+        - Pass arguments to a constructor or method when creating a .NET object or COM object.
+
+    Syntax 
+        EG.
+            New-Object -TypeName <Type> -ArgumentList <arg1>, <arg2>, ...
+
+    Usage
+        EG. (constructor overload)
+            $datetime = New-Object System.DateTime -ArgumentList 2025, 8, 8
+            $datetime.ToString("yyyy-MM-dd")
+
+                - This calls
+                    EG.
+                        new DateTime(2025, 8, 8);
+
+                - You must supply the exact number and type of arguments that match a valid constructor.
+
+    Gotchas 
+        > No automatic overload detection - Wrong params = exception.
+        > Always pass as comma-seperated args, not a single array (unless the constructor wants an array)
+            EG.
+                # Correct
+                New-Object System.Collections.ArrayList -ArgumentList "item1"
+
+                # Wrong 
+                New-Object System.Collections.ArrayList -ArgumentList @("item1")  # this makes it try to call: ArrayList(object[])
+
+
+2. Start-Process -ArgumentList.
+    Purpose 
+        - Passes command-line arguments to the processs being started.
+            EG.
+                Start-Process notepad.exe -ArgumentList "C:\notes.txt"
+
+                    - Opens Notepad with the file already loaded.
+        - Combine with:
+            > -Wait
+            > -NoNewWindow
+            > -PassThru
+                EG.
+                    Start-Process powershell -ArgumentList "-NoExit", "-Command", "Get-Process" -NoNewWindow
+
+                        - Each argument is treated like a CLI param. 
+
+
+3. Invoke-Command -ArgumentList.
+    Purpose.
+        - Passes arguments into a remote or background scriptblock.
+            EG.
+                Invoke-Command -ScriptBlock {
+                    param($user, $domain)
+                    "User: $user@$domain"
+                } -ArgumentList "mark", "redteam.local"
+
+                    - Works the same with:
+                        > Start-Job 
+                        > Register-Job 
+
+                    - Positional binding only - so match argument order to param() declaration.
+
+
+4. WMI: Invoke-WmiMethod - ArgumentList 
+    EG.
+        Invoke-WmiMethod -Class Win32_Process -Name Create -ArgumentList "notepad.exe"
+
+            - Calls the .create() method of win32_Process with the argument "notepad.exe"
+
+
+5. Common mistakes.
+    Mistaking PS parameters for CLI parameters.
+        EG.
+            # Wrong
+            Start-Process ping -ArgumentList "-n 5 google.com"
+
+            # Correct
+            Start-Process ping -ArgumentList @("-n", "5", "google.com")
+
+    Passing array instead of arguments.
+        EG.
+            # Wrong
+            New-Object System.String -ArgumentList @("string", 0, 3)
+
+            # Might not match a constructor

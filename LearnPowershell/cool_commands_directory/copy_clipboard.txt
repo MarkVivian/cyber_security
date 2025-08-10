@@ -1,5 +1,0 @@
-- We can copy files from the powershell terminal to the clipboard using:
-    EG.
-        command_output | clip
-            OR
-        command_output | set-clipboard

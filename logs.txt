@@ -1,0 +1,97 @@
+PART 1: LOGGING — THE SNITCH THAT NEVER SLEEPS
+
+Let’s talk about logs—the black box of the OS world. Everything from typing ipconfig to exploiting a kernel driver can be logged… somewhere. It’s like a clingy ex that records everything you do.
+🔵 WINDOWS LOGGING (THE NOSEY NEIGHBOR)
+📍 Where logs live:
+
+    Main Event Logs:
+    Stored in C:\Windows\System32\winevt\Logs\ as .evtx files.
+
+| Log Name                    | Path                                             | What it logs                                                           |
+| --------------------------- | ------------------------------------------------ | ---------------------------------------------------------------------- |
+| **System**                  | `System.evtx`                                    | OS-level stuff (e.g., driver failures, restarts, device installs)      |
+| **Application**             | `Application.evtx`                               | App crashes, errors, SQL failures, etc.                                |
+| **Security**                | `Security.evtx`                                  | Logons, account lockouts, group changes. *VERY important for IR*.      |
+| **PowerShell**              | `Microsoft-Windows-PowerShell%4Operational.evtx` | Every. Damn. Script.                                                   |
+| **Sysmon** *(if installed)* | Custom location                                  | Very juicy — process creations, network connections, file writes, etc. |
+
+
+🛠 How to view logs:
+
+    GUI: Event Viewer (eventvwr.msc)
+
+    PowerShell:
+
+    Get-EventLog -LogName Security -Newest 50
+    Get-WinEvent -LogName "Microsoft-Windows-PowerShell/Operational"
+
+👻 Can you hide your actions?
+
+Yes—but also no. Here’s the rundown:
+| Attempt                               | Result                                                                                          |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| **Delete logs**                       | Logs that logs were deleted… are also logged (meta-logging 😐)                                  |
+| **Clear logs**                        | Triggers Event ID 104 (Log cleared)                                                             |
+| **Disable logging**                   | May trigger alerts or be reverted by GPO                                                        |
+| **Use non-logged binaries (LOLBins)** | This is a smarter move. Use tools like `rundll32.exe`, `mshta.exe`, etc. to fly under the radar |
+
+
+Bottom line: You can evade but not erase. Blue teamers are watching. Be surgical.
+🔴 LINUX LOGGING (THE PARANOID ROOMMATE)
+📍 Common log locations:
+
+    /var/log/ is the mothership.
+
+        auth.log – login attempts, sudo, ssh
+
+        syslog – general system messages
+
+        dmesg – kernel ring buffer (driver, boot issues)
+
+        journalctl – systemd logs (new standard)
+
+📦 What logs what:
+
+    bash → doesn’t log by default (unless you mess with .bash_history)
+
+    sudo → goes to auth.log
+
+    cron → syslog or cron.log
+
+    Services → usually log to their own files or syslog
+
+🔍 View logs:
+
+tail -f /var/log/auth.log
+journalctl -xe
+less /var/log/syslog
+
+😈 Hide or bypass?
+
+    Clear logs: sudo truncate -s 0 /var/log/auth.log (bad idea—it’s obvious)
+
+    Append null: echo > /var/log/syslog
+
+    Disable logging (short term): kill rsyslog or tamper with systemd-journald.conf🤔 But logs tell what?
+
+Every action with context:
+
+    Who (username/session)
+
+    What (command or process)
+
+    When (timestamp)
+
+    Where (source IP, hostname)
+
+    Sometimes Why (error codes, parameters)
+
+This is why pentesters & attackers often:
+
+    Elevate quickly
+
+    Clear evidence early (or not at all and focus on stealth)
+
+    Use LOLBins or living-off-the-land techniques
+
+    Drop into memory-only execution (e.g., Invoke-Mimikatz via IEX)

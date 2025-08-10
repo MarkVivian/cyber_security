@@ -1,18 +1,114 @@
                         NEW-OBJECT 
                     ================
 - Is used to create a new .NET Framework or COM object.
+- Used when:
+    > You need to use .NET libraries/clases directly.
+    > You're working with COM automation (like Word, Excel, IE)
+    > You want to build structured output (e.g. Select-Object is just frosting; New-Object bakes the cake)
 
 
-1) Creating a COM Object.
+            SYNTAX.
+        -------------
+EG.
+    New-Object [-TypeName] <String> [-ArgumentList <Object[]>]
+    New-Object -ComObject <String>
+    New-Object -Property <IDictionary>
+
+| Parameter       | What it does                               | Example               |
+| --------------- | ------------------------------------------ | --------------------- |
+| `-TypeName`     | The full class name of the .NET object     | `System.IO.FileInfo`  |
+| `-ArgumentList` | Values passed to the constructor           | `(“C:\file.txt”)`     |
+| `-ComObject`    | Creates a COM object                       | `"Excel.Application"` |
+| `-Property`     | Hashtable for PSObject property assignment | `@{Name='X'}`         |
+
+When should you use it:
+    > Interfacing with legacy .NET or COM 
+    > Need custom objects in a script.
+    > You want strong control over object shap.
+    > You're avoiding 3rd party modules for tight scripting.
+
+What not to use it for:
+    > Avoid using it for simple output shaping if Select-Object or [PSCustomObject] will do.
+    > COM automation is fragile - don't build critical scripts around it unless you must.
+
+
+                USAGE.
+            ------------
+1. Creating a COM Object.
+    - Want to control Excel from powershell? Here's how to spin up Excel:
+        EG.
+            $excel = New-Object -ComObject Excel.Application
+            $excel.Visible = $true
+
+                - Excel is now under your command.
+                - More:
+                    EG.
+                        $workbook = $excel.Workbooks.Add()
+                        $sheet = $workbook.Worksheets.Item(1)
+                        $sheet.Cells.Item(1,1) = "You summoned this from PowerShell"
+                        $workbook.SaveAs("C:\temp\mischief.xlsx")
+                        $excel.Quit()
+                        
+                            - COM objects = GUI automation in Windows. This is legacy magic — ugly but powerful.
+                            - This gives you fine-grained control — open Excel, input values, close Excel, all from PowerShell.
+                            - It's how GUI programs expose programmable backdoors to automation.
+            
+            
+            # Creating a COM object for Internet Explorer
+            $ie = New-Object -ComObject "InternetExplorer.Application"
+            $ie.Visible = $true
+            $ie.Navigate("https://www.microsoft.com")
+
+
+2. Creating a .NET Object.
+    - Let's say you want a DateTime object, not from Get-Date, but manually.
+        EG.
+            # Creating a .NET object for a date
+            $date = New-Object -TypeName System.DateTime -ArgumentList 2024, 1, 1
+                OR 
+            $date = New-Object System.DateTime(2025, 8, 1)
+            Write-Host $date
+
+                - You're calling the .NET class constructor like in C#.
+
+
+3. Create a WebClient 
     EG.
-        # Creating a COM object for Internet Explorer
-        $ie = New-Object -ComObject "InternetExplorer.Application"
-        $ie.Visible = $true
-        $ie.Navigate("https://www.microsoft.com")
+        $client = New-Object System.Net.WebClient
+        $content = $client.DownloadString("https://example.com")
+
+            - This is how you do basic web requests without Invoke-WebRequest.
 
 
-2) Creating a .NET Object.
-    EG.
-        # Creating a .NET object for a date
-        $date = New-Object -TypeName System.DateTime -ArgumentList 2024, 1, 1
-        Write-Host $date
+4. Build Custom PSObjects.
+    - Let’s say you want to return structured output, like a list of users and their roles.
+        EG.
+            $user = New-Object -TypeName PSObject -Property @{
+                Name = "Mark V"
+                Role = "Cybersecurity"
+                Status = "Active"
+            }
+
+        RESULT
+            Name    Role           Status
+            ----    ----           ------
+            Mark V  Cybersecurity  Active
+
+                - This is how you build custom structured output without relying on Select-Object or calculated properties.
+
+
+5. Class-Like Behavior (Powershell 5.0+)
+    - While New-Object is mostly used with .NET types, PowerShell 5.0+ lets you use custom classes:
+        EG.
+            class Person {
+                [string]$Name
+                [int]$Age
+            }
+
+            $p = [Person]::new()
+            $p.Name = "Mark V"
+            $p.Age = 99
+
+                - This doesn't use New-Object, but it's the future of object creation.
+
+

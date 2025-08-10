@@ -14,7 +14,7 @@
         * Send ouput to a GUI window (when available)
 
     > Out-Printer
-        * Send output to a printer (yes, really)
+        * Send output to a printer (not covered becuase its already a problem to use printers in gui form.)
 
     > Out-String 
         * converts output to string.
@@ -137,4 +137,186 @@ EG.
             - Side effects remain.
 
 
-5. 
+                            OUT-GRIDVIEW 
+                        ===================
+-  takes your output and sends it to a GUI window where you can sort, filter, and interact with your data like a human being instead of squinting at console text.
+    > Think of it as a read-only Excel-like table that PowerShell summons just for you.
+
+- Windows-only — relies on Windows Presentation Foundation (WPF), so this doesn't work in PowerShell Core on Linux/macOS.
+
+
+                SYNTAX.
+            --------------
+EG.
+    <command> | Out-GridView [-Title <string>] [-OutputMode <mode>]
+
+
+                USAGE.
+            ---------------
+1. Basic example.
+    EG.
+        Get-Process | Out-GridView 
+
+            - Pops open a window listing all processes with sortable and filterable columns.
+
+
+                PARAMETERS
+            -----------------
+1. -Title <string>
+    - Sets the window's title bar.
+    - Because "Untitled Grid View" is just sad.
+        EG.
+            Get-Service | Out-GridView -Title "Active Services"
+
+
+2. -OutputMode <mode>
+    - This is where the magic happens.
+    - There are 3 modes:
+        i. None (default)
+            - Just displays data.
+            - No interaction with your script.
+                EG.
+                    Get-Process | Out-GridView
+
+        ii. Single 
+            - Lets user select one item.
+            - That item is passed back into the pipeline.
+                EG.
+                    $selection = Get-Process | Out-GridView -OutputMode Single
+
+        iii. Multiple 
+            - User can pick multiple rows.
+            - output is passed downstream.
+                EG.
+                    $services = Get-Service | Out-GridView -OutputMode Multiple
+
+                        - Useful for cusotm selection GUIs in your scripts.
+
+
+                            OUT-HOST.
+                        =================
+- This of Out-Host as the explicit version of what normally happens implicitly - sending output to the PowerShell console.
+    > It sends the output of a command directly to the console window, bypassing further pipeline steps like Out-File, Export-Csv, etc.
+
+- Why use it then? Two reasons:
+    > You want direct console display, maybe for logging or previewing.
+    > You want to control paging (think more in Linux).
+
+
+                SYNTAX.
+            ---------------
+EG.
+    Out-Host [-InputObject <psobject>] [-Paging] [<CommonParameters>]
+
+
+                PARAMETERS 
+            ------------------
+1. -InputObject <psobject>
+    - Specifies what you're sending to the host.
+    - Usually unnecessary because it's designed to work in the pipeline.
+        EG.
+            "Hello World" | Out-Host
+
+                > This is the same as just "Hello World" on its own, but it guarantees the output hits the screen even if you're inside a bigger script/pipeline that might suppress output.
+
+
+2. -Paging.
+    - Shows output one screen at a time. Useful for big lists.
+    - Think of this like powershell's built-in more - it paginates the output based on the terminal size.
+        EG.
+            Get-Command | Out-Host -Paging
+
+                - This will stop after each screenful adn wait for a key press.
+
+
+                    USAGE.
+                -----------
+1. Preview data before passing to other cmdlets.
+    - Let’s say you're building a tool and want to verify what’s coming out before exporting:
+        EG.
+            Get-ChildItem | Tee-Object -Variable files | Out-Host $files | Export-Csv files.csv
+
+                - Here, you display output while still capturing it.
+
+
+2. Paging through long output.
+    EG.     
+        Get-EventLog -LogName System -Newest 500 | Out-Host -Paging
+
+            - Way more readable than just spamming 500 entries down the screen 
+
+
+                        OUT-STRING 
+                    ==================
+- takes your structured PowerShell objects (tables, properties, etc.) and turns them into one big string — line breaks and all. It’s essentially the:
+    > "Screw structure. Just give me text."
+
+- If Out-File saves output to a file, Out-String just squashes it into a multiline text blob for further handling.
+- Especially useful when you're doing string ops or piping into something expecting raw text.
+
+
+            SYNTAX.
+        --------------
+EG.
+    Out-String [-Stream] [-Width <int>] [<CommonParameters>]
+
+
+            CORE BEHAVIOR
+        -------------------
+EG.
+    Get-Process | Out-String 
+
+        - This returns a single string containing the full output of Get-Process, line by line, but in one string.
+        - This can be passed to something else, saved , parsed, etc 
+            > It's like hitting "View Source" on a webpage - you see the textual rendering of structured output.
+
+
+                PARAMETERS.
+            ----------------
+1. -Stream 
+    - Instead of bundling everything into a single string, it emits one line per string.
+    - This makes it behave more like Select-String, ForEach-Object, etc 
+        With -Stream 
+            EG.
+                $blob = Get-Service | Out-String
+                $blob.GetType().Name
+                # String
+        
+        With -Stream 
+            EG.
+                $lines = Get-Service | Out-String -Stream
+                $lines.GetType().Name
+                # Object[]
+
+
+2. -Width <int> 
+    - Controls how many characters wide the output is before wrapping. 
+    - Super handy when you're dealing with long-form data.
+        EG.
+            Get-EventLog -LogName System | Out-String -Width 300
+
+                - Avoids ugly auto-wraps if you're dealing with wide tables.
+
+
+                USAGE.
+            ----------------
+1. Turn output into a string for clipboard
+    EG.
+        Get-Process | Out-String | Set-Clipboard
+
+            - Perfect for copy-pasting.
+
+
+2. Regex parsing.
+    EG.
+        (Get-Service | Out-String) -match "Windows"
+
+            - Since you're converting to plain text, regex becomes fair game.
+
+
+3. Emailing as a report body.
+    EG.
+        $body = Get-EventLog -LogName Application -Newest 10 | Out-String
+        Send-MailMessage -To user@org.com -Body $body ...
+
+            - Because the mail system doesn't know what a powershell object is, but it loves a plain ol' string.

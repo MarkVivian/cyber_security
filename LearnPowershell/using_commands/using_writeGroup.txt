@@ -1,0 +1,635 @@
+                            WRITE-* GROUP.
+                        ====================
+- Contains:
+    >  Write-Host
+    >  Write-Output
+    >  Write-Verbose
+    >  Write-Warning
+    >  Write-Error
+    >  Write-Debug
+    >  Write-Information
+
+| Cmdlet              | Outputs to                                      | Logs | Capturable? | Use When...                  |
+| ------------------- | ----------------------------------------------- | ---- | ----------- | ---------------------------- |
+| `Write-Host`        | Console                                         | ❌    | ❌        | You want pretty messages     |
+| `Write-Output`      | Pipeline                                        | ✅    | ✅        | You want reusable output     |
+| `Write-Verbose`     | Verbose stream (needs `-Verbose`)               | ✅    | ✅        | You want optional debug info |
+| `Write-Information` | Information stream (needs `-InformationAction`) | ✅    | ✅        | For structured info          |
+| `Write-Error`       | Error stream                                    | ✅    | ✅        | An error occurred            |
+| `Write-Warning`     | Warning stream                                  | ✅    | ✅        | Caution needed               |
+| `Write-Debug`       | Debug stream (needs `-Debug`)                   | ✅    | ✅        | Dev-focused debug logic      |
+
+
+                            WRITE=HOST.
+                        =================
+- Write-Host sends output directly to the console/host screen.
+- It does not pipe the output down the pipeline. Once it speaks, that data is gone. No capturing, no forwarding, no reusing.
+- Security-wise: it doesn't log, doesn’t persist, doesn’t leave a footprint in output logs.
+
+- What you should NOT Use it for:  
+| Situation                          | Why `Write-Host` Sucks                      |
+| ---------------------------------- | ------------------------------------------- |
+| Logging                            | Output not captured anywhere                |
+| Pipelines                          | It doesn’t return output                    |
+| Remote sessions                    | Data doesn’t come back to the local session |
+| Scripting for automation           | You can’t test or log it                    |
+| Anything where audit trail matters | No logs = no forensics = no bueno           |
+
+
+            USAGE
+        ------------
+1. Default Behavior.
+    EG.
+        Write-Host "Hello, world!"
+
+            - "Hello, world!" appears only on screen.
+            - Nothing goes into the pipeline so it can't be captured, piped, redirected or stored.
+                EG.
+                    $output = Write-Host "Try capturing me"
+                    $output 
+
+                        - $output is $null - no value captured.
+
+
+            PARAMETERS.
+        -----------------
+1. -Object 
+    - It's usually positional, so this is usually ommitted.
+        EG.
+            Write-Host -Object "This is the value to show"
+
+
+2. -ForegroundColor and -BackgroundColor
+    EG.
+        Write-Host "Hello, World!" -ForegroundColor Green -BackgroundColor Black
+
+            - Available Colors
+                > ForegroundColor and BackgroundColor options:
+                    * Black             * DarkBlue      * DarkGreen         * DarkCyan
+                    * DarkRed           * DarkMagenta   * DarkYellow        * Gray
+                    * DarkGray          * Blue          * Green             * Cyan
+                    * Red               * Magenta       * Yellow            * White.
+            - If you use unsopported color names or spell them wrong, powershell will fail silently.
+
+
+2. Combining Colors and Formatting
+    - You can combine colors and use formatting like new lines (n), tabs (t), and escape characters.
+        EG.
+            Write-Host "Hello,`nWorld!" -ForegroundColor Blue
+            Write-Host "Tab`tCharacter" -ForegroundColor Cyan
+
+
+3. -NoNewLine
+    EG.
+        Write-Host "Loading" -NoNewline
+        Start-Sleep -Milliseconds 500
+        Write-Host "." -NoNewline
+        Write-Host "." -NoNewline
+        Write-Host ". Done!"
+
+            - Prevents a newline after output, allowing inline status displays or loading animations.
+
+
+                                WRITE-OUTPUT.
+                            ====================
+- Sends objects to the pipeline, meaning the output can be:
+    > Captured into a variable.
+    > Piped into another command.
+    > Redirected to a file.
+    > Sent to stdout in remote sessions.
+    > Logged
+
+- Calling "something" on its own implicitly uses Write-Output under the hood.
+
+| Feature                | `Write-Output`  | `Write-Host`          |
+| ---------------------- | ----------------| --------------------- |
+| Goes to pipeline       | ✅ Yes          | ❌ No                |
+| Can be redirected      | ✅ Yes          | ❌ No                |
+| Capturable to variable | ✅ Yes          | ❌ No (`$null`)      |
+| UI formatting          | ❌ No           | ✅ Yes (color, etc.) |
+| Useful in automation   | ✅ Yes          | ❌ Not at all        |
+| Use in serious scripts | ✅ Always       | ❌ Never             |
+
+
+                SYNTAX.
+            -------------
+EG  
+    Write-Output [-InputObject] <Object[]> [-NoEnumerate]
+
+
+                PARAMETERS.
+            -----------------
+1. -InputObject (Positional 0)  
+    EG.
+        Write-Output -InputObject "one", "two", "three"
+            SAME AS:
+        Write-Output "one" "two" "three"
+
+    OUTPUT.
+        one
+        two 
+        three 
+
+
+2. -NoEnumerate
+    - PowerShell enumerates collections by default.
+        Without
+            EG.
+                $array = "one", "two", "three"
+                Write-Output $array
+                
+            OUTPUT.
+                one 
+                two 
+                three 
+
+        With 
+            EG.
+                $wrapped = Write-Output -InputObject $array -NoEnumerate 
+                $wrapped.Count # --> 1
+                $wrapped[0] # --> array object : "one", "two", "three"
+
+            OUTPUT.
+                one 
+                two 
+                three 
+
+                    - it might look similar but it keeps the array as a single object , not 3 strings.
+                        EG.
+                            Write-Output "a", "b", "c"        # Outputs 3 strings
+                            Write-Output @("a", "b", "c")     # Same thing
+                            Write-Output @("a", "b", "c") -NoEnumerate  # Now 1 array object
+            
+
+                 USAGE.
+              -----------
+1. Default:
+    EG.
+        Write-Output "Hello World"
+    
+    Output 
+        Hello World 
+
+        - Now you can pipe the data and transform, filter or send to output files:
+            EG.
+                Write-Output "Hello" | ForEach-Object {$_.ToUpper() }
+
+            Output.
+                HELLO 
+
+
+2. Returning objects from a function.
+    EG.
+        function Get-Numbers {
+            Write-Output 1
+            Write-Output 2
+            Write-Output 3
+        }
+        Get-Numbers | ForEach-Object { $_ * 10 }
+
+    OUTPUT.
+        10
+        20
+        30
+
+            - Without Write-Output, you're not returning anything into the pipeline.
+
+
+3. Conditional Output from script blocks 
+    EG.
+        $processes = Get-Process | Where-Object {
+            if ($_.CPU -gt 100) {
+                Write-Output $_
+            }
+        }
+
+            - Clean , capture-able , piped through filters.
+
+
+                                WRITE-VERBOSE.
+                            =======================
+- Write-Verbose writes verbose-level messages to the verbose stream (stream 4).
+- Unlike Write-Output or Write-Host, it does not show anything by default.
+- You have to explicitly enable it using:
+    EG.
+        $VerbosePreference = "Continue"
+
+            - Or call the script/function with the -Verbose flag.
+
+
+                    SYNTAX.
+                -------------
+EG.
+    Write-Verbose [-Message] <string> [-InformationAction <ActionPreference>] [-InformationVariable <string>]
+
+
+                    PARAMETERS.
+                -----------------
+1. -Message (Positional 0)
+    - Simple string.
+        EG.
+            Write-Verbose -Message "Initializing"
+                SAME AS 
+            Write-Verbose "Initializing"
+
+
+2. -InformationAction and -InformationVariable
+    - These are more advanced and rarely used with Write-Verbose directly. They allow:
+        > Controlling how verbose messages are handled.
+        > Capturing them into a variable.
+            EG.
+                Write-Verbose "Running" -InformationAction Continue -InformationVariable verboseOut
+                $verboseOut
+
+        
+                    USAGE.
+                ------------
+1.Basic 
+    EG.
+        Write-Verbose "Starting process..."
+
+    OUTPUT.
+        Nothing. Nada. Silence.
+
+    Now:
+        EG.
+            $VerbosePreference = "Continue"
+            Write-Verbose "Starting process..."
+
+        OUTPUT.
+            VERBOSE: Starting process...
+
+    Or from a function/script:
+        EG.
+            function Install-Something {
+                [CmdletBinding()]
+                param()
+                Write-Verbose "Beginning install..."
+                "Done."
+            }
+
+            Install-Something -Verbose
+
+        OUTPUT.
+            VERBOSE: Beginning install....
+            Done.
+
+
+2. A function with diagnostic output.
+    EG.
+        function Copy-Stuff {
+            [CmdletBinding()]
+            param (
+                [string]$Source,
+                [string]$Destination
+            )
+            Write-Verbose "Copying from $Source to $Destination"
+            Copy-Item -Path $Source -Destination $Destination
+            Write-Verbose "Copy completed."
+        }
+
+    USAGE.
+        Copy-Stuff -Source C:\Temp -Destination D:\Backup -Verbose
+
+    OUTPUT.
+        VERBOSE: Copying from C:\Temp to D:\Backup
+        VERBOSE: Copy completed.
+
+            - Without -Verbose, you see nothing but the result.
+
+
+3. diagnostic inside scripts.
+    EG.
+        # script.ps1
+        Write-Verbose "Step 1 complete"
+        Write-Verbose "Step 2 complete"
+
+        # run with:
+        PowerShell -File .\Script.ps1 -Verbose 
+
+            - Verbose messages unlocked.
+
+
+                                    WRITE WARNING.
+                                =========================
+- It writes a warning message in yellow text to the warning stream.
+- It doesn’t stop the script. It doesn’t return output. It just shouts politely and lets the script move on.
+    > Think of it as a non-fatal nudge to the user or operator that something may not be right — "Hey, maybe double-check your assumptions before continuing."
+        EG.
+            Write-Warning "This action might delete important files!"
+
+        OUTPUT.
+            WARNING:    This action might delete important files!
+
+                - No crashes, No returns, just bright yellow sass.
+
+
+                    SYNTAX.
+                ---------------
+EG.
+    Write-Warning [-Message] <string> [-InformationAction <ActionPreference>] [-InformationVariable <string>]
+
+            
+                PARAMETERS.
+            ----------------------
+1. -Message 
+    - Your warning message.
+        EG.
+            Write-Warning -Message "Low disk space on drive C:"
+                    OR 
+            Write-Warning "Low Disk space on drive C:"
+
+
+2. -InformationAction and -InformationVariable
+    - Like with Write-Verbose, these exist but are generally irrelevant unless you're catching/redirecting output in complex logging setups.
+
+
+                    USAGE.
+                -------------
+1. A function warning before overwritting.
+    EG.
+        function Copy-WithWarning {
+            [CmdletBinding()]
+            param (
+                [string]$Source,
+                [string]$Destination
+            )
+
+            if (Test-Path $Destination) {
+                Write-Warning "Destination '$Destination' already exists and will be overwritten!"
+            }
+
+            Copy-Item -Path $Source -Destination $Destination -Force
+            Write-Output "Copied successfully."
+        }
+    
+        - Use it.
+            EG.
+                Copy-WithWarning -Source ".\a.txt" -Destination ".\b.txt"
+
+        - If .b.txt exists, you get:
+            EG.
+                WARNING: Destination '.\b.txt' already exists and will be overwritten!
+                Copied successfully.
+
+        - You didn't stop the process, you just warned the user before potentially risky behavior.
+
+
+2. Redirecting or suppressing the stream using 3> or $WarningPreference, 
+    EG.
+        Write-Warning "This is a test" 3> $null @ suppresses it.
+
+            - Or silence all warnings in your script globally.
+                EG.
+                    $WarningPreference = "SilentContinue"
+
+
+                                        WRITE ERROR.
+                                    ==================
+- Sends an error message to the error stream (stream 2).
+- It can stop your script if configured to do so, or just scream in red and keep going.
+    > Think of this as your way of yelling, "something's broken and i need someone to know!"
+        EG. 
+            Write-Error "The file could not be found"
+
+        OUTPUT.
+            Write-Error : The file could not be found.
+
+                - Bright red. Unmissable. Sends the message to PowerShell’s error stream, which can be logged, caught, or redirected.
+
+                    SYNTAX.
+                --------------
+EG.
+    Write-Error [-Message] <string> [-Category <ErrorCategory>] [-ErrorId <string>] [-TargetObject <object>] [-RecommendedAction <string>] [-Exception <Exception>] [-ErrorAction <ActionPreference>] [-ErrorRecord <ErrorRecord>] [-Verbose] [-Debug] [-InformationAction <ActionPreference>] [-InformationVariable <string>]
+
+
+                    PARAMETERS
+                -----------------
+1. -Message 
+    - The red alert string you want to display
+        EG.
+            Write-Error -Message "Cannot find user in AD."
+
+
+2. ErrorAction
+    - It controls how hard the script reacts:
+        > Continue (default)
+            * Show the error, continue script.
+
+        > Stop 
+            * Throw a terminating error (like Throw)
+        
+        > SilentlyContinue 
+            * Ignore the error.
+
+        > Inquire 
+            * Ask user what to do.
+
+        > Ignore 
+            * Same as SilentContinue but more... defient.
+
+                EG.
+                    Write-Error "Failed to ping host." -ErrorAction Stop 
+
+                        - That stop the script cold.
+
+
+3. -Category, -TargetObject, -ErrorId 
+    - Use these for structured error logging, like in modules or serious scripts.
+        EG.
+            Write-Error -Message "User account not found."  -Category ObjectNotFound  -TargetObject "Username123"  -ErrorId 1001
+
+                - These give the blue team and the logs more context.
+
+
+4. -Exception 
+    - Throw a custom exception with a .NET error object.
+        EG.
+            $ex = New-Object System.Exception("Custom error exception")
+            Write-Error -Exception $ex -ErrorAction Stop
+
+
+5. -RecommendedAction
+    - Used by sophisticated error handlers to provide next steps.
+        EG.
+            Write-Error "Disk quota exceeded." -RecommendedAction "Clear temp files or request more space."
+
+
+                    USAGE.
+                -----------
+1. Non-Terminating Logging.
+    EG.
+        if (-not (Test-Path $Path)) {
+            Write-Error "File $Path not found."
+        }
+
+            - Script keeps going, but error is logged.
+
+
+2. Terminating Error with -ErrorAction Stop 
+    EG.
+        if ($null -eq $user) {
+            Write-Error "Missing user!" -ErrorAction Stop
+        }
+
+            - Halts script if user is null.
+
+
+3. Handling with Try/Catch 
+    EG.
+        try {
+            Write-Error "Intentional failure" -ErrorAction Stop 
+        }
+        catch {
+            Write-Host "Caught the error: $($_.Exception.Message)"
+        }
+
+
+                                        WRITE DEBUG (THE "ONLY IF YOU'RE LISTENING" CMDLET)
+                                    =========================================================
+- sends debug messages to stream 5, but only if $DebugPreference is set to 'Continue' or you’ve enabled -Debug.
+- Default behavior? It won't show squat. You've got to opt in to hear it.
+    EG.
+        Write-Debug "This only appears if debugging is on."
+
+            - Now try turning on debugging.
+                EG.
+                    $DebugPreference = "Continue"
+                    Write-Debug "Now you can hear me."
+                        OR VIA CMDLET SWITCH 
+                    Get-Process -Debug 
+
+                        - If the command or script supports it, it’ll start spitting Write-Debug messages.
+
+
+                        SYNTAX.
+                    -------------
+EG.
+    Write-Debug [-Message] <string> [-InformationAction <ActionPreference>] [-InformationVariable <string>] [<CommonParameters>]
+
+
+                    PARAMETERS.
+                ----------------
+1. -Message 
+    - The text string to send.
+        EG.
+            Write-Debug -Message "Debugging this variable: $var"
+
+
+                    USAGE.
+                -------------
+1. Debug preference 
+    - This is the secret sauce. By default:
+        EG.
+            $DebugPreference = 'SilentlyContinue'
+
+                - To see debug messages 
+                    EG.
+                        $DebugPreference = 'Continue'
+                            OR 
+                        Write-Debug "Silence..." # <- default : won't show 
+                
+                - Change the preference, and now:
+                    EG.
+                        $DebugPreference = 'Continue'
+                        Write-Debug "Now you hear me"
+
+                - Other options for $DebugPreference:
+                    > Continue 
+                        * Show debug message, continue execution.
+
+                    > Stop 
+                        * Show and halt 
+
+                    > Inquire 
+                        * Ask before continuing.
+
+                    > SilentContinue 
+                        * Don't show 
+
+    - Add this to your scripts.
+        EG.
+            function Test-Debug {
+                [CmdletBinding()]
+                param()
+
+                Write-Debug "Function has started."
+
+                # Some processing
+                $result = 42
+                Write-Debug "Result calculated: $result"
+
+                return $result
+            }
+
+                - Call it with:
+                    EG.
+                        Test-Debug -Debug 
+
+                - Or enable global debug preference:
+                    EG.
+                        $DebugPreference = 'Continue'
+                        Test-Debug 
+
+
+                                            WRITE INFORMATION - THE MIDDLE GROUND CMDLET 
+                                        ===================================================
+- It sends messages to information stream #6, separate from stdout, and allows:
+    > Filtering.
+    > Tagging.
+    > Redirection.
+    > Optional Display.
+
+- Great for auditing, logging, or controlled user messages in advanced scripts.
+    EG.
+        Write-Information "Installation complete" -InformationAction Continue 
+
+        - But by default, you won't see anything unless you tell powershell to treat information stream messages like actual output:
+            EG.
+                $InformationPreference = "Continue"
+                Write-Information "Now you see it."
+
+
+                    SYNTAX.
+                ---------------
+EG.
+    Write-Information [-MessageData] <Object> [-Tags <String[]>] [-InformationAction <ActionPreference>] [-InformationVariable <String>] [<CommonParameters>]
+
+
+                    PARAMETERS
+                -------------------
+1. -MessageData 
+    - What you want to output (can be string, object, or any type)
+        EG.
+            Write-Information -MessageData "System update completed."
+
+
+2. -Tags 
+    - Assigns tags (think categories or labels) to the message.
+        EG.
+            Write-Information -MessageData "Backup started." -Tags "Backup", "Start"
+
+                - You can later filter logs or display only specific tags in advanced scripting scenarios.
+
+
+3. -InformationAction
+    - Like $InformationPreference, but per-command
+    - Options 
+        > SilentlyContinue (default)
+        > Continue 
+        > Stop 
+        > Inquire 
+        > Ignore 
+            EG.
+                Write-Information "Visible now" -InformationAction Continue
+
+
+3. -InformationVariable
+    - Stores the message in a variable instead of printing it.
+        EG.
+            Write-Information "Logged it" -InformationVariable msglog
+            $msglog  # ← contains the message object
+
+
+                    USAGE.
+                -------------

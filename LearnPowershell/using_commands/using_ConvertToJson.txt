@@ -1,0 +1,253 @@
+                                    CONVERT TO JSON.
+                                =====================
+- serializes .NET objects into JSON format.
+- Simple idea. But default behavior can trip you up if you're not careful — especially with nested objects, arrays, and depth limits.
+
+            SYNTAX.
+        ----------------
+EG.
+    Get-Process | ConvertTo-Json
+
+        - Returns a JSON-formatted string representation of the object(s).
+        - But there's a huge asterisk.
+
+
+                    PARAMETERS.
+                -----------------
+1. -Depth <int>
+    - Controls how deep the serializer traverses into nested objects.
+    - Default : 2.
+    - Max Int32.MaxValue(technically.)
+
+    - Gotchas
+        > Even a depth of 3 may not be neough for complex objects.
+        > Higher depth = more risk of bloated or circular structures.
+            EG.
+                $nested = @{
+                    Name = "Outer"
+                    Inner = @{
+                        Level = "Inner"
+                        Deep = @{
+                            Level = "Too Deep"
+                        }
+                    }
+                }
+                $nested | ConvertTo-Json -Depth 5
+
+
+2. -Compress 
+    - Removes all whitespace (minifies the JSON)
+    - Helpful for storage/transmission.
+        EG.
+            $object | ConvertTo-Json -Compress
+
+
+3. -EnumsAsStrings
+    - Introduced in powershell 7+.
+    - Converts enum values to string representation instead of their underlying integer values.
+        Without it.
+            EG.
+                [System.DayOfWeek]::Friday | ConvertTo-Json
+            
+            OUTPUT.
+                5
+
+
+        With it.
+            EG.
+                [System.DayOfWeek]::Friday | ConvertTo-Json -EnumsAsStrings
+
+            OUTPUT.
+                "Friday"
+
+                - Useful when :
+                    > You're working with APIs that expect strings.
+                    > You're debugging.
+                    > You're not a fan of psychic number-to-name translation.
+
+
+4. -AsArray.
+    - Forces a single object to be serialized as a one-element JSON array.
+        EG.
+            $single = [PSCustomObject]@{Name='Mark'; Role='Hacker'}
+            $single | ConvertTo-Json -AsArray
+
+            WITH OUTPUT.
+                [
+                    {
+                        "Name": "Mark",
+                        "Role": "Hacker"
+                    }
+                ]
+
+            WITHOUT IT.
+                {
+                    "Name": "Mark",
+                    "Role": "Hacker"
+                }
+
+                - This is CRITICAL when sending payloads to APIs expecting arrays even if there's only one object.
+
+
+5. -InputObject 
+    - Technically not needed - you usually pipe input, but for completeness
+        EG.
+            ConvertTo-Json -InputObject $myObject
+
+                - Used when you're not piping, or wrapping in script blocks.
+
+
+                USAGE.
+            -----------
+1. Saving an object to a JSON file.
+    EG.
+        $creds = [PSCustomObject]@{
+            Username = "admin"
+            Password = "123456"
+        }
+
+        $creds | ConvertTo-Json -Depth 3 | Set-Content creds.json
+
+
+2. Sending payloads to a REST API.
+    EG.
+        $payload = [PSCustomObject]@{
+            name = "Mark"
+            role = "CyberNinja"
+        }
+
+        Invoke-RestMethod -Uri "https://api.company.com/user" `
+        -Method Post `
+        -Body ($payload | ConvertTo-Json -Depth 3 -Compress) `
+        -ContentType "application/json"
+
+
+                                CONVERT FROM JSON.
+                            ========================
+- Takes a JSON string (not a file) and deserializes it into PowerShell objects — usually [pscustomobject], or [System.Object[]] for arrays.
+- So the pipeline is:
+    EG.
+        # Export
+        $object | ConvertTo-Json | Set-Content mydata.json
+
+        # Import
+        Get-Content mydata.json | ConvertFrom-Json
+
+| JSON Type | PowerShell Output Type            |
+| --------- | --------------------------------- |
+| Object    | `[pscustomobject]` (or hashtable) |
+| Array     | `[System.Object[]]`               |
+| String    | `[string]`                        |
+| Number    | `[int]` / `[double]`              |
+| Boolean   | `[bool]`                          |
+| Null      | `$null`                           |
+
+    - JSON is dumber than PowerShell. No [datetime], no [securestring], no [scriptblock]. Everything becomes base types.
+
+
+                  PARAMETER.
+            -----------------
+1. -InputObject <string>
+    - The actual JSON string you want to parse.
+    - Normally you don't use this explicitly unless assigning:
+        EG.
+            ConvertFrom-Json -InputObject $jsonString
+
+    - Usually done via pipe:
+        EG.
+            $jsonString | ConvertFrom-Json
+
+
+2. -AsHashtable
+    - Introduced in powershell 6.1+
+    - Converts JSON object to [hashtable] instead of [pscustomobject]
+        EG.
+            $json = '{"SSID": "CorpNet", "Password": "letmein"}'
+            $ht = $json | ConvertFrom-Json -AsHashtable
+            $ht["SSID"]
+
+                - Great for:
+                    > Strict key/value access
+                    > Case-insensitive matching.
+                    > Quick editing or merging.
+                    
+  
+            USAGE.
+        -------------
+1. Basic example
+    EG.
+        $json = '{
+            "Name": "Mark",
+            "Role": "CyberWarrior",
+            "Skills": ["PowerShell", "Pentesting", "Red Team"]
+        }'
+
+        $data = $json | ConvertFrom-Json
+        $data.Name      # Mark
+        $data.Skills[1] # Pentesting
+
+            - Returns a [pscustomobject] with dot-access like a boss.
+
+            - For arrays:
+                EG.
+                    [
+                        { "Name": "Wifi1", "Password": "123456" },
+                        { "Name": "Wifi2", "Password": "hunter2" }
+                    ] | ConvertFrom-Json 
+
+                    - if more than one object, result is a System.Object[] array of [pscustomobject].
+                    - Use indexing or ForEach-Object.
+                        EG.
+                            $creds = Get-Content wifi.json | ConvertFrom-Json
+                            $creds[0].Name
+
+                                - If only one object in the array, PowerShell will still return a single object, not an array unless you explicitly cast it.
+
+
+2. Traps & Gotchas 
+    Using Get-Content 
+        - Get-Content Returns array of lines.
+            EG.
+                $json = Get-Content data.json
+                $json | ConvertFrom-Json  # ❌ FAILS
+
+                    - This breaks the parser.
+                    - Fix 
+                        EG.
+                            $json = Get-Content data.json -Raw
+                            $json | ConvertFrom-Json
+
+
+    One Item != Array.
+        EG.
+            [{ "Name": "OnlyOne" }]
+
+        Results.
+            $one = Get-Content one.json -Raw | ConvertFrom-Json
+            $one.Length  # No, it's not an array!
+
+                - You'll get a single [pscustomobject]. No .length, no [0]
+                - Fix 
+                    EG.
+                        $one= @( $one )
+
+
+3. API result handling.
+    EG.
+        $response = Invoke-RestMethod -Uri "https://api.site.com/devices"
+        # already deserialized, but if using Invoke-WebRequest:
+        $json = $response.Content | ConvertFrom-Json
+
+
+4. Simulate API Inputs.
+    EG.
+        $jsonPayload = '[{ "id":1, "user":"mark" },{ "id":2, "user":"v" }]'
+        $parsed = $jsonPayload | ConvertFrom-Json
+        $parsed | ForEach-Object { "$($_.id): $($_.user)" }
+
+
+5. Modify -> Resave
+    EG.
+        $data = Get-Content wifi.json -Raw | ConvertFrom-Json
+        $data[0].Password = "updatedpass"
+        $data | ConvertTo-Json -Depth 3 | Set-Content wifi.json
