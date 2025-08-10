@@ -1,5 +1,5 @@
-                    WINDOWS SERVICES
-                =======================
+                                        WINDOWS SERVICES
+                                    =======================
 - Services in Windows are background processes managed by the Service Control Manager (SCM).  
 - PowerShell lets you query, start, stop, configure, and monitor them — all with scriptable precision.
 
