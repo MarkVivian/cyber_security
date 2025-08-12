@@ -1,2 +1,453 @@
                                                         PROCESS.
                                                     ================
+- We’ll go cmdlet by cmdlet, each one a self-contained deep dive with purpose, parameters, syntax, real-world uses, edge cases, and security/pentest notes.
+- We're hitting:
+    > Get-Process 
+    > Start-Process 
+    > Stop-Process 
+    > Wait-Process 
+    > Debug-Process 
+    > Admin/pentest tricks, plus cross-OS notes.
+
+
+                            GET PROCESS 
+                        ====================
+- It lists local or remote processes with detailed properties like name, ID, memory usage, CPU time, and file path.
+- PowerShell’s equivalent of ps (Linux) or tasklist (CMD), but object-based — meaning you can sort, filter, and process results without parsing text.
+- When to use:
+    > Process monitoring and troubleshooting.
+    > Filtering or sorting processes by resource usage.
+    > Scripting admin tasks (kill by criteria, report usage).
+    > Checking suspicious processes during incident response.
+
+            
+            SYNTAX.
+        -------------
+EG.
+    Get-Process [[-Name] <string[]>] [-ComputerName <string[]>] [-FileVersionInfo]
+            [-IncludeUserName] [-Module] [-Id <int[]>] [-InputObject <Process[]>] [<CommonParameters>]
+
+
+            PARAMETERS.
+        -------------------
+1. -Name 
+    - Process name(s) without .exe.
+        EG.
+            Get-Process -Name notepad, chrome
+
+
+2. -Id 
+    - Process ID(s).
+        EG.
+            Get-Process -Id 1234
+
+
+3. -ComputerName 
+    - Get processes from a remote machine (requires powershell remoting and admin rights).
+        EG.
+            Get-Process -ComputerName SERVER01
+
+
+4. -Module 
+    - List all modules (DLLs) loaded by the process.
+    - Requires admin for system processes.
+        EG.
+            Get-Process firefox -Module
+
+
+5. -FileVersionInfo 
+    - Returns version info from the executable file.
+        EG.
+            Get-Process firefox -FileVersionInfo
+
+
+6. -IncludeUserName (powershell 6+)
+    - Displays which user started the process.
+        EG.
+            Get-Process notepad -IncludeUserName
+
+
+                USAGE.
+            -------------
+1. Listing all processes on the local machine, sorted by name.
+    EG.
+        Get-Process 
+
+
+2. Find the top 5 CPU hogs.
+    EG.
+        Get-Process | Sort-Object CPU -Descending | Select-Object -First 5
+
+
+3. Kill all processes by matching part of the name.
+    EG.
+        Get-Process | Where-Object Name -like "*chrome*" | Stop-Process
+
+
+4. Show memory usage in MB.
+    EG.
+        Get-Process | Select Name, Id, @{Name="MemoryMB";Expression={[math]::Round($_.WorkingSet/1MB,2)}}
+
+
+5. Remote Process list.
+    EG.
+        Get-Process -ComputerName PC1 -Name notepad
+
+                            START PROCESS 
+                        ===================
+- Launches a new process locally (or remotely in jobs/scripts), with control over arguments, window state, credentials, and execution.
+- It can be used to :
+    > Run programs with specific arguments from scripts.
+    > Launch hidden or minimized processes.
+    > Start something as another user.
+    >  Chain processes without blocking script execution.
+
+- Not for launching powershell code inline, use Invoke-Command or & { scriptblock } instead.
+
+
+            SYNTAX.
+        ---------------
+EG.
+    Start-Process [-FilePath] <string> [[-ArgumentList] <string[]>]
+              [-Credential <PSCredential>] [-WorkingDirectory <string>] [-WindowStyle <ProcessWindowStyle>]
+              [-Wait] [-PassThru] [-Verb <string>] [<CommonParameters>]
+
+
+            PARAMETERS.
+        ------------------------------
+1. -FilePath:  
+    - Specifies the path to the executable file or script file that starts the process.
+        EG.
+            Start-Process notepad.exe
+
+
+2. -ArgumentList:
+    - Specifies the parameters or arguments to use when starting the process.
+        EG.
+            Start-Process "chrome.exe" -ArgumentList "https://openai.com"
+
+
+
+3. -WorkingDirectory:
+    - Specifies the location of the executable file.
+        EG.
+            Start-Process -FilePath "python.exe" -ArgumentList "script.py" -WorkingDirectory "C:\MyScripts" -Wait
+
+                - Imporatant for installers/tools that use relative paths.
+
+
+4. -NoNewWindow:
+    - Starts the process in the current console window.
+    - Useful when starting console apps from PowerShell and you want them to share the same console (no new window).
+        EG.
+            Start-Process -FilePath "cmd.exe" -ArgumentList "/c","dir" -NoNewWindow -Wait
+
+                - -NoNewWindow only works for console apps. In GUI apps nothing visible changes.
+
+
+5. -PassThru:
+    - Returns a process object for each process that is started.
+    - otherwise it fires and forgets.
+        EG.
+            $p = Start-Process -FilePath "notepad.exe" -PassThru
+            $p.Id    # PID
+            $p.WaitForExit()
+
+                - Use when you need to interrogate or wait on the process programmatically.
+
+
+6. -Verb:
+    - Specifies a verb to use when starting the process. 
+    - Common verbs include RunAs (to start the process with elevated permissions).
+        EG.
+            Start-Process powershell.exe -Verb RunAs
+
+
+7. -Credential: 
+    - Specifies the user account to use to start the process.
+    - cannot be used with -Verb RunAs
+        EG.
+            $cred = Get-Credential   # prompt for user/password
+            Start-Process -FilePath "notepad.exe" -Credential $cred
+
+                -  some GUI apps behave oddly when launched under another account (desktop session differences).
+
+8. -LoadUserProfile:
+    - Loads the user profile specified by the -Credential parameter.
+    - When starting as another user (-Credential) the -LoadUserProfile switch will load that user’s profile (HKCU, AppData) into the session. 
+    - Useful if the app expects per-user config.
+        EG.
+            Start-Process -FilePath "app.exe" -Credential $cred -LoadUserProfile
+                
+                - If you do not load the profile, some apps may run with missing registry keys or default config.
+                
+                 
+9. -Wait:
+    - Waits for the process to exit before running the next command.
+        EG.
+            Start-Process powershell -Wait 
+
+
+10. -WindowStyle:
+    - Specifies the window style to use for the new process (Normal, Hidden, Minimized, Maximized).
+        EG.
+            Start-Process notepad.exe -WindowStyle Hidden 
+
+
+            COMMON USES.
+        --------------------
+1. Starting an application.
+    - This example starts Notepad.
+        EG.
+            Start-Process notepad.exe
+
+
+2. Running a script with arguments.
+    - This example runs a powershell script with arguments.
+        EG.
+            $scriptPath = "C:\Path\To\YourScript.ps1"
+            $arguments = "-param1 value1 -param2 value2"
+
+            Start-Process powershell.exe -ArgumentList "-File $scriptPath $arguments"
+
+
+3. Opening a file with default application.
+    - This example opens a PDF file with the default PDF viewer.
+        EG. 
+            $filePath = "C:\Path\To\YourDocument.pdf"
+
+            Start-Process $filePath
+
+
+4. Running a process As Administrator.
+    - This example starts powershell as an administrator.
+        EG.
+            Start-Process powershell.exe -Verb RunAs
+
+
+5. Run a script as admin.
+    EG.
+        # Path to the script to run
+        $scriptPath = "C:\Path\To\YourScript.ps1"
+
+        # Arguments to pass to the script
+        $scriptArguments = "-param1 value1 -param2 value2"
+
+        # Desired execution policy
+        $executionPolicy = "Unrestricted"
+
+        # Start a new PowerShell process with elevated permissions
+        Start-Process powershell.exe -Verb RunAs -ArgumentList "-NoProfile -ExecutionPolicy $executionPolicy -File `"$scriptPath`" $scriptArguments"
+
+                 - The `"$scriptPath`" allows the script to be executed even with spaces in the path name. (usage of `"`").
+                 - If you have used double quotes use single quotes with the `.
+
+            > Start-Process powershell.exe -Verb RunAs:
+                - Starts PowerShell with elevated permissions.
+            
+            > ArgumentList:
+                - Passes the arguments to the new PowerShell process.
+
+                > NoProfile: 
+                    - Prevents loading the user's PowerShell profile, which can help avoid conflicts or unwanted scripts running.
+                
+                > ExecutionPolicy $executionPolicy:
+                    - Sets the execution policy for the session.
+                
+                > File "$scriptPath":
+                    - Specifies the script file to run.
+                    - The backticks and double quotes around $scriptPath are necessary to handle paths with spaces.
+                
+                > $scriptArguments:
+                    - Includes any additional arguments needed for the script.
+
+            > Backticks (`):
+                - Used for escaping characters in PowerShell.
+                - In this example, they are used to handle the quotes around the script path.
+            
+            > Double Quotes ("):
+                - Necessary to encapsulate the script path in case it contains spaces.
+            
+            > NoProfile:
+                - Optional, but useful to avoid loading the user’s profile, making the script run in a cleaner environment.
+            
+            > ExecutionPolicy $executionPolicy:
+                - Ensures that the script runs under the specified execution policy.
+
+
+6. Run a command.
+    > Run command and wait for command to complete before continuing.
+        EG.
+            start-process Powershell -ArgumentList "-Command ""Write-Host 'hello world'""" -Wait
+            
+                - -Wait: Makes the script wait until the PowerShell process completes.
+
+    > Run command and stop powershell from closing after the command has completed
+        EG.
+            start-process powershell -ArgumentList "-NoExit",  "-Command ""Write-Host 'hello world'""" -Wait
+
+                -NoExit: Prevents the new PowerShell window from closing after running the command. 
+                - We must use 2 double quotes for the command as in before Write-Host so that the commadn is taken as is.
+
+    > Run multiple commands.
+        EG.
+            $cscript_command="cscript.exe `'$vbs_script`' /sethst:kms.03k.org"
+            $cscript_activation="cscript.exe `'$vbs_script`' /act"
+
+            Start-Process Powershell -Verb RunAs -ArgumentList "-Command $cscript_command; $cscript_activation" -Verbose -Wait 
+
+
+7. Return the process object (when you want PID/logs/etc.)
+    EG.
+        $p = Start-Process notepad.exe -PassThru
+        Write-Host "Launched PID: $($p.Id)"
+
+
+8. Launch app hidden/in background.
+    EG.
+        Start-Process notepad.exe -WindowStyle Hidden 
+
+
+9. Handle output from CLI tools.
+    EG.
+        Start-Process cmd.exe -ArgumentList "/c dir > output.txt" -Wait
+
+
+10. Start elevated Powershell and pass complex script.
+    EG.
+        Start-Process powershell.exe -Verb RunAs -ArgumentList "-NoExit", "-Command `"Get-Service | Out-GridView`""
+
+
+                            STOP PROCESS 
+                        ===================
+- Terminates a process by name or PID.
+- When to use:
+    > Kill unresponsive programs.
+    > Stop rogue or unwanted processes.
+    > In automation scripts where processes must be closed before continuing.
+
+- it has no confirmation prompt unless you build it in.
+- Some protected Processes (like LSASS) require special privileges.
+
+
+            SYNTAX.
+        -------------
+EG.
+    Stop-Process [-Id] <int[]> [-Force] [-PassThru]
+    Stop-Process [-Name] <string[]> [-Force] [-PassThru]
+
+
+            PARAMETERS
+        -------------------
+1. -Id 
+    - kill all PID.
+        EG.
+            Stop-Process -Id 1234
+
+
+2. -Name 
+    - Kill by process name.
+        EG.
+            Stop-Process -Name notepad
+
+
+3. -Force 
+    - Immediate termination - may cause data loss or corrupt files.
+        EG.
+            Stop-Process -Id 1234 -Force 
+
+
+4. -PassThru 
+    - Returns a process object of the terminal process.
+        EG.
+            Stop-Process -Id 1234 -Force 
+
+
+                USAGE.
+            --------------
+1. Kill all Notepads.
+    EG.
+        Stop-Process -Name notepad 
+
+
+2. Force kill 
+    EG.
+        Stop-Process -Name chrome -Force
+
+
+3. Kill by PID.
+    EG.
+        Stop-Process -Id 1234, 5678
+
+
+                                WAIT PROCESS.
+                            ==================
+- Pause script execution until specified processes exit.
+- When to use:
+    > Wait for installers or scripts to finish before continuing.
+    > Enforce sequential execution in automation.
+
+- Not for real-time monitoring - use Register-ObjectEvent for that.
+- Doesn't restart watching if process closes & reopens, it's a one-shot.
+
+
+                SYNTAX.
+            ------------
+EG.
+    Wait-Process [-Name] <string[]> [-Id <int[]>] [-Timeout <int>] [<CommonParameters>]
+
+
+                PARAMETERS
+            ------------------
+1. -Name 
+    - Wait for Processes by name 
+        EG.
+            Wait-Process -Name notepad 
+
+
+2. -Id 
+    - Wait for process(es) by PID.
+        EG.
+            Wait-Process -Id 1234
+
+
+3. -Timeout 
+    - Time in seconds before giving up.
+        EG.
+            Wait-Process -Name setup -Timeout 60
+
+                - Timeout doesn't kill the process just stops waiting.
+
+
+                USAGE.
+            -------------
+1. Start -> Wait -> Continue 
+    EG.
+        Start-Process notepad.exe
+        Wait-Process -Name notepad
+        Write-Host "Done"
+
+
+                                DEBUG PROCESS.
+                            ===================
+- Attaches the powershell debugger to a running process.
+- When to use:
+    > Debug custom apps you wrote.
+    > Attach to processes for development troubleshooting.
+
+- Not for malware analysis, use dedicated debuggers like x64dbg or WinDbg.
+- Requires admin for most processes.
+- Freezes process while attached.
+
+
+                SYNTAX.
+            ------------
+EG.
+    Debug-Process [-Name] <string[]> [-Id <int[]>]
+
+
+                EXAMPLES.
+            ----------------
+EG.
+    Debug-Process -Name notepad
+    Debug-Process -Id 1234
