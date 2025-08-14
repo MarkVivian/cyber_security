@@ -45,7 +45,7 @@ EG.
 3. -ComputerName 
     - Get processes from a remote machine (requires powershell remoting and admin rights).
         EG.
-            Get-Process -ComputerName SERVER01
+            Get-Process -ComputerName SERVER01 -Name ssh 
 
 
 4. -Module 
@@ -64,7 +64,7 @@ EG.
 6. -IncludeUserName (powershell 6+)
     - Displays which user started the process.
         EG.
-            Get-Process notepad -IncludeUserName
+            Get-Process -Name chrome -IncludeUserName | Select Name, Id, UserName
 
 
                 USAGE.
@@ -92,6 +92,7 @@ EG.
 5. Remote Process list.
     EG.
         Get-Process -ComputerName PC1 -Name notepad
+
 
                             START PROCESS 
                         ===================
@@ -122,6 +123,7 @@ EG.
 
 
 2. -ArgumentList:
+    - Array or single string of args.
     - Specifies the parameters or arguments to use when starting the process.
         EG.
             Start-Process "chrome.exe" -ArgumentList "https://openai.com"
@@ -168,7 +170,7 @@ EG.
     - cannot be used with -Verb RunAs
         EG.
             $cred = Get-Credential   # prompt for user/password
-            Start-Process -FilePath "notepad.exe" -Credential $cred
+            Start-Process -FilePath "notepad.exe" -Credential $cred -LoadUserProfile
 
                 -  some GUI apps behave oddly when launched under another account (desktop session differences).
 
@@ -326,6 +328,10 @@ EG.
     > Stop rogue or unwanted processes.
     > In automation scripts where processes must be closed before continuing.
 
+- Use .CloseMainWindow() on a process to send a friendly close request (if it has a GUI)
+    EG.
+        (Get-Process -Name notepad).CloseMainWindow()
+
 - it has no confirmation prompt unless you build it in.
 - Some protected Processes (like LSASS) require special privileges.
 
@@ -389,7 +395,7 @@ EG.
 
 - Not for real-time monitoring - use Register-ObjectEvent for that.
 - Doesn't restart watching if process closes & reopens, it's a one-shot.
-
+- Wait-Process is one-shot, if process exits and a new process reuses same name/PID you need to call it again.
 
                 SYNTAX.
             ------------

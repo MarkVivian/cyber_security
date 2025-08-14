@@ -15,7 +15,7 @@
 | Restart a service      | Restart-Service -Name <name>    |
 | Change config          | Set-Service -Name <name> ...    |
 | Create new service     | New-Service                     |
-| Delete service         | ❌ Not native (use `sc.exe`)   |
+| Delete service         | ❌ Not native (use `sc.exe`)    |
 
 - They can run as:
     > LocalSystem (almost god-mode SYSTEM)
@@ -45,27 +45,630 @@
         | `Get-WmiObject` / `Get-CimInstance` | For deep info: path, user, state                                |
 
 
-        WHY SERVICES MATTER IN PERSISTENCE
-    -------------------------------------------
-1. Start before user logs in
-2. Can run with no UI
-3. SYSTEM by default if misconfigured
-4. Persist through reboots
-5. Often overlooked unless you're actively hunting
-6. Combine service abuse with valid signing certificates or LOLBins (e.g. rundll32) for stealthier execution.
-
-        
-        COMMON RED TEAM ABUSES (AND LEGIT USE CASES)
-    ---------------------------------------------------
-|   Technique                              |    Description                                                 |
-|------------------------------------------|----------------------------------------------------------------|
-|Install new service	                   | Drop EXE, register as service = stealthy boot persistence      |
-|Hijack existing service	               | Change the ImagePath in registry to point to your binary       |
-|Replace ServiceDLL	For DLL-based services | drop malicious DLL                                             |
-|Set to autostart	StartType              | Auto means it starts with Windows                              |
-|Abuse binPath=                            | to execute cmd.exe	Like: cmd.exe /c calc.exe to sneak execution|
+                                        GET SERVICE.
+                                    ====================
+                Core Syntax.
+            -----------------
+EG.
+    Get-Service 
+        [[-Name] <String[]>]
+        [-DisplayName <String[]>] 
+        [-ComputerName <String[]>] 
+        [-RequiredServices] 
+        [-DependentServices] 
+        [-Include <String[]>] 
+        [-Exclude <String[]>] 
+        [-InputObject <ServiceController[]>]
+        [-Module] [<CommonParameters>]  
 
 
+                PARAMETERS.
+            -------------------
+1. -Name 
+    - Service short name(s) (not display names).
+    - Accepts wildcards.
+        EG.
+            Get-Service -Name wuauserv, bits
+            Get-Service -Name "Win*" # All services starting with win.
+
+                - If you type a DisplayName here, it won't match unless it accidentally matches a service name too.
+
+
+2. -DisplayName 
+    - filter by the service display name.
+    - Accepts wildcards.
+        EG.
+            Get-Service -DisplayName "Windows Update"
+            Get-Service -DisplayName "Windows*"
+
+
+3. -ComputerName 
+    - Query remote computer (requires RPC/access) 
+    - Requires firewall rule for "Remote service management."
+        EG.
+            Get-Service -ComputerName DC01 -Name Spooler 
+
+                - This does not use WinRM, so PS remoting settings don't matter, RPC does.
+
+
+4. -RequiredServices
+    - List services the target service depends on.
+        EG.
+            Get-Service -Name Spooler -RequiredServices
+
+
+5. -DependentServices
+    - List services that depend on the target service.
+        EG.
+            Get-Service -Name Spooler -DependentServices
+
+
+6. -Include/ -Exclude
+    - Include/Exclude services by wildcard match.
+        EG.
+            Get-Service -Include "*SQL*" -Exclude "*Helper*"
+
+
+7. -InputObject 
+    - Accepts service objects from pipeline.
+        EG.
+            Get-Service Spooler | Get-Service -RequiredServices
+
+
+                                                START SERVICE.
+                                            ===================
+- Tells the Service Control Manager (SCM) to start one or more services.
+- It doesn’t install services, doesn’t change their startup type, and won’t magically start a disabled service.
+- It simply sends a “Start” request to SCM, which then handles all dependency checks and startup actions.
+- When to use:
+    > Starting a service that's currently stopped.
+    > Part of a script to ensure critical services are running before an operation.
+    > Recovery scripts for restarting infrastructure after maintenance.
+    > Remote administration of services without logging into the target machine.
+
+- When Not to use:
+    > If you want to enable a service at boot, use Set-Service -StartupType Automatic or sc.exe config.
+    > if you need to start a disabled service, change its startup type first, then start it.
+    > if the service needs a custom binary path or advanced startup options
+
+
+                SYNTAX.
+            -------------
+EG.
+    Start-Service
+        [-Name] <String[]>
+        [-DisplayName <String[]>]
+        [-InputObject <ServiceController[]>]
+        [-PassThru]
+        [-Include <String[]>]
+        [-Exclude <String[]>]
+        [-WhatIf]
+        [-Confirm]
+        [<CommonParameters>]
+
+
+                PARAMETERS
+            ------------------
+1. -Name 
+    - Accepts one or more service short names (not display names)
+    - Supports wildcards.
+        EG.
+            Start-Service -Name Spooler
+            Start-Service -Name "W32*", "bits"
+
+                - If you use a display name here by accident, it probably won’t match, unless the display name coincidentally matches the short name.
+
+
+2. -DisplayName <String[]>
+    - Targets services using their friendly name as seen in services.msc.
+    - Supports wildcards.
+        EG.
+            Start-Service -DisplayName "Windows Update"
+            Start-Service -DisplayName "*Windows*"
+
+                - Useful when scripting for non-technical users who only know display names.
+
+
+3. -InputObject <ServiceController[]>
+    - Lets you pass in a service object (from Get-Service) instead of specifying names directly.
+        EG.
+            Get-Service -Name Spooler | Start-Service
+
+                - When useful: Chaining with filters or conditional checks.
+
+
+4. -PassThru
+    - Normally, Start-Service doesn’t output anything (silent success).
+    - With -PassThru, it returns the service object after the start request is sent.
+        EG.
+            Start-Service -Name Spooler -PassThru | Select Name, Status
+
+                - When useful: Verifying the service status after starting without running another Get-Service.
+
+
+5. -Include / -Exclude
+    - Include or exclude services by wildcard pattern.
+    - Often used when starting multiple services at once.
+        EG.
+            Start-Service -Name "*" -Include "*SQL*" -Exclude "*Helper*"
+
+                - Gotcha: Patterns apply to the names of the services being targeted, not other attributes.
+
+
+6. -WhatIf
+    - Simulates the action without actually starting the service.
+        EG.
+            Start-Service -Name Spooler -WhatIf
+
+                - When useful: Safe testing in scripts before committing changes.
+
+
+7. -Confirm
+    - Prompts you before starting the service(s).
+        EG.
+            Start-Service -Name Spooler -Confirm
+  
+
+                                        STOP SERVICE.
+                                    ====================
+- tells the Service Control Manager (SCM) to stop one or more running services.
+- SCM then:
+    > Stops the target service.
+    > Stops dependent services (unless told otherwise)
+    > Executes any "stop" actions configured in recovery settings.
+
+- When to use:
+    > Stopping a malfunctioning service before restarting or reconfiguring it.
+    > Temporarily freeing up resources.
+    > Maintenance scripts (e.g stopping a DB service before restoring a backup)
+    > Shutting down a service before replacing its binary.
+
+- When not ot use:
+    > To permanently disable a service — use Set-Service -StartupType Disabled or sc.exe config.
+    > On services critical to OS function unless you’re very sure what you’re doing (some services auto-trigger reboots when stopped).
+    > On protected services like WinDefend (Defender) unless you like “Access Denied” messages.
+
+
+                    SYNTAX.
+                ------------
+EG.
+    Stop-Service
+        [-Name] <String[]>
+        [-DisplayName <String[]>]
+        [-InputObject <ServiceController[]>]
+        [-Force]
+        [-Include <String[]>]
+        [-Exclude <String[]>]
+        [-PassThru]
+        [-WhatIf]
+        [-Confirm]
+        [<CommonParameters>]
+
+
+                    PARAMETERS.
+                -----------------
+1. -Name 
+    - Service short name(s).
+    - Supports wildcards.
+        EG.
+            Stop-Service -Name Spooler
+            Stop-Service -Name "W32*", "bits"
+
+                - Gotcha: Don’t confuse short names with Display Names — they are not interchangeable here.
+
+
+2. -DisplayName 
+    - Friendly name as seen in services.msc.
+    - Supports wildcards.
+        EG.
+            Stop-Service -DisplayName "Windows Update"
+            Stop-Service -DisplayName "*Windows*"
+
+
+3. -InputObject <ServiceController[]>
+    - Pipe in service objects from Get-Service.
+        EG.
+            Get-Service -Name Spooler | Stop-Service
+
+                - When useful: Stopping multiple filtered services in one pipeline.
+
+
+4. -Force
+    - Forces stop even if:
+        > The service has dependent services.
+        > The service is in a “stuck” state.
+        EG.
+            Stop-Service -Name Spooler -Force
+
+                - WARNING: Force-stopping a service with dependents will also stop those dependents without confirmation unless combined with -Confirm.
+
+
+5. -Include 
+    - Include specific services by wildcard pattern when using bulk operations.
+        EG.
+            Stop-Service -Name "*" -Include "*SQL*"
+
+
+6. -Exclude 
+    - Exclude specific services by wildcard pattern.
+        EG.
+            Stop-Service -Name "*SQL*" -Exclude "*Helper*"
+
+
+7. -PassThru
+    - Outputs the service object after stopping.
+        EG.
+            Stop-Service -Name Spooler -PassThru | Select Name, Status
+
+
+8. -WhatIf
+    - Simulates stopping without actually doing it.
+        EG.
+            Stop-Service -Name Spooler -WhatIf
+
+
+9. -Confirm
+    - Prompts for confirmation before stopping.
+        EG.
+            Stop-Service -Name Spooler -Confirm
+
+
+                                            RESTART SERVICE.
+                                        ======================
+- It stops a service and then starts it again.
+- When to use:
+    > After changing a service's configuration and needing it to reload.
+    > To refresh a misbehaving service without rebooting the machine.
+    > Automating maintenance tasks where downtime must be minimal.
+
+- When not to use:
+    > If stopping the service would cause critical system downtime you can’t afford.
+    > On services with slow or manual startup requirements — may cause longer downtime than intended.
+    > On protected services or ones with “don’t restart” policies — could cause errors or alerts.
+
+
+                    SYNTAX.
+                ----------------
+EG.
+    Restart-Service
+        [-Name] <String[]>
+        [-DisplayName <String[]>]
+        [-InputObject <ServiceController[]>]
+        [-Force]
+        [-Include <String[]>]
+        [-Exclude <String[]>]
+        [-PassThru]
+        [-WhatIf]
+        [-Confirm]
+        [<CommonParameters>]
+
+
+                    PARAMETERS.
+                -----------------
+1. -Name 
+    - Service short name(s).
+    - Supports wildcards.
+        EG.
+            Restart-Service -Name Spooler
+            Restart-Service -Name "W32*", "bits"
+
+
+2. -DisplayName 
+    - Friendly names as seen in services.msc.
+    - Supports wildcards.
+        EG.
+            Restart-Service -DisplayName "Windows Update"
+            Restart-Service -DisplayName "*Windows*"
+
+
+3. -InputObject 
+    - Accepts piped service objects from Get-Service.
+        EG.
+            Get-Service -Name Spooler | Restart-Service
+
+                - When useful: Filtering and restarting multiple targeted services.
+
+
+4. -Force
+    - Forces stop even if:
+        > The service has dependencies.
+        > The service is stuck.
+            EG.
+                Restart-Service -Name Spooler -Force
+
+                    - Warning: Can cause dependent services to stop and restart unexpectedly.
+
+
+5. -Include 
+    - Wildcard include filter.
+        EG.
+            Restart-Service -Name "*" -Include "*SQL*"
+
+
+6. -Exclude <String[]>
+    - Wildcard exclude filter.
+        EG.
+            Restart-Service -Name "*SQL*" -Exclude "*Helper*"
+
+
+7. -PassThru
+    - Outputs service object after restart.
+        EG.
+            Restart-Service -Name Spooler -PassThru | Select Name, Status
+
+
+8. -WhatIf
+    - Simulates restart without doing it.
+        EG.
+            Restart-Service -Name Spooler -WhatIf
+
+
+9. -Confirm
+    - Asks before restarting each service.
+        EG.
+            Restart-Service -Name Spooler -Confirm
+
+
+                                        SET SERVICE.
+                                    ==================
+- Changes the configuration of an existing service.
+- It can:
+    > Change startup type (Automatic, Manual, Disabled)
+    > Change display name.
+    > Change description.
+    > Change status (Running, Stopped, paused, Continue)
+    > (powershell 7+) change binary path name.
+
+- When to use:
+    > Automating startup type changes for deployment or maintenance.
+    > Updating service descriptions for documentation.
+    > Quickly disabling a problematic service without uninstalling it.
+    > Changing service executable path (admin or pentest scenario)
+
+- When not to use:
+    > On mission-critical services during production hours — startup type changes may affect system stability.
+    > As your only method to start/stop a service — use Start-Service or Stop-Service for that.
+    > Without checking service dependencies — disabling one may kill others.
+
+
+                    SYNTAX.
+                -------------
+EG.
+    Set-Service
+        [-Name] <String>
+        [-DisplayName <String>]
+        [-Description <String>]
+        [-StartupType {Automatic | Manual | Disabled}]
+        [-Status {Running | Stopped | Paused | Continue}]
+        [-BinaryPathName <String>]  # PS 7+
+        [-Include <String[]>]
+        [-Exclude <String[]>]
+        [-PassThru]
+        [-WhatIf]
+        [-Confirm]
+        [<CommonParameters>]
+
+
+                    PARAMETERS.
+                ----------------
+1. -Name 
+    - Service short name (required).
+        EG.
+            Set-Service -Name Spooler -StartupType Disabled
+
+
+2. -DisplayName 
+    - Changes the friendly name shown in services.msc.
+        EG.
+            Set-Service -Name Spooler -DisplayName "Microsoft Print Service"
+
+                - When useful: Renaming to match internal documentation.
+
+
+3. -Description
+    - Updates service description text.
+        EG.
+            Set-Service -Name Spooler -Description "Handles all printing jobs on the system."
+
+                - Pentest note: Some malware renames descriptions to mimic legitimate ones.
+
+
+4. -StartupType
+    > Automatic — Starts at boot.
+    > Manual — Starts when required by another process or user.
+    > Disabled — Cannot start unless re-enabled.
+        EG.
+            Set-Service -Name BITS -StartupType Manual
+
+                - Gotcha: Changing startup type doesn’t affect current running/stopped status.
+
+
+5. -Status
+    - Can be:
+        > Running — Starts the service.
+        > Stopped — Stops the service.
+        > Paused — Pauses service (only works if the service supports pausing).
+        > Continue — Resumes a paused service.
+            EG.
+                Set-Service -Name Spooler -Status Running
+
+
+6. -BinaryPathName (PowerShell 7+)
+    - Changes the path of the executable that the service launches.
+        EG.
+            Set-Service -Name MySvc -BinaryPathName "C:\Malicious\evil.exe"
+                
+                - Pentest note: This is huge for privilege escalation — if you can change the binary path of a service that runs as LocalSystem, you can execute code with SYSTEM rights.
+                
+                 
+7. -Include / -Exclude
+    - Filters for batch updates by wildcard.
+        EG.
+            Set-Service -Name "*" -Include "*SQL*" -StartupType Manual
+
+
+8. -PassThru
+    - Outputs service object after changes.
+        EG.
+            Set-Service -Name Spooler -StartupType Disabled -PassThru
+
+
+9. -WhatIf / -Confirm
+    - Simulation and confirmation prompts.
+        EG.
+            Set-Service -Name Spooler -StartupType Disabled -WhatIf
+
+
+                                                    NEW SERVICE.
+                                                ==================
+- Register a brand-new service with the Service Control Manager (SCM).
+- Once created:
+    > The service can be started, stopped or configured just like any other.
+    > By default, it doesn't start running immediately unless you explicitly start it.
+    > Key difference: This is not about editing, this is creation from scratch.
+
+- When to use:
+    > Deploying a custom application that needs to run as a background service.
+    > Installing infrastructure components manually instead of with an installer.
+    > Security testing (e.g., creating a persistence service).
+    > Lab or automation environments where services are provisioned programmatically.
+
+- When not to use:  
+    > To change an existing service — use Set-Service instead.
+    > To temporarily run a program — use Start-Process instead of polluting SCM.
+    > On production systems without proper cleanup — stale services can cause clutter or security risks.
+      
+      
+                        SYNTAX.
+                    ----------------
+EG.
+    New-Service
+        [-Name] <String>
+        [-BinaryPathName] <String>
+        [-DisplayName <String>]
+        [-Description <String>]
+        [-StartupType {Automatic | Manual | Disabled}]
+        [-DependsOn <String[]>]
+        [-Credential <PSCredential>]
+        [-WhatIf]
+        [-Confirm]
+        [<CommonParameters>]
+
+
+                        PARAMETERS.
+                    ------------------
+1. -Name (Required)
+    - Internal short name of the service.
+        EG.
+            New-Service -Name MyBackupService ...
+
+                - Gotcha: Cannot contain spaces — if you want spaces, use -DisplayName.
+
+
+2. -BinaryPathName (Required)
+    - Path to the executable (or command) that the service will run.
+    - Can include arguments after the path.
+        EG.
+            New-Service -Name MySvc -BinaryPathName "C:\Tools\backup.exe -optionX"
+
+                - Pentest note: Pointing this to a malicious binary + setting it to run as SYSTEM = persistence with full privileges.
+                - If your script needs an interpreter, you must explicitly call that interpreter.
+                    EG.
+                        # Python scripts.
+                        New-Service -Name PySvc -BinaryPathName "C:\Python39\python.exe C:\Scripts\myscript.py"
+
+                        # powershell scripts.
+                        New-Service -Name PsSvc -BinaryPathName "powershell.exe -ExecutionPolicy Bypass -File C:\Scripts\myscript.ps1"
+
+                        # Batch file.
+                        New-Service -Name BatSvc -BinaryPathName "cmd.exe /c C:\Scripts\myscript.bat"
+
+
+3. -DisplayName 
+    - Friendly name shown in services.msc.
+        EG.
+            New-Service -Name MySvc -DisplayName "Nightly Backup Service" ...
+
+
+4. -Description 
+    - Explains what the service does.
+        EG.
+            New-Service -Name MySvc -Description "Handles daily backup operations."
+
+                - Pentest note: Attackers often disguise malicious services with legitimate-sounding descriptions.
+
+
+5. -StartupType
+    > Automatic — Starts at boot.
+    > Manual — Starts only when called.
+    > Disabled — Cannot be started until re-enabled.
+        EG.
+            New-Service -Name MySvc -StartupType Automatic ...
+
+
+6. -DependsOn 
+    - Lists other services that must start before this one.
+        EG.
+            New-Service -Name MySvc -DependsOn "Tcpip", "W32Time" ...
+
+                - Gotcha: Dependencies must exist, or creation fails.
+
+
+7. -Credential 
+    - The account to run the service under.
+    - Defaults to LocalSystem if not specified.
+        EG.
+            $cred = Get-Credential
+            New-Service -Name MySvc -Credential $cred ...
+
+                - Security note: Running as SYSTEM is powerful but risky — use least privilege where possible.
+                - if the credentials are for a user that doesn't exist, and error will appear.
+                - used mostly for services running on specific accounts setup by the admin.
+                - if the password to the account is changed, the service with the credentials linked to that account won't start until password is updated for the credentials.
+
+
+8. -WhatIf / -Confirm
+    - Test and confirm before creating.
+        EG.
+            New-Service -Name MySvc -BinaryPathName "C:\Tools\app.exe" -WhatIf
+
+
+                                                                            REMOVING A SERVICE 
+                                                                        ========================
+1. Using sc.exe (works everywhere)
+    EG.
+        sc.exe delete MyBackupService
+
+            - Removes the service entry from the Service Control Manager (SCM)
+            - Requires admin privileges.
+            - Will not stop a running service first, stop it manually if needed.
+                EG.
+                    sc.exe stop MyBackupService
+                    sc.exe delete MyBackupService
+
+
+2. Using Registry (manual nuclear option)
+    - If sc.exe delete fails (e.g., corrupted service), you can remove the registry key directly:
+        > Open regedit.
+        > Navigate to:
+                    EG.
+                        HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services
+
+        > Find the folder matching the service name.
+        > Delete it.
+        > Reboot.
+
+           - Danger: Editing the registry can brick stuff — make a backup before touching anything.
+
+
+3. Using powershell core 6+
+    EG.
+        Remove-Service -Name MyBackupService
+
+            > Native PS way, but only exists in PS 6.0+
+            > Not available in the default windows powershell 5.1
+
+            
             USAGE.
         ------------
 1. Viewing Services.
@@ -192,6 +795,7 @@
                 Restart-Service "Spooler"
             }
     
+
     Mass disable telemetry services
         EG.
             $services = "DiagTrack", "dmwappushservice"
@@ -200,7 +804,12 @@
                 Stop-Service -Name $svc -Force
             }
 
+
      Dump all service configs for backup/audit
         EG
             Get-WmiObject Win32_Service | Export-Csv "C:\services_backup.csv" -NoTypeInformation
 
+
+    Start all stopped SQL Services.
+        EG.
+            Get-Service -DisplayName "*SQL*" | Where-Object {$_.Status -eq 'Stopped'} | Start-Service

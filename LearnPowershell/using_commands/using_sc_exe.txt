@@ -1,0 +1,181 @@
+                                                    SC.EXE.
+                                                ==============
+1. Query commands (viewing services):
+    > sc.exe query
+    > sc.exe queryex
+    > sc.exe getkeyname
+    > sc.exe getdisplayname
+
+2. Control commands (start/stop/etc.):
+    > sc.exe start
+    > sc.exe stop
+    > sc.exe pause / sc.exe continue
+    > sc.exe interrogate
+
+3. Config commands (edit services):
+    > sc.exe config
+    > sc.exe description
+    > sc.exe failure / sc.exe failureflag
+    > sc.exe sidtype
+    > sc.exe privs
+    > sc.exe triggerinfo
+
+4. Creation & deletion:
+    > sc.exe create
+    > sc.exe delete
+
+5. Security & advanced control:
+    > sc.exe sdshow
+    > sc.exe sdset
+    > sc.exe showsid
+    > sc.exe qprivs
+
+6. Other admin/diagnostic:
+    > sc.exe qc
+    > sc.exe enumdepend
+    > sc.exe lock / sc.exe querylock
+
+
+                        PURPOSE AND OVERVIEW.
+                    ---------------------------
+- sc.exe is the native Windows Service control utility.
+    > Think of it as the raw interface to the Service Control Manager (SCM) — the part of Windows that manages all services and drivers.
+    > PowerShell’s Get-Service, Set-Service, New-Service, etc. are basically friendly wrappers over the SCM API — but sc.exe talks to it directly, so you get more control.
+    > Runs in CMD, PowerShell, or scripts.
+
+- Key strength
+    > Works even if Powershell cmdlets are missing.
+    > More commands than powershell exposes.
+    > Can manage remote computers without needing WinRM, as long as RPC/Service Control Manager access is open.
+    > Used by sysadmins for automation and attackers for persistence, privilege escalation and disabling security tools.
+
+
+                        SYNTAX.
+                    --------------
+EG.
+    sc.exe [<ServerName>] <Command> <ServiceName> [<Options>]
+
+
+                        PARAMETERS.
+                    ----------------
+1. [<ServerName>]
+    - Optional lets you target remote machines.
+        EG.
+            sc.exe \\Machine1 query 
+
+                - Requires:
+                    > Network access.
+                    > Proper credentials.
+                    > Remote Service control manager permissions.
+
+
+2. <command>
+    - The action to perform e.g.
+        > query.    > stop      > delete 
+        > start.    > create 
+
+
+3. <ServiceName>
+    - The short (internal) name of the service, not the display name.
+    - To find it:
+        EG.
+            sc.exe getkeyname "Display Name"
+
+
+4. [<options>]
+    - Command-specific parameters.
+    - These can be very picky, spacing and equals signs matter.
+
+
+                    How sc.exe Talks to windows.
+                -----------------------------------
+- Directly calls Windows Service Control Manager APIs over RPC.
+- Can manage services and drivers (yes, drivers are treated as a type of service).
+- Can configure:
+    > Startup type
+    > Account it runs under
+    > Failure actions
+    > Dependencies
+    > Security descriptors (permissions)
+
+- Gotchas
+    - Spaces matter.
+        > For many commands, you must use a space after =:
+            EG.
+                sc.exe config MyService start= auto
+                        NOT 
+                sc.exe config MyService start=auto   <-- will fail
+
+    - Must be run as admin for local changes.
+    - Remote control can be blocked by firewall or permissions.
+    - Many commands won't give clear error messages, you must interpret the SERVICE_* error codes.
+
+
+                        QUERY COMMANDS.
+                    ------------------------
+1. sc.exe query - Basic Service Status 
+    - Lists services and their current state.
+        SYNTAX.
+            sc.exe query [ServiceName] [type= { driver | service | all }] [state= { active | inactive | all }]
+
+            - Examples.
+                i. List all services (running and stopped)
+                    EG.
+                        sc.exe query 
+
+                ii. List only running services.
+                    EG.
+                        sc.exe query state= active
+                            OR 
+                        sc.exe query state= all | find "RUNNING"
+
+                iii. List only drivers.
+                    EG.
+                        sc.exe query type= driver
+
+                iv. Query a specific service.
+                    EG.
+                        sc.exe query wuauserv
+
+
+2. sc.exe queryex - Extended status.
+    - Same as query but adds.
+        > PID (Process ID) of the service.
+        > Service flags.
+            EG.
+                sc.exe queryex wuauserv 
+
+            OUTPUT.
+                SERVICE_NAME: wuauserv
+                    TYPE               : 20  WIN32_SHARE_PROCESS
+                    STATE              : 4  RUNNING
+                    WIN32_EXIT_CODE    : 0  (0x0)
+                    SERVICE_EXIT_CODE  : 0  (0x0)
+                    CHECKPOINT         : 0x0
+                    WAIT_HINT          : 0x0
+                    PID                : 1448
+                    FLAGS              :
+
+
+3. sc.exe getkeyname - Display -> internal name.
+    - Convert a Display Name (what you see in services.msc) to the service name (what SCM uses).
+        SYNTAX 
+            sc.exe getkeyname "Display Name"
+
+            EG.
+                sc.exe getkeyname "Windows Update"
+
+            OUTPUT.
+                Name = wuauserv 
+
+
+4. sc.exe getdisplayname - Internal -> Display name.
+    - The reverse of getkeyname.
+        SYNTAX.
+            sc.exe getdisplayname ServiceName
+
+            EG. 
+                sc.exe getdisplayname wuauserv.
+
+            OUTPUT.
+                Display name = windows Update
