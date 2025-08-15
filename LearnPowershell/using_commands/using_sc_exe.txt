@@ -34,10 +34,101 @@
     > sc.exe qc
     > sc.exe enumdepend
     > sc.exe lock / sc.exe querylock
+                        
+
+                        QUIRKS CHEAT SHEET.
+                    ==========================
+1. Always use sc.exe in powershell.
+    > In powershell, sc = alias for Set-Content.
+    > Always type sc.exe or you'll trigger the wrong command.
+        EG. 
+            # Correct in powershell.
+            sc.exe query
+
+            # Wrong in powershell.
+            sc query 
+
+
+2. Spaces after = are mandatory.
+    - When using type= or start=, etc.:
+        EG.
+            sc.exe config MyService start= auto 
+
+                > Space after = is required.
+                > No space -> Error: Invalid argument.
+
+
+3. Quotes are required for names with spaces.
+    - For Display Names:
+        EG.
+            sc.exe getkeyname "Windows Update"
+                NOT 
+            sc.exe getkeyname Windows Update.
+
+    - For binary paths.
+        EG.
+            sc.exe config MySvc binPath= "C:\path\to\app.exe -arg"
+
+
+4. parameter order matters.
+    - sc.exe is picky, wrong order can fail silently.
+        EG.
+            # Correct.
+            sc.exe config MySvc type= own start= auto
+
+            # Wrong.
+            sc.exe config start= auto type= own MySvc
+
+
+5. Local vs. Remote syntax.
+    EG.
+        # Local 
+        sc.exe query 
+
+        # Remote.
+        sc.exe \\HOSTNAME query 
+
+            - Requires RPC access and permissions.
+            - You can't use IP addresses if the hostname can't be resolved.
+
+
+6. Service Name vs Display Name.
+    - Service Name : Short name SCM uses (wuauserv)
+    - Display Name : Friendly name in services.msc (Windows Update)
+    - Finding mapping.
+        EG.
+            sc.exe getkeyname "Display Name"
+            sc.exe getdisplayname ServiceName
+
+
+7. Use quotes for paths with arguments.
+    EG.
+        # services running python script.
+        sc.exe create PyService binPath= "\"C:\Python39\python.exe\" C:\Scripts\myscript.py"
+
+            > First set of quotes -> Protect spaces in executable path.
+            > Second set -> Wrap entire command string.
+
+
+8. Remote commands may hang.
+    - If a remote computer is firewalled or RPC is blocked, sc.exe will hang for ~30s before failing.
+
+
+9. Not all filters work on all builds.
+    - Some builds have broken state= active (returns Invalid state)
+    - WorkAround: state= all | find "RUNNING" or parse in powershell.
+
+
+10. Drivers are "services" too.
+    - sc.exe can manage both:
+        EG.
+            sc.exe query type= driver.
+
+                - Don't accidentally delete a driver service, you may brick windows.
 
 
                         PURPOSE AND OVERVIEW.
-                    ---------------------------
+                    ===========================
 - sc.exe is the native Windows Service control utility.
     > Think of it as the raw interface to the Service Control Manager (SCM) — the part of Windows that manages all services and drivers.
     > PowerShell’s Get-Service, Set-Service, New-Service, etc. are basically friendly wrappers over the SCM API — but sc.exe talks to it directly, so you get more control.
@@ -112,7 +203,7 @@ EG.
 
 
                         QUERY COMMANDS.
-                    ------------------------
+                    =======================
 1. sc.exe query - Basic Service Status 
     - Lists services and their current state.
         SYNTAX.
@@ -127,7 +218,7 @@ EG.
                     EG.
                         sc.exe query state= active
                             OR 
-                        sc.exe query state= all | find "RUNNING"
+                        sc.exe query state= all | Select-String "RUNNING" -Context 3
 
                 iii. List only drivers.
                     EG.
@@ -179,3 +270,541 @@ EG.
 
             OUTPUT.
                 Display name = windows Update
+
+
+                        CONTROL COMMANDS.
+                    ========================
+- These are the commands for changing service state (start, stop, pause, continue, interrogate).
+- They're the bread-and-butter of both sysadmin work and post-exploitation persistence tricks.
+
+
+1. sc.exe start 
+    - Start a service.
+        SYNTAX.
+            sc.exe start ServiceName [args]
+
+                - ServiceName is the internal name.
+                - [args] are rare and only used if the service supports custom start parameters.
+                    EG.
+                        sc.exe start wuauserv 
+
+                            - Starts the windows Update service.
+
+                - If the service is disabled(start= disabled), you must re-enable it before starting.
+                    EG.
+                        sc.exe config wuauserv start= demand
+                        sc.exe start wuauserv
+
+
+2. sc.exe stop 
+    - Stop a service.
+        SYNTAX.
+            sc.exe stop ServiceName 
+
+                EG.
+                    sc.exe stop bits 
+
+                        - Stops the background intelligent Transfer service.
+                        - if a service depends on others, stopping it will fail unless those dependencies are stopped first.
+
+
+3. sc.exe pause / continue.
+    - Pause a service.
+        SYNTAX.
+            sc.exe pause ServiceName 
+
+                EG.
+                    sc.exe pause spooler.
+
+                        - Pauses the print Spooler.
+
+        - Limitations:
+            > Only works if the service is coded to handle pause/continue.
+            > Many services don't support this and will return:
+                EG.
+                    [SC] ControlService FAILED 1052:
+                    The requested control is not valid for this service.
+
+    - Resume a paused service.
+        SYNTAX.
+            sc.exe continue ServiceName 
+
+                EG.
+                    sc.exe continue spooler 
+
+
+4. sc.exe interrogate 
+    - Forces service to update status.
+        SYNTAX.
+            sc.exe interrogate ServiceName
+
+                EG.
+                    sc.exe interrogate wuauserv 
+
+            - Purpose.
+                > Sends SERVICE_CONTROL_INTERROGATE signal, tells service t oimmediately send its current status back to SCM.
+                > Rarely needed unless troubleshooting.
+
+            - It's not the same as Get-Service, basically:
+                > Get-Service asks SCM "What do you have in memory about this service?" 
+                    * checks the whiteboard in an office for service status.
+                
+                > interrogate actually asks the service itself to refresh that info in SCM.
+                    * Yelling into the next room "Are you actually working or just pretending?"
+
+
+5. Remote Control.
+    - All these work remotely:
+        EG.
+            sc.exe \\SERVERNAME start ServiceName
+            sc.exe \\SERVERNAME stop ServiceName
+
+                - Must have permissions and RPC access.
+
+
+                                        CONFIG COMMANDS.
+                                    ======================
+- This is where you can:
+    > Change startup type.
+    > Swap the executable binary.
+    > Change the user the service runs as.
+    > Mess with dependencies.
+    > And even make "normal" services run as SYSTEM for privilege escalation.
+
+
+                SYNTAX.
+            -------------
+EG.
+    sc.exe config ServiceName option1= value1 option2= value2 ...
+
+        - Spacing rule
+            > Must have a space after each =
+                EG.
+                    # Correct.
+                    start= auto 
+
+                    # Wrong.
+                    start=auto 
+
+
+                COMMON CONFIG OPTIONS.
+            -----------------------------
+1. start= 
+    - startup Type.
+    - Values:
+        > boot 
+            * Driver loaded by kernel loader (drivers only)
+        
+        > System 
+            * Driver loaded by I/O subsystem (drivers only)
+
+        > auto 
+            * Start automatically at boot.
+
+        > demand 
+            * Manual start.
+
+        > Disabled 
+            * cannot start.
+                EG.
+                    sc.exe config wuauserv start= demand 
+
+                        - sets windows update to manual start.
+
+
+2. binPath= 
+    - Binary Path name.
+    - Sets the full path to the executable and its arguments.
+        EG.
+            # normal service.
+            sc.exe config MySvc binPath= "C:\Tools\backup.exe -optionX"
+
+            # persistence/ privilege escalation.
+            sc.exe config MySvc binPath= "cmd.exe /c whoami > C:\pwn.txt"
+
+                - This is the binary Path Hijack trick, if a service runs as SYSTEM and you can change this you just got SYSTEM-level code execution.
+
+
+3. obj=
+    - Service Account.
+    - Changes the user account the service runs under.
+    - Defaults:
+        > LocalSystem 
+            * Highest privilege (SYSTEM)
+        
+        > NT AUTHORITY\LocalService
+            * Minimal privileges.
+
+        > NT AUTHORITY\NetworkService 
+            * Limited privileges with network access.
+                EG.
+                    sc.exe config MySvc obj= "NT AUTHORITY\LocalService" password= ""
+
+                        - Change obj= to LocalSystem on a modifiable service for persistence and privilege escalation.
+
+
+4. password= 
+    - Account password.
+    - If obj= specifies a custom user, you set the password here.
+        EG.
+            sc.exe config MySvc obj= ".\Mark" password= "MyPassword123!"
+
+                - If you set obj= to a built-in account like LocalSystem, leave password= blank. 
+                - the Service Control Manager (SCM) validates the username/password combo when you save it.
+                - if worng you get:
+                    EG.
+                        [SC] OpenService FAILED 1069:
+                        The service did not start due to a logon failure.
+
+                - if your machine is in a domain and you want the service to run as a domain account.
+                    EG.
+                        sc.exe config MySvc obj= "DOMAIN\Tom" password= "DomainPassword123"
+
+                            - Domain controller validates credentials.
+                            - This is common for enterprise services needing domain resource access.
+
+
+5. depend=
+    - Dependencies.
+    - Lists services that must start before this service.
+        EG.
+            sc.exe config MySvc depend= Tcpip/Afd 
+
+                > Multiple dependencies are seperatred with /.
+                > setting depend= with no value removes all dependencies.
+
+
+6. type= 
+    - Service type.
+    - own 
+        > Service runs in its own process.
+
+    - share 
+        > Service shares process with others.
+
+    - For drivers: kernel, filesys, rec, etc.
+        EG.
+            sc.exe config MySvc type= own
+
+
+7. Full Config Change.
+    EG.
+        sc.exe config MySvc binPath= "C:\Tools\payload.exe" start= auto obj= LocalSystem depend= Tcpip/Afd
+
+            > Sets the binary path
+            > Starts automatically at boot
+            > Runs as SYSTEM
+            > Requires TCP/IP and AFD services to start first
+
+
+                                SC.EXE CREATE AND DELETE.
+                            ===============================
+- This is where you can create a completely new service from scratch — one of the most persistent persistence methods you can get on Windows.
+- you can use the config above to configure the service or use sc.exe config to configure it after creation.
+
+1. Creating a Service.
+    SYNTAX.
+        sc.exe create ServiceName binPath= "PathToExecutable" [options]
+
+            EG.
+                # basic 
+                sc.exe create MySvc binPath= "C:\Tools\backup.exe" start= auto
+
+                    - Creates MySvc pointing to backup.exe.
+                    - will auto-start at boot.
+
+                # running a SYSTEM.
+                sc.exe create SysShell binPath= "cmd.exe /c whoami > C:\pwn.txt" start= auto obj= LocalSystem
+
+                    - At boot, runs your command as SYSTEM 
+                    - Writes whoami output to C:\pwn.txt 
+
+                # Running as user tom 
+                sc.exe create TomSvc binPath= "C:\Tools\report.exe" obj= ".\Tom" password= "TomPass123" start= demand
+
+                    - Runs as Tom's account when started.
+
+                # With dependencies and description.
+                sc.exe create MyNetSvc binPath= "C:\Tools\netjob.exe" start= auto depend= Tcpip/Afd obj= LocalSystem
+                sc.exe description MyNetSvc "Network job automation service"
+
+
+2. Deleting a service.
+    SYNTAX.
+        sc.exe delete ServiceName
+
+            - Marks service for deletion.
+            - if running, it will disappear after stopping/reboot.
+
+
+                            SC.EXE FAILURE ACTIONS.
+                        =============================
+- Failure Actions tell Windows what to do when a service fails unexpectedly — not when it’s stopped manually, but when it crashes, times out, or throws an error.
+- Think of it as:
+    > "If this service faceplants, here’s how to pick it up, smack it around, and get it back to work."
+
+
+             Commands Involved
+            ---------------------
+- There are 3 main ones:
+    > sc.exe failure
+        * Set the actions
+    
+    > sc.exe failureflag 
+        * Turn failure response on/off
+    
+    > sc.exe qfailure 
+        * Query current failure settings
+
+
+                 Actions Available
+            ------------------------------
+- You can chain multiple actions in a single command:
+    > restart/XXXX 
+        * Restart the service after XXXX milliseconds
+
+    > run/XXXX/c:\path\program.exe 
+        * Run a program after XXXX ms
+
+    > reboot/XXXX 
+        * Reboot the machine after XXXX ms
+
+    > ""/XXXX 
+        * Do nothing after XXXX ms
+    
+- Timing is in milliseconds (5000 = 5 seconds)
+    EG. 
+        # Restart on failure        
+        sc.exe failure MyService reset= 86400 actions= restart/5000
+        sc.exe failureflag MyService 1
+
+            - Resets failure count after 1 day (86400 seconds)
+            - Restarts service 5 seconds after failure
+            - Enables failure handling
+
+        # Run a payload on failure
+        sc.exe failure MyService reset= 0 actions= run/1000/c:\tools\payload.exe
+        sc.exe failureflag MyService 1
+
+            - On failure, waits 1 second, runs payload.exe
+            - reset= 0 means the failure count never resets
+
+            - Pentest angle: 
+                > Replace a legit service’s failure action to launch your payload on crash. 
+                > If you know the service crashes often — you get recurring persistence without touching startup folders or registry keys.
+
+        # Multiple failure stages
+        sc.exe failure MyService reset= 0 actions= restart/5000/restart/5000/run/1000/c:\tools\payload.exe
+        sc.exe failureflag MyService 1
+
+            - First failure 
+                > Restart service after 5 seconds
+            
+            - Second failure
+                > Restart again after 5 seconds
+            
+            - Third failure 
+                > Run payload.exe after 1 second
+
+        # Viewing Current Settings
+        sc.exe qfailure MyService
+
+            - Shows:
+                > Reset period
+                > Actions list
+                > Failure flag
+
+- Key Points
+    > Failure flag must be set to 1 or your actions won’t trigger:
+        EG.
+            sc.exe failureflag MyService 1
+
+                - Works only on unexpected stops — not when you sc.exe stop it.
+                - Needs admin rights to set.
+
+
+- Security Implications
+    > Legit: Keeps critical services online
+    > Abuse: Persistence without modifying startup paths or registry — also stealthier than scheduled tasks
+    > Defense: Monitor for changes in failure settings (Event ID 7040 in System log can help)
+
+
+                                Security & Advanced Control
+                            ----------------------------------
+1. sc.exe sdshow 
+    - View Service Security Descriptor
+    - Purpose:
+        > Shows the SDDL (Security Descriptor Definition Language) string that defines permissions for the service.
+        
+        SYNTAX:
+            sc.exe sdshow ServiceName
+
+            EG.
+                sc.exe sdshow wuauserv
+
+            OUTPUT.
+                D:(A;;CCLCSWRPWPDTLOCRRC;;;SY)(A;;CCDCLCSWRPWPDTLOCRSDRCWDWO;;;BA)(A;;CCLCSWLOCRRC;;;IU)(A;;CCLCSWLOCRRC;;;SU)
+
+                    - Breaking it down
+                        > D: → DACL (Discretionary Access Control List)
+                        > (A;;...;;;SY) → Allow permissions for SYSTEM
+                        > (A;;...;;;BA) → Allow permissions for Builtin Administrators
+                        > (A;;...;;;IU) → Allow permissions for Interactive Users
+                        > (A;;...;;;SU) → Allow permissions for Service Logon Users
+
+                    - The letters inside (CCLCSWRPWP...) are access rights like:
+                        > CC → Create Child
+                        > LC → List Contents
+                        > SW → Stop the service
+                        > RP → Read Properties
+                        > WP → Write Properties
+                        > DC → Delete
+                        > LO → Lock
+                        > CR → Control
+
+                    - You can paste this into Microsoft’s SDDL reference to fully decode it.
+
+
+2. sc.exe sdset 
+    - Set Service Security Descriptor
+    - Purpose:
+        > Modify who can start/stop/configure a service.
+
+        SYNTAX
+            sc.exe sdset ServiceName SDDLstring
+
+            EG.
+                # Give Everyone full control — VERY insecure:
+                sc.exe sdset MyService D:(A;;CCLCSWRPWPDTLOCRRC;;;WD)
+
+                    - WD = World (Everyone)
+                    - Would let any user stop/start/configure the service.
+
+                # Lock to SYSTEM only:
+                sc.exe sdset MyService D:(A;;CCLCSWRPWPDTLOCRRC;;;SY)
+
+
+3. sc.exe showsid 
+    - Get Service SID
+    - Purpose:
+        > Displays the security identifier (SID) assigned to the service — useful for ACLs and troubleshooting.
+
+        SYNTAX.
+            sc.exe showsid ServiceName
+
+            EG.
+                sc.exe showsid wuauserv
+
+            OUTPUT.
+                NAME: wuauserv
+                SERVICE SID: S-1-5-80-1234567890-...
+
+
+4. sc.exe qprivs 
+    - Query Privileges
+    - Purpose:
+        > Shows the privileges the service process has when running.
+
+        SYNTAX.
+            sc.exe qprivs ServiceName
+
+            EG.
+                sc.exe qprivs wuauserv
+
+            OUTPUT.
+                SeAuditPrivilege
+                SeChangeNotifyPrivilege
+                SeCreateGlobalPrivilege
+
+    - Why This Matters
+        > If a service has SeDebugPrivilege or SeImpersonatePrivilege, that’s a potential privilege escalation vector.
+        > Many SYSTEM services have dangerous privileges you can exploit if you control them.
+
+    - Pentest Checklist for Service Security
+        > sc.exe sdshow — See if low-priv users can modify it
+        > sc.exe qprivs — See if the service has juicy privileges
+        > If yes to both, modify binary path → instant SYSTEM shell.
+
+
+                        Admin & Diagnostic Commands
+                    =================================
+1. sc.exe qc 
+    - Query Service Configuration
+    - Purpose:
+        > Shows the current configuration of a service — basically the human-readable version of sc.exe sdshow + sc.exe config output.
+
+        SYNTAX.
+            sc.exe qc ServiceName
+            
+            EG.
+                sc.exe qc wuauserv
+            
+            OUTPUT.
+                SERVICE_NAME: wuauserv
+                TYPE               : 20  WIN32_SHARE_PROCESS
+                START_TYPE         : 2   AUTO_START
+                ERROR_CONTROL      : 1   NORMAL
+                BINARY_PATH_NAME   : C:\Windows\system32\svchost.exe -k netsvcs -p
+                LOAD_ORDER_GROUP   : netsvcs
+                TAG                : 0
+                DISPLAY_NAME       : Windows Update
+                DEPENDENCIES       : rpcss
+                SERVICE_START_NAME : LocalSystem
+
+    - This is read-only — if you want to change any of this, you use sc.exe config.
+
+
+2. sc.exe enumdepend 
+    - List Dependencies
+    - Purpose:
+        > Lists the services that depend on a specific service.
+    
+        SYNTAX.
+            sc.exe enumdepend ServiceName [type= service|driver]
+
+            EG.
+                sc.exe enumdepend dhcp
+
+            OUTPUT.
+                [Dependents for service dhcp]
+                Service Name: WinHttpAutoProxySvc
+                Display Name: WinHTTP Web Proxy Auto-Discovery Service
+
+    - This is handy when deciding what will break if you stop a service.
+
+
+3. sc.exe lock 
+    - Lock the Service Database
+    - Purpose:
+        > Locks the Service Control Manager (SCM) database so no one else can change services until you unlock it.
+
+        SYNTAX.
+            sc.exe lock
+
+    - Rarely used outside of scripted maintenance windows.
+    - Once locked, only your current process/session can make service changes.
+
+
+4. sc.exe querylock 
+    - Check Service Database Lock
+    - Purpose:
+        > Shows whether the SCM is locked and by whom.
+
+        SYNTAX
+            sc.exe querylock
+
+            OUTPUT.
+                SERVICE database is LOCKED.
+                LockOwner: Mark-PC\Mark
+                LockDuration: 20000 ms
+
+    - Useful for figuring out why sc.exe config or create commands are failing,  maybe another admin is locking the database.
+    - How These Fit Together
+        > qc 
+            * Audit how the service is set up
+
+        > enumdepend 
+            * See dependency chains before making changes
+
+        > lock / querylock 
+            * Control or troubleshoot who can make service changes at the moment

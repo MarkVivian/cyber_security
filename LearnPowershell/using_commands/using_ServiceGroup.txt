@@ -409,8 +409,8 @@ EG.
             Restart-Service -Name Spooler -Confirm
 
 
-                                        SET SERVICE.
-                                    ==================
+                                                SET SERVICE.
+                                            ==================
 - Changes the configuration of an existing service.
 - It can:
     > Change startup type (Automatic, Manual, Disabled)
