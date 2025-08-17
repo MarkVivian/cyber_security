@@ -1,0 +1,360 @@
+                            INVOKE-RESTMETHOD.
+                        =============================
+- A PowerShell-native cmdlet built specifically for **RESTful web services**.  
+- It simplifies API interaction by **parsing JSON/XML responses into native PowerShell objects** automatically.
+
+
+            BASIC SYNTAX:
+        ----------------------
+EG.
+    Invoke-RestMethod
+        [-Method <WebRequestMethod>]
+        [-UseBasicParsing]   # deprecated
+        [-Uri] <Uri>
+        [-WebSession <WebRequestSession>]
+        [-SessionVariable <String>]
+        [-Credential <PSCredential>]
+        [-UseDefaultCredentials]
+        [-CertificateThumbprint <String>]
+        [-Certificate <X509Certificate>]
+        [-UserAgent <String>]
+        [-DisableKeepAlive]
+        [-TimeoutSec <Int32>]
+        [-Headers <IDictionary>]
+        [-MaximumRedirection <Int32>]
+        [-Proxy <Uri>]
+        [-ProxyCredential <PSCredential>]
+        [-ProxyUseDefaultCredentials]
+        [-Body <Object>]
+        [-ContentType <String>]
+        [-TransferEncoding <String>]
+        [-InFile <String>]
+        [-OutFile <String>]
+        [-PassThru]
+        [<CommonParameters>] 
+
+
+
+        CORE PARAMETERS:
+    -------------------------
+1. -Method <WebRequestMethod>
+    >  HTTP verb enum; common values Get, Post, Put, Delete, Patch, Head, Options, Trace, Merge. Default is Get. 
+        EG.
+            Invoke-RestMethod -Uri "https://api.example.com/items/123" -Method Get
+            Invoke-RestMethod -Uri "https://api.example.com/items" -Method Post -Body '{"name":"x"}' -ContentType "application/json"
+
+                - Some APIs require exact verbs for idempotency; using POST vs PUT matters for semantics and retry logic.
+
+
+2. -UseBasicParsing
+    - Legacy switch to use a basic HTML parsing mechanism; mostly relevant for Windows PowerShell 5.1 where IE-based parsing existed. 
+    - In PowerShell 7+, basic parsing is standard and the flag is mostly deprecated/has no effect.
+        EG.
+            Invoke-RestMethod -Uri "https://example.com/feed" -UseBasicParsing
+
+                - Don’t rely on ParsedHtml/IE DOM behavior when porting scripts between 5.1 and 7+. Test on both runtimes if you need cross-version compatibility.
+      
+
+3. -Uri 
+    - Mandatory.
+    - Target URI (string or System.Uri). Must be an absolute URL (http, https, etc.).
+        EG.
+            Invoke-RestMethod -Uri "https://api.example.com/v1/users/1"
+
+                - Relative URIs are not valid by themselves; TLS / supported HTTP version mismatches can break requests.
+
+
+4. -WebSession
+    - Reuse an existing WebRequestSession object to preserve cookies, headers, and session state between calls.
+        EG.
+            $session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
+            Invoke-RestMethod -Uri "https://site/login" -Method Post -Body $creds -WebSession $session
+            Invoke-RestMethod -Uri "https://site/api/me" -WebSession $session
+
+                - Session objects can contain sensitive cookies/tokens — treat them confidentially.
+
+
+5. -SessionVariable
+    - Create and store a WebRequestSession object automatically in a variable name (no $), for reuse in later calls.
+    - You cannot use -SessionVariable and -WebSession in the same call.
+        EG.
+            Invoke-RestMethod -Uri "https://site/login" -Method Post -Body $creds -SessionVariable ApiSess
+            # later:
+            Invoke-RestMethod -Uri "https://site/api/list" -WebSession $ApiSess
+
+                - Don’t persist session objects across machines/users without understanding token lifetimes.
+
+
+6. -Credentials 
+    - PSCredential object used for server auth (Basic/NTLM/Digest depending on negotiation). 
+        EG.
+            $cred = Get-Credential
+            Invoke-RestMethod -Uri "https://secure.internal/api" -Credential $cred
+
+                - OAuth/Bearer tokens are typically passed via -Headers (Authorization) — -Credential is for HTTP auth mechanisms only.
+
+
+7. -UseDefaultCredentials
+    - Sends the currently logged-on Windows user credentials (integrated auth: Kerberos/NTLM).
+        EG.
+            Invoke-RestMethod -Uri "https://intranet.api.local" -UseDefaultCredentials
+
+                - Only works for endpoints that accept Windows integrated auth; avoid for public APIs.
+
+
+8. -CertificateThumbprint
+    - Select a client certificate by thumbprint from certificate store for TLS client authentication.
+        EG.
+            Invoke-RestMethod -Uri "https://mTLS.api" -CertificateThumbprint "ab12cd34..."
+
+
+9. -Certificate
+    - Pass an X509Certificate object (e.g., from Get-PfxCertificate) to the request for client cert auth
+        EG.
+            $cert = Get-PfxCertificate -FilePath "C:\certs\client.pfx"
+            Invoke-RestMethod -Uri "https://mTLS.api" -Certificate $cert
+
+                - Protect the PFX and password; avoid exposing certs in logs.
+
+
+10. -UserAgent
+    - Set or override the User-Agent header. Default UA includes PowerShell info
+        EG.
+            Invoke-RestMethod -Uri "https://api.example.com" -UserAgent "Mozilla/5.0 (Windows NT)"
+
+
+11. -DisableKeepAlive
+    - Disable HTTP keep-alive; connection will close after the response.
+        EG.
+            Invoke-RestMethod -Uri "https://api.example.com" -DisableKeepAlive
+
+                - Useful for certain server compatibility issues; causes extra TCP overhead for many small requests.
+
+
+12. -TimeoutSec
+    - Number of seconds to wait before timing out (default ≈100s).
+        EG.
+            Invoke-RestMethod -Uri "https://slow.api" -TimeoutSec 10
+
+                - For reliable automation set explicit timeouts; long timeouts can hang jobs.
+
+
+13. -Headers 
+    - Hashtable of HTTP headers @{ "Name" = "Value" }. Use for Authorization, Accept, custom headers.
+        EG.
+            Invoke-RestMethod -Uri "https://api.example" -Headers @{ Authorization = "Bearer $token"; Accept = "application/json" }
+
+                - Watch header names and avoid letting secrets leak into logs/console output.
+
+
+14. -MaximumRedirection
+    - Max 3xx redirects to follow automatically (default ~5). 
+        EG.
+            Invoke-RestMethod -Uri "http://oldsite" -MaximumRedirection 2
+
+                - Redirects can drop auth headers across domains — be careful with cross-domain redirects.
+
+
+15. -Proxy 
+    - URI for an HTTP/S proxy.
+        EG.
+            Invoke-RestMethod -Uri "https://api" -Proxy "http://proxy.local:8080"
+
+                - Proxy may require TLS interception (breaks cert trust) or authentication.
+
+
+16. -ProxyCredential
+    - Supply credentials for an authenticated proxy.
+        EG.
+            $proxyCred = Get-Credential
+            Invoke-RestMethod -Uri "https://api" -Proxy "http://proxy:8080" -ProxyCredential $proxyCred
+
+
+17. -ProxyUseDefaultCredentials            
+    - Use the current Windows account credentials for the proxy.             
+            
+18. -Body 
+    - Request payload; strings, byte arrays, hashtables. Hashtables get serialized as form data unless you explicitly set -ContentType.
+        EG.
+            # JSON (explicit)
+            Invoke-RestMethod -Uri $url -Method Post -Body '{"name":"Mark"}' -ContentType "application/json"
+
+            # form data
+            Invoke-RestMethod -Uri $url -Method Post -Body @{ name="Mark"; age=30 }
+
+                - If the API expects multipart/form-data (file uploads), check the docs — some PowerShell versions include -Form or you must build multipart manually.
+
+
+19. -ContentType
+    - MIME type describing the -Body (e.g., application/json).
+        EG.
+            Invoke-RestMethod -Uri $url -Method Post -Body '{"x":1}' -ContentType "application/json"
+                
+                - Missing/wrong ContentType = 400 or unexpected parsing on server side.
+
+20. -TransferEncoding
+    - Set Transfer-Encoding header (for chunked/streamed transfers).
+        EG.
+            Invoke-RestMethod -Uri $url -TransferEncoding "chunked"
+
+                - Rarely required; servers sometimes expect a specific encoding.
+
+
+21. -InFile 
+    - Path to a file to upload as the request body (streamed).
+        EG.
+            Invoke-RestMethod -Uri "https://api.example/upload" -Method Put -InFile "C:\path\large.bin"
+
+                - For multipart uploads you might need a different approach; be mindful of memory vs streaming behavior.
+
+
+22. -OutFile
+    - Save the response body directly to a file (useful for binary downloads). Modern PowerShell versions allow -OutFile on IRM
+        EG.
+            Invoke-RestMethod -Uri "https://api.example/export" -Method Post -Body $body -OutFile "C:\data\export.csv"
+
+                - Historically Invoke-WebRequest was the downloader, but modern IRM supports -OutFile.
+                - If your code must be clear to other readers, use IWR for obvious downloads.
+
+
+23. -PassThru 
+    - When used with -OutFile/file ops, still return a response object to pipeline.
+
+
+24. <CommonParameters>
+    - Standard PowerShell common params: -Verbose, -Debug, -ErrorAction, -ErrorVariable, -OutVariable, etc.
+        EG.
+            Invoke-RestMethod -Uri $url -Verbose -ErrorAction Stop
+
+                - Wrap network calls in try/catch with -ErrorAction Stop for deterministic error handling.
+                
+
+            COMMON USES.
+        ---------------------
+1. GET REQUEST – FETCHING DATA
+    Fetch basic data from a public API
+        EG.
+            $response = Invoke-RestMethod -Uri "https://api.agify.io/?name=michael"
+            $response.age  # e.g. 69
+
+    GET with custom headers (e.g., tokens)
+        EG.
+            $headers = @{ Authorization = "Bearer TOKEN123" }
+            $response = Invoke-RestMethod -Uri "https://api.example.com/user/me" -Headers $headers
+
+
+2. POST DATA - JSON PAYLOADS.
+    Submit JSON data to an API.
+        EG.
+            $data = @{
+                name = "Alice"
+                age  = 30
+            } | ConvertTo-Json
+
+            $response = Invoke-RestMethod -Uri "https://api.example.com/users" -Method Post -Body $data -ContentType "application/json"
+
+    POST with authentication.
+        EG.
+            $headers = @{ Authorization = "Bearer TOKEN123" }
+            $data = @{ product = "PowerShell"; version = "7.4" } | ConvertTo-Json
+
+            Invoke-RestMethod -Uri "https://api.example.com/submit" -Method Post -Headers $headers -Body $data -ContentType "application/json"
+
+
+3. PUT/ PATCH/ DELETE EXAMPLES 
+    Update a user with PUT.
+        EG.
+            $data = @{ email = "new@email.com" } | ConvertTo-Json
+            Invoke-RestMethod -Uri "https://api.example.com/users/5" -Method Put -Body $data -ContentType "application/json"
+
+    DELETE a record.
+        EG.
+            Invoke-RestMethod -Uri "https://api.example.com/posts/44" -Method Delete
+
+
+4. AUTHENTICATION - CREDENTIALS AND TOKENS.
+    Prompts for credentials (Basic Auth)
+        EG.
+            $cred = Get-Credential
+            Invoke-RestMethod -Uri "https://secure.site.com/data" -Credential $cred
+
+    OAuth / Bearer token.
+        EG.
+            $headers = @{ Authorization = "Bearer YOUR-TOKEN-HERE" }
+            Invoke-RestMethod -Uri "https://api.service.com/account" -Headers $headers
+
+
+5. PARSE JSON/XML RESPONSES AUTOMATICALLY
+    Parse JSON response
+        EG.
+            $response = Invoke-RestMethod -Uri "https://api.github.com/repos/microsoft/winget-cli"
+            $response.full_name   # Output: microsoft/winget-cli
+            $response.owner.login # Output: microsoft
+
+    XML response parsing (less common)
+        EG.
+            $response = Invoke-RestMethod -Uri "https://www.w3schools.com/xml/note.xml"
+            $response.note.body
+
+
+6. DEBUGGING + ERROR HANDLING
+     View raw content if parsing fails
+        EG.
+            $response = Invoke-RestMethod -Uri "https://api.badsite.com" -ErrorAction Stop
+            $response | Format-List *
+
+    Graceful error handling
+        EG.
+            try {
+                Invoke-RestMethod -Uri "https://api.nonexistent.com" -ErrorAction Stop
+            } catch {
+                Write-Warning "❌ Failed: $($_.Exception.Message)"
+            }
+
+    Skip HTTP error throwing
+        EG.
+            $response = Invoke-RestMethod -Uri "https://example.com/does-not-exist" `
+                -SkipHttpErrorCheck
+            Write-Host "Status: $($response.StatusCode)"
+
+
+7. ADVANCED USAGE – FORMS, FILES, PAGINATION
+    Multipart form data (file upload)
+        EG.
+            $form = @{
+                file = Get-Item "C:\upload\report.csv"
+            }
+            Invoke-RestMethod -Uri "https://api.example.com/upload" -Method Post -Form $form
+
+    Pagination handling
+        EG.
+            $page = 1
+            do {
+                $result = Invoke-RestMethod -Uri "https://api.site.com/items?page=$page"
+                $result.items | ForEach-Object { Write-Host $_.name }
+                $page++
+            } while ($result.nextPage -ne $null)
+
+
+8. REAL-WORLD APPLICATIONS
+    Automate service status check
+        EG.
+            $status = Invoke-RestMethod "https://api.statuspage.io/v1/status"
+            if ($status.indicator -ne 'none') {
+                Write-Warning "🚨 Service issue detected!"
+            }
+
+    Fetch GitHub release tags
+        EG.
+            $releases = Invoke-RestMethod "https://api.github.com/repos/powershell/powershell/releases"
+            $releases | Select-Object tag_name, published_at
+
+
+9. DIFFERENCE VS INVOKE-WEBREQUEST.
+    | Feature          | `Invoke-RestMethod`     | `Invoke-WebRequest`               |
+    | ---------------- | ----------------------- | --------------------------------- |
+    | Auto-parses JSON | ✅ Yes (into objects)    | ❌ No (you have to parse manually) |
+    | Meant for APIs   | ✅ Built for REST APIs   | ❌ Built for webpages / scraping   |
+    | HTML parsing     | ❌ No                    | ✅ Yes (.Links, .ParsedHtml)       |
+    | File downloads   | ❌ Not intended for that | ✅ Use `-OutFile`                  |
+    | Verbosity        | Cleaner for APIs        | More verbose response             |

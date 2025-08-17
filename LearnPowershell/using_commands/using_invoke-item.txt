@@ -1,0 +1,75 @@
+                                        INVOKE ITEM.
+                                    ======================
+- What it does:
+    > runs the default action associated with an item (file, folder, app).
+    > Equivalent to double-clicking it in file explorer.
+
+
+                SYNTAX.
+            ---------------
+EG.
+    Invoke-Item [-Path] <String[]> [-LiteralPath <String[]>] [<CommonParameters>]
+
+
+                    PARAMETERS.
+                --------------------
+1. -Path.
+    - Specifies the file(s) or folder(s) to invoke.
+    - Accepts wildcards (*, ?).
+        EG.
+            Invoke-Item -Path "C:\Reports\report.docx"
+
+                - open the file with the default app (word in this case.)
+
+
+2. -LiteralPath
+    - Like -Path but takes the string literally (no wildcards expanded).
+        EG.
+            Invoke-Item -LiteralPath "C:\Files\[Report].docx"
+
+                - Useful if your file name literally has brackets, asterisk, etc.
+
+
+3. [CommonParameters]
+    - Includes -Verbose, -ErrorAction, etc.
+        EG.
+            Invoke-Item -Path "C:\script.ps1" -Verbose
+
+
+4. Real world usage.
+    i. Open a document.
+        EG.
+            Invoke-Item "C:\Docs\presentation.pptx"
+
+                - Equivalent: double-clicking the PPTX -> Opens in powerpoint.
+
+    ii. Launch a program.
+        EG.
+            Invoke-Item "C:\Windows\System32\notepad.exe"
+
+                - Equivalent: typing notepad in start menu and hitting enter.
+
+    iii. Open a folder in file explorer.
+        EG.
+            Invoke-Item "C:\Projects"
+
+                - Equivalent to double-clicking the folder icon.
+
+    iv. Open multiple files at once.
+        EG.
+            Invoke-Item "C:\Media\*.mp3"
+
+                - Opens all MP3s in your default music player.
+
+    v. Open a URL (if system has a browser associated)
+        EG.
+            Invoke-Item "https://google.com"
+
+                - Equivalent: typing the URL in your default browser.
+
+
+5. Gotchas and pitfalls.
+    - Relies on file associations - if no default program is set, it will fail.
+    - Doesn't let you pass arguments to the program (for that , use Start-Process)
+    - On servers, GUI apps might not open (because no desktop session)
+    - For automation, Invoke-Item is limited; it's mostly convenience for quick user-level tasks.

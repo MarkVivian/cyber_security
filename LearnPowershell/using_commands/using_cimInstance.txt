@@ -1,0 +1,1349 @@
+                                            CMI INSTANCE.
+                                        ======================
+1. WMI (Windows Management Instrumentation)
+    - Introduced in the 90s, built on DCOM (Distributed COM)
+    - Heavy, clunky and firewalls hate it (DCOM is messy with ports)
+        EG.
+            Get-WmiObject Win32_OperatingSystem
+
+
+2. CIM (Common Information Model)
+    - Standards-based (from DMTF, works across vendors not just Microsoft)
+    - Built on WS-Man (Web Services for Management) -. uses port 5985/5986 (same as WinRM)
+    - Faster, more secure, more portable.
+        EG.
+            Get-CimInstance Win32_OperatingSystem
+
+
+- Why CIM > WMI 
+    > Remote management.
+        * CIM uses WinRM (firewall-friendly, secure)
+        
+    > Sessions.
+        * You can open a single session and run multiple queries (WMI always reconnected.)
+
+    > Cross-platform 
+        * CIM can query Linux/VMware/other vendors that support CIM.
+
+    > Future-Proof 
+        * Microsoft already deprecated Get-WmiObject.
+        EG.
+            # WMI way (old)
+            Get-WmiObject Win32_ComputerSystem.
+
+            # CIM way (New)
+            Get-CimInstance Win32_ComputerSystem
+
+                - The results look the same but the transport is different under the hood.
+
+
+                                    GET-CIMINSTANCE .
+                                =======================
+- Its a powershell cmdlet that retrieves CIM objects (common Information Models) from local or remote computers.
+- It’s the modern replacement for Get-WmiObject (deprecated, but still widely used in old scripts).
+- CIM is just a standard way of representing management data (like processes, services, network adapters, etc.), and WMI is Microsoft’s implementation of CIM.
+- Think of it as:
+    > Get-WmiObject 
+        * Windows-only, legacy.
+
+    > Get-CimInstance 
+        * Modern, works with WSMan protocol, cross-platform friendly, more reliable.
+
+            
+                SYNTAX.
+            ---------------
+EG.
+    Get-CimInstance
+        [-ClassName] <string>
+        [-Namespace <string>]
+        [-Filter <string>]
+        [-Property <string[]>]
+        [-Query <string>]
+        [-ComputerName <string[]>]
+        [-CimSession <CimSession[]>]
+        [-KeyOnly]
+        [-Shallow]
+        [-OperationTimeoutSec <UInt32>]
+        [<CommonParameters>]
+
+
+                PARAMETERS.
+            ------------------
+1. -ClassName (mandatory unless using -Query)
+    - Specifies the WMI/CIM class to query.
+    - Example class:
+        > Win32_Process
+        > Win32_Service
+        > Win32_Environment.
+        EG.
+            Get-CimInstance -ClassName Win32_Process
+
+                - List all processes.
+
+            # WMI equivalent.
+            Get-WmiObject -Class Win32_Process
+
+
+2. -Namespace.
+    - The WMI repository path where the class lives.
+    - Default = root/cimv2.
+    - A folder where classes are stored.
+        EG.
+            Get-CimInstance -ClassName Win32_Service -Namespace root/cimv2
+            
+            # WMI equivalent
+            Get-WmiObject -Class Win32_Service -Namespace root/cimv2
+
+
+3. -Filter.
+    - WQL (WMI query Language) WHERE clause.
+    - Norrows results by a condition.
+        EG.
+            Get-CimInstance -ClassName Win32_Process -Filter "Name = 'notepad.exe'"
+
+            # WMI equivalent
+            Get-WmiObject -Class Win32_Process -Filter "Name = 'notepad.exe'"
+
+
+4. -Property
+    - Specifies which properties to return.
+    - Saves bandwidth.
+        EG.
+            Get-CimInstance -ClassName Win32_OperatingSystem -Property Caption, Version
+
+            # WMI equivalent
+            Get-WmiObject -Class Win32_OperatingSystem | Select-Object Caption, Version
+
+
+5. -Query 
+    - Full WQL statement.
+    - Write an SQL-like query instead of using -ClassName and -Filter.
+        EG.
+            Get-CimInstance -Query "SELECT Name, ProcessId FROM Win32_Process WHERE Name='notepad.exe'"
+
+            # WMI equivalent.
+            Get-WmiObject -Query "SELECT Name, ProcessId FROM Win32_Process WHERE Name='notepad.exe'"
+
+
+6. -ComputerName.
+    - Connects to a remote computer. (by DNS/NetBIOS)
+    - Run the query on another machine.
+        EG.
+            Get-CimInstance -ClassName Win32_OperatingSystem -ComputerName "Server01"
+
+            # WMI equivalent
+            Get-WmiObject -Class Win32_OperatingSystem -ComputerName "Server01"
+
+                - -ComputerName works in both CIM and WMI, but CIM prefers CimSessions for remote queries.
+
+
+7. -CimSession.
+    - Uses an existing CimSession (persistent connection) instead of creating a new one.
+    - Create a "ticket" to a remote machine once, then reuse it for multiple queries.
+        EG.
+            $session = New-CimSession -ComputerName "Server01"
+            Get-CimInstance -ClassName Win32_Service -CimSession $session
+
+                - WMI doesn't have CimSessions.
+                - Use -CimSession instead of -ComputerName if running many queries on the same machine (faster, less overhead).
+
+
+8. -KeyOnly.
+    - Returns only the key properties of an instance (the unique identifiers).
+    - Only give me the student ID numbers, not the whole student info.
+        EG.
+            Get-CimInstance -ClassName Win32_Process -KeyOnly
+
+                - Only shows Handle (the key property for processes.)
+                - WMI has no direct equivalent. you'd have to pipe it to select-object.
+
+
+9. -Shallow.
+    - Retrieves only the object itself, not related objects.
+    - Don't automatically chase down linked info.
+        EG.
+            Get-CimInstance -ClassName Win32_Service -Shallow
+
+                - WMI always returns full depth thus no equivalent.
+
+
+10. -OperationTimeoutSec
+    - Sets a timeout in seconds for the operation.
+    - if the query takes too long , cancel it.
+        EG.
+            Get-CimInstance -ClassName Win32_Process -OperationTimeoutSec 10
+
+                - WMI has no direct parameter, but you could use powershell's Timeout logic around it.
+
+
+11. Real world example.
+    - You want to get all running services named "Spooler" froma remote server
+    - you only want the Name and State
+    - you don't want to wait more than 5 seconds.
+        EG.
+            $session = New-CimSession -ComputerName "Server01"
+            Get-CimInstance -ClassName Win32_Service -Filter "Name = 'Spooler'" -Property Name, State -CimSession $session -OperationTimeoutSec 5
+
+            # WMI equivalent.
+            Get-WmiObject -Class Win32_Service -ComputerName "Server01" -Filter "Name = 'Spooler'" | Select-Object Name, State
+
+
+                                NEW CIMINSTANCE.
+                            =====================
+- What it does :
+    > Creates a new managed object (CIM Instance) on your local or remote computer.
+    > This of it as "spawning a new record/object in WMI land"
+
+
+            SYNTAX.
+        ------------
+EG.
+    New-CimInstance
+    [-ClassName] <string>
+    [-Namespace <string>]
+    [-Property <IDictionary>]
+    [-ClientOnly]
+    [-CimSession <CimSession[]>]
+    [-ComputerName <string[]>]
+    [<CommonParameters>]
+
+
+            PARAMETERS.
+        --------------------
+1. -ClassName 
+    - mandatory.
+    - Which CIM/WMI class you want to create an instance of.
+    - Example class:
+        > Win32_Process
+        > Win32_Service
+        > Win32_Environment.
+            EG.
+                New-CimInstance -ClassName Win32_Environment -Property @{ Name = "MYVAR"; VariableValue = "HelloWorld"; UserName = "System" }
+
+                    - This creates a new system environment variable called MYVAR.
+                
+                # WMI equivalent 
+                ([WMIClass]"Win32_Environment").Create("MYVAR", "HelloWorld", "System")
+
+
+2. -NameSpace  
+    - Where to look for the class. 
+    - Default = root/cimv2 
+    - Some special classes live elsewhere e.g. root/virtualization/v2.
+        EG.
+            New-CimInstance -ClassName Msvm_ComputerSystem -Namespace root/virtualization/v2 -Property @{ ElementName = "NewVM" }
+
+                - Creates a new VM object (note: won’t actually make a bootable VM yet, just a placeholder CIM object).
+
+
+3. -Property 
+    - Lets you assign initial property values when creating the instance.
+    - Accepts a hash table (@{})
+    - Without this your object will be born "empty" (if allowed)
+        EG.
+            # Create a new environment variable for current user.
+            New-CimInstance -ClassName Win32_Environment -Property @{ Name = "DemoVar"; VariableValue = "123"; UserName = $env:USERNAME }
+
+            # WMI equivalent snippet.
+            ([WMIClass]"Win32_Environment").Create("DemoVar", "123", $env:USERNAME)
+
+
+4. -ClientOnly
+    - Creates the CIM instance locally in memory only, without sending it to WMI repository.
+    - Useful for preparing objects you’ll later use with Invoke-CimMethod.
+    - Think of it like “draft mode” — you build the Lego model but don’t put it on the shelf yet.
+        EG.
+            $proc = New-CimInstance -ClassName Win32_Process -ClientOnly
+            $proc | Invoke-CimMethod -MethodName Create -Arguments @{ CommandLine = "notepad.exe" }
+
+                - Here we create a “blank” process object, then actually use it to launch Notepad.
+
+
+5. -CimSession <CimSession[]>   
+    - Run the command on a remote session you created earlier with New-CimSession.
+    - Best practice instead of -ComputerName (faster + WSMan or DCOM).
+        EG.
+            $session = New-CimSession -ComputerName "Server01"
+            New-CimInstance -ClassName Win32_Environment -Property @{ Name = "REMOTEVAR"; VariableValue = "TEST"; UserName = "System" } -CimSession $session
+
+                - Creates environment variable on Server01, not your machine.
+
+
+6. -ComputerName <string[]>
+    - Legacy-ish way to do remote CIM ops. Creates a temporary hidden CimSession.
+    - Avoid if you plan multiple calls → use -CimSession instead.
+        EG.
+            New-CimInstance -ClassName Win32_Environment -Property @{ Name="TESTVAR"; VariableValue="456"; UserName="System" } -ComputerName "Server02"
+
+            # WMI equivalent.
+            ([WMIClass]"\\Server02\root\cimv2:Win32_Environment").Create("TESTVAR", "456", "System")
+
+
+7. [common parameters]
+    - These are universal powershell parameters avaiable to all cmdlets, e.g.:
+        -Verbose 
+            * See detailed output.
+        
+        -ErrorAction.
+            * decide what happens on errors.
+
+        - WhatIf 
+            * dry-run simulation (very handy)
+
+        -Confirm
+            * prompt before running.
+                EG.
+                    New-CimInstance -ClassName Win32_Environment -Property @{ Name="DryRunTest"; VariableValue="999"; UserName="System" } -WhatIf
+
+                        - Shows what would happen without creating the variable.
+
+
+8. Real-World scenarios.
+    i. Create environment variables.
+        EG.
+            New-CimInstance -ClassName Win32_Environment -Property @{ Name = "PathTest"; VariableValue = "C:\Tools"; UserName = "System" }
+
+    ii. Create a process.
+        - Using Invoke-CimMethod with a ClientOnly instance.
+            EG.
+                $proc = New-CimInstance -ClassName Win32_Process -ClientOnly
+                $proc | Invoke-CimMethod -MethodName Create -Arguments @{ CommandLine = "calc.exe" }
+
+    iii. Create a user account (Win32_UserAccount)
+        EG.
+            New-CimInstance -ClassName Win32_UserAccount -Property @{
+                Name = "TestUser"
+                Password = "P@ssw0rd!"
+                LocalAccount = $true
+            }
+      
+                - This doesn’t always actually create a user in modern Windows — MS locked a lot of classes to read-only in Win10+.
+                - But in older/enterprise builds this worked.      
+                 
+
+9. Gotchas and pitfalls.
+    - Many CIM classes are read-only — you can’t New-CimInstance them.
+        > Win32_ComputerSystem won’t let you spawn a new PC
+
+    - Creating users/services directly is often blocked by permissions or modern Windows security tightening.
+    - Use -ClientOnly if you just need an object “blueprint” to pass into another cmdlet.
+    - If -ComputerName works inconsistently, switch to -CimSession.                 
+
+
+                                    SET CIMINSTANCE.
+                                ======================
+- What it does
+    > Updates/changes the properties of an existing CIM instance.
+    > Think: you already have an object (process, service, env var, NIC, etc.) → Set-CimInstance edits its properties.
+
+- Analogy:
+    > New-CimInstance 
+        * buy a brand-new Lego car.
+    
+    > Set-CimInstance 
+        * repaint it, swap the wheels, or add a spoiler.
+
+
+                    SYNTAX.
+                ---------------
+EG. 
+    Set-CimInstance
+        [-InputObject] <CimInstance[]>
+        [-Property <IDictionary>]
+        [-PassThru]
+        [-CimSession <CimSession[]>]
+        [-ComputerName <string[]>]
+        [<CommonParameters>]
+
+
+                    PARAMETER 
+                --------------------
+1. -InputObject (mandatory)
+    - The CIM instance(s) you want to update.
+    - usually comes from Get-CimInstance.
+        EG.
+            # Rename environment variable value.
+            $envVar = Get-CimInstance -ClassName Win32_Environment -Filter "Name='MYVAR'"
+            Set-CimInstance -InputObject $envVar -Property @{ VariableValue = "NewValue" }
+
+            # WMI equivalent.
+            $envVar = Get-WmiObject Win32_Environment -Filter "Name='MYVAR'"
+            $envVar.VariableValue = "NewValue"
+            $envVar.Put()
+
+
+2. -Property 
+    - Specifies which properties to change and their new values.
+    - Hash table (@{}) format.
+        EG.
+            # change description of a service.
+            $svc = Get-CimInstance -ClassName Win32_Service -Filter "Name='Spooler'"
+            Set-CimInstance -InputObject $svc -Property @{ Description = "Handles print jobs in my test lab" }
+
+
+3. -PassThru.
+    - By default, Set-CimInstance doesn't output anything.
+    - Add -PassThru to make it return the updated object.
+        EG.
+            $proc = Get-CimInstance -ClassName Win32_Process -Filter "Name='notepad.exe'"
+            Set-CimInstance -InputObject $proc -Property @{ Priority = 128 } -PassThru
+
+                - With -PassThru, they roll the car back out for you to inspect.
+
+
+4. -CimSession
+    - Run the update on one or more remote computers using an existing CIM session.
+        EG.
+            # change env var remotely.
+            $session = New-CimSession -ComputerName "Server01"
+            $envVar = Get-CimInstance -ClassName Win32_Environment -Filter "Name='REMOTEVAR'" -CimSession $session
+            Set-CimInstance -InputObject $envVar -Property @{ VariableValue = "RemoteUpdate" } -CimSession $session
+
+
+5. -ComputerName 
+    - Alternative to -CimSession. 
+    - Creates a temporary session behind the scenes.
+        EG.
+            $envVar = Get-CimInstance -ClassName Win32_Environment -Filter "Name='TESTVAR'" -ComputerName "Server02"
+            Set-CimInstance -InputObject $envVar -Property @{ VariableValue = "ServerSideChange" } -ComputerName "Server02"
+
+            # WMI equivalent.
+            $envVar = Get-WmiObject Win32_Environment -ComputerName Server02 -Filter "Name='TESTVAR'"
+            $envVar.VariableValue = "ServerSideChange"
+            $envVar.Put()
+
+
+6. [CommonParameters]
+    - Universal PS parameters (-Verbose, -WhatIf, -ErrorAction, etc.)
+        EG.
+            # dry run.
+            Set-CimInstance -InputObject $envVar -Property @{ VariableValue = "DryRunChange" } -WhatIf
+
+
+7. Real world scenrios.
+    i. Change process priority.
+        EG.
+            $proc = Get-CimInstance -ClassName Win32_Process -Filter "Name='notepad.exe'"
+            Set-CimInstance -InputObject $proc -Property @{ Priority = 128 }
+
+    ii. Update environment variable.
+        EG.
+            $envVar = Get-CimInstance -ClassName Win32_Environment -Filter "Name='PathTest'"
+            Set-CimInstance -InputObject $envVar -Property @{ VariableValue = "C:\NewPath" }
+
+    iii. Modify service startup type remotely.
+        EG.
+            $session = New-CimSession -ComputerName "Server01"
+            $svc = Get-CimInstance -ClassName Win32_Service -Filter "Name='wuauserv'" -CimSession $session
+            Set-CimInstance -InputObject $svc -Property @{ StartMode = "Disabled" } -CimSession $session
+
+
+8. Gotchas and Pitfalls.
+    - Not all properties are writable. Example: you can’t just change a process Name.
+    - Some changes (like service StartMode) require admin rights.
+    - CIM cmdlets may silently ignore invalid properties (double-check with -PassThru).
+    - Using -ComputerName repeatedly = slower than reusing a CimSession.
+    - In modern Windows, some classes that used to be writable (e.g., Win32_UserAccount) are now read-only due to security tightening.
+    - If the object disappears between Get-CimInstance and Set-CimInstance (e.g., process ended), you’ll get errors.
+      
+      
+                                    REMOVE CIM INSTANCE.
+                                =========================
+- What it does
+    > Deletes an existing CIM instance from the system.
+    > You hand it an object (like a process, environment variable, network config, even a service), and it removes it permanently.
+    > This doesn’t “stop” things (like a process) — it outright removes them from existence (if the class allows).
+    > it's not guaranteed to kill processes on all systems.
+
+- Analogy:
+    > New-CimInstance = give birth to a cat.
+    > Set-CimInstance = change its collar or trim its claws.
+    > Remove-CimInstance = take it to Thanos for snapping out of reality.
+
+
+                SYNTAX.
+            -------------
+EG.
+    Remove-CimInstance
+        [-InputObject] <CimInstance[]>
+        [-CimSession <CimSession[]>]
+        [-ComputerName <string[]>]
+        [<CommonParameters>]
+
+
+                    PARAMETERS.
+                ------------------
+1. -InputObject
+    - The CIM instance(s) you want to delete.
+    - Usually obtained from Get-CimIntance 
+        EG.
+            # delete an environment variable.
+            $envVar = Get-CimInstance -ClassName Win32_Environment -Filter "Name='TESTVAR'"
+            Remove-CimInstance -InputObject $envVar
+
+            # WMI snippet.
+            $envVar = Get-WmiObject Win32_Environment -Filter "Name='TESTVAR'"
+            $envVar.Delete()
+
+
+2. -CimSession  
+    - Run the deletion on a remote computer via an existing CIM session.
+        EG.
+            $session = New-CimSession -ComputerName "Server01"
+            $envVar = Get-CimInstance -ClassName Win32_Environment -Filter "Name='OLDVAR'" -CimSession $session
+            Remove-CimInstance -InputObject $envVar -CimSession $session
+
+
+3. -ComputerName 
+    - Alternative to -CimSession.
+    - Connects directly to specified machine.
+        EG.
+            $svc = Get-CimInstance -ClassName Win32_Service -Filter "Name='ObsoleteService'" -ComputerName "Server02"
+            Remove-CimInstance -InputObject $svc -ComputerName "Server02"
+
+            # WMI snippet.
+            $svc = Get-WmiObject Win32_Service -ComputerName Server02 -Filter "Name='ObsoleteService'"
+            $svc.Delete()
+
+
+4. [CommonParameters]
+    - Same universal stuff (-Verbose, -WhatIf, -ErrorAction).
+        EG.
+            # safety check.
+            Remove-CimInstance -InputObject $envVar -WhatIf
+
+
+5. Real-World scenarios.
+    i. Remove an environment variable.
+        EG.
+            $envVar = Get-CimInstance -ClassName Win32_Environment -Filter "Name='OLDPATH'"
+            Remove-CimInstance -InputObject $envVar
+
+    ii. kill a process (not the same as Stop-Process)
+        EG.
+            $proc = Get-CimInstance -ClassName Win32_Process -Filter "Name='calc.exe'"
+            Remove-CimInstance -InputObject $proc
+
+                - This is equivalent to calling .Terminate() via WMI, so it does kill processes.
+
+    iii. Delete a printer configuration remotely.
+        EG.
+            $session = New-CimSession -ComputerName "PrintServer"
+            $printer = Get-CimInstance -ClassName Win32_Printer -Filter "Name='TestPrinter'" -CimSession $session
+            Remove-CimInstance -InputObject $printer -CimSession $session
+
+
+6. Gotchas and pitfalls.
+    - No undo. Once removed, the instance is gone.
+    - Not every CIM class supports removal (e.g., you can’t delete core OS info objects).
+    - Permissions: Deleting services, processes, or configs usually requires admin rights.
+    - Remote use: -ComputerName is slower/less secure than -CimSession.
+    - CIM error messages can be vague — sometimes it just says "Access denied" with no detail.
+    - Deleting the wrong instance (like a system environment variable or spooler service) can break the system. Use -WhatIf religiously.
+      
+      
+                                GET CIMCLASS.
+                            ====================
+- What it does
+    - Retrieves the definition/schema of CIM/WMI classes.
+    - A class = the template/blueprint (like Win32_Service with properties like Name, State, methods like StartService()).
+    - An instance = an actual object of that class (like the “Print Spooler” service).
+
+- Analogy:
+    > Class: blueprint of a car model → “This model has 4 wheels, a steering wheel, supports ‘Start()’ and ‘Stop()’ methods.”
+    > Instance: an actual Toyota Corolla with VIN 123ABC sitting in your driveway.
+
+
+                SYNTAX.
+            ----------------
+EG.
+    Get-CimClass
+        [[-ClassName] <String[]>]
+        [-Namespace <String>]
+        [-CimSession <CimSession[]>]
+        [-ComputerName <String[]>]
+        [-QualifierName <String>]
+        [-MethodName <String>]
+        [-PropertyName <String>]
+        [<CommonParameters>]
+
+
+                PARAMETER.
+            ----------------
+1. -ClassName 
+    - Filter for specific CIM/WMI class names.
+    - Supports wildcards.
+        EG.
+            Get-CimClass -ClassName Win32_Service
+            Get-CimClass -ClassName Win32_Pro*
+
+
+2. -NameSpace 
+    - CIM classes are grouped in namespaces (like folders).
+    - Default: root/cimv2 (the one where most Windows management classes live).
+        EG.
+            Get-CimClass -Namespace root/wmi
+
+
+3. -CimSession 
+    - Query schema from a remote machine using an existing CIM sesion.
+        EG.
+            $session = New-CimSession -ComputerName Server01
+            Get-CimClass -ClassName Win32_Service -CimSession $session
+
+
+4. -ComputerName
+    - Direct remote query (slower, less secure compared to -CimSession)
+        EG.
+            Get-CimClass -ClassName Win32_Process -ComputerName "Server02"
+
+            # WMI equivalent.
+            Get-WmiObject -List -ComputerName Server02 | Where-Object {$_.Name -like "Win32_Process"}
+
+
+5. -QualifierName 
+    - Filter by a specific qualifier (metadata about the class).
+    - Example: Static qualifier means the class doesn’t need an instance to run its methods.
+        EG.
+            Get-CimClass -QualifierName Static
+
+
+6. -MethodName 
+    - Return only classes that have a specific method.
+        EG.
+            Get-CimClass -MethodName Terminate
+
+
+7. -PropertyName
+    - Return only classes that have a certain property.
+        EG.
+            Get-CimClass -PropertyName InstallDate
+
+
+8. [CommonParameters]
+    - -Verbose, -WhatIf, -ErrorAction.
+
+
+9. Real World scenarios.
+    i. Explore what a class can do.
+        EG.
+            Get-CimClass -ClassName Win32_Process | Select-Object -Expand CimClassMethods
+
+                - Helps you learn: "Processes can call Terminate() or Create()."
+
+    ii. Find classes that support installation date tracking.
+        EG.
+            Get-CimClass -PropertyName InstallDate
+
+    iii. Enumerate all service-related classes.
+        EG.
+            Get-CimClass -ClassName *Service*
+
+    iv. Remote schema inspection.
+        EG.
+            $session = New-CimSession -ComputerName Server01
+            Get-CimClass -ClassName Win32_* -CimSession $session
+
+
+10. Gotchas and pitfalls 
+    - Overwhelming results: Without -ClassName, you’ll dump hundreds of classes. Pipe to Out-GridView or Select-Object.
+    - Different namespaces have different classes. If you don’t find it in root/cimv2, try root/wmi.
+    - Remote queries (-ComputerName) may fail if WinRM/DCOM isn’t configured.
+    - Not all properties/methods you see are actually usable — some require admin rights or depend on OS version.
+    - Qualifiers are not super well-documented; trial/error or MSDN deep dives may be needed.      
+
+
+                            INVOKE CIMMETHOD.
+                        =======================
+- What it does:
+    > Executes a method (action) on a CIM class or instance.
+    > Methods are operations defined in the schema (from Get-CimClass)
+    > Example methods:
+        * Win32_Process.Create() → start a process.
+        * Win32_Service.StartService() → start a service.
+        * Win32_Service.StopService() → stop a service.
+        * Win32_Process.Terminate() → kill a process.
+
+
+                SYNTAX.
+            -------------
+EG.
+    Invoke-CimMethod
+        [-InputObject] <CimInstance>
+        [-MethodName] <String>
+        [[-Arguments] <IDictionary>]
+        [-CimSession <CimSession[]>]
+        [-ComputerName <String[]>]
+        [-ClassName <String>]
+        [-Namespace <String>]
+        [<CommonParameters>]
+
+
+                PARAMETERS.
+            -----------------
+1. -InputObject 
+    - Run a method on a specific instance (not just the class).
+    - Usually piped from Get-CimInstance.
+        EG.
+            Get-CimInstance Win32_Service -Filter "Name='Spooler'" |
+            Invoke-CimMethod -MethodName StartService
+
+                - Starts the print spooler service.
+
+
+2. -MethodName  
+    - The actual method/action you want to call.
+    - Must match exactly what’s available on the class.
+        EG.
+            Get-CimInstance Win32_Process -Filter "Name='notepad.exe'" |
+            Invoke-CimMethod -MethodName Terminate
+
+                - Preset MethodName:
+                    > Win32_Process
+                        * Create(CommandLine) - Starts a new process.
+                        * Terminate() - ends the process.
+                        * GetOwner() - Returns the user running the process
+                        * SetPriority(Priority) - Changes process priority.
+                            EG.
+                                # Start Notepad
+                                Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{ CommandLine = "notepad.exe" }
+
+                                # Kill Notepad
+                                Get-CimInstance Win32_Process -Filter "Name='notepad.exe'" |
+                                Invoke-CimMethod -MethodName Terminate
+
+                                # Get owner of a process
+                                Get-CimInstance Win32_Process -Filter "Name='explorer.exe'" |
+                                Invoke-CimMethod -MethodName GetOwner
+
+                    > Win32_Service 
+                        * StartService() - Starts the service.
+                        * StopService() - stops it.
+                        * PauseService() - Pauses it.
+                        * ResumeService() - resumes a paused one.
+                        * ChangeStartMode(StartMode) - changes service startup type(Auto, Manual, Disabled)
+                            EG.
+                                # Start Spooler
+                                Get-CimInstance Win32_Service -Filter "Name='Spooler'" |
+                                Invoke-CimMethod -MethodName StartService
+
+                                # Disable Windows Update service
+                                Get-CimInstance Win32_Service -Filter "Name='wuauserv'" |
+                                Invoke-CimMethod -MethodName ChangeStartMode -Arguments @{ StartMode = "Disabled" }
+
+                    > Win32_NetworkAdapter
+                        * Enable() → enable network adapter.
+                        * Disable() → disable it.
+                            EG.
+                                # Disable Ethernet adapter
+                                Get-CimInstance Win32_NetworkAdapter -Filter "NetConnectionID='Ethernet'" |
+                                Invoke-CimMethod -MethodName Disable
+
+                    > Win32_Shadowcopy
+                        * Create(Context, Volume) → creates a shadow copy (VSS snapshot).
+                        * Revert() → restores from snapshot.
+                        * Delete() → deletes a snapshot.
+                            EG.
+                                Invoke-CimMethod -ClassName Win32_ShadowCopy -MethodName Create -Arguments @{ Context = "ClientAccessible"; Volume = "C:" }
+
+                    > WmiMonitorBrightnessMethods (in root/wmi)
+                        * WmiSetBrightness(Brightness, Timeout) → adjust brightness.
+                            EG.
+                                Invoke-CimMethod -Namespace root/wmi -ClassName WmiMonitorBrightnessMethods -MethodName WmiSetBrightness -Arguments @{ Brightness = 70; Timeout = 0 }
+
+                    > Win32_OperatingSystem.
+                        * Reboot() - reboots the system.
+                        * Shutdown() - shuts down the system.
+                            EG.
+                                Invoke-CimMethod -ClassName Win32_OperatingSystem -MethodName Reboot
+
+    - Use Get-CimClass -ClassName Win32_* | Select-Object -Expand Methods to see what a class can do.
+        EG.
+            
+
+
+
+
+
+3. -Arguments   
+    - Some methods need parameters (like function arguments).
+    - Supply them as a hashtable.
+        EG.
+            Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{ CommandLine = "notepad.exe" }
+
+
+4. -CimSession 
+    - Run the method on a remote machine via session.
+        EG.
+            $session = New-CimSession -ComputerName Server01
+            Invoke-CimMethod -CimSession $session -ClassName Win32_Process -MethodName Create -Arguments @{ CommandLine = "calc.exe" }
+
+
+5. -ComputerName 
+    - Direct remote execution without session.
+        EG.
+            Invoke-CimMethod -ComputerName "Server02" -ClassName Win32_Service -MethodName StopService -Arguments @{ Name = "wuauserv" }
+
+                - Slower and more fragile than -CimSessoin.
+
+
+6. -ClassName 
+    - Call method directly on a class (without needing an instance).
+    - Often used for static methods like Win32_Process.Create().
+        EG.
+            Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{ CommandLine = "mspaint.exe" }
+
+
+7. -NameSpace
+    - Specify which CIM namespace to use (default: root/cimv2)
+        EG.
+            Invoke-CimMethod -Namespace root/wmi -ClassName WmiMonitorBrightnessMethods -MethodName WmiSetBrightness -Arguments @{ Brightness = 80; Timeout = 0 }
+
+                - Adjusts screen brightness.
+
+
+8. [CommonParameters]
+    - -Verbose, -ErrorAction, etc.
+
+
+9. Real-World Scenarios.
+    i. Start a service.
+        EG.
+            Get-CimInstance Win32_Service -Filter "Name='Spooler'" |
+            Invoke-CimMethod -MethodName StartService
+
+    ii. Stop a process remotely.
+        EG.
+            $session = New-CimSession -ComputerName Server01
+            Get-CimInstance Win32_Process -Filter "Name='calc.exe'" -CimSession $session |
+            Invoke-CimMethod -MethodName Terminate
+
+    iii. Launch an app remotely.
+        EG.
+            Invoke-CimMethod -CimSession $session -ClassName Win32_Process -MethodName Create -Arguments @{ CommandLine = "notepad.exe" }
+
+    iv. Change screen brightness.
+        EG.
+            Invoke-CimMethod -Namespace root/wmi -ClassName WmiMonitorBrightnessMethods -MethodName WmiSetBrightness -Arguments @{ Brightness = 50; Timeout = 0 }
+
+
+10. Gotchas and pitfalls.
+    - Some methods need admin privileges (e.g., stopping services).
+    - Static vs instance confusion:
+        > Static = call with -ClassName.
+        > Instance = call with -InputObject.
+    - Return codes often matter: methods don’t throw errors, they return numeric codes (0 = success, other numbers = failure).
+    - Not all methods work on all OS versions (some classes are deprecated or renamed).
+    - Remote execution may be blocked by firewalls/WinRM settings.
+
+
+                                NEW CIM SESSION.
+                            =========================
+- What it does
+    > Creates a persistent CIM session object.
+    > Sessions let you:
+        * Avoid re-authenticating each time.
+        * Control protocol (WSMan vs DCOM).
+        * Apply advanced options (SSL, cert auth, timeouts, skip connection tests).
+        * Reuse sessions across multiple commands.
+
+- Instead of dailing a new phone call every time, you open a dedicated hotline to the other machine.
+
+
+                SYNTAX.
+            ---------------
+EG.
+    # Credential-based.
+    New-CimSession
+        [[-ComputerName] <String[]>]
+        [-Name <String>]
+        [-Credential <PSCredential>]
+        [-Authentication <AuthenticationMechanism>]
+        [-Port <UInt32>]
+        [-SessionOption <CimSessionOptions>]
+        [-OperationTimeoutSec <UInt32>]
+        [-SkipTestConnection]
+        [<CommonParameters>]
+
+    # Certificate-based.
+    New-CimSession
+        [[-ComputerName] <String[]>]
+        [-Name <String>]
+        [-CertificateThumbprint <String>]
+        [-Port <UInt32>]
+        [-SessionOption <CimSessionOptions>]
+        [-OperationTimeoutSec <UInt32>]
+        [-SkipTestConnection]
+        [<CommonParameters>]
+
+
+                PARAMETERS.
+            -----------------
+1. -ComputerName
+    - Target computers (defaults to local).
+    - Can be names, FQDNs, or IPs.
+    - Multiple computers = multiple sessions.
+        EG.
+            New-CimSession -ComputerName "Server01","Server02"
+
+
+2. -Name 
+    - Assigns a friendly name to the session.
+    - Useful when juggling many sessions.
+        EG.
+            New-CimSession -ComputerName "Server01" -Name "DBSession"
+
+
+3. -Credential 
+    - Supply alt creds.
+        EG.
+            $cred = Get-Credential
+            New-CimSession -ComputerName "Server01" -Credential $cred
+
+
+4. -Authentication
+    - Choice: Default, Kerberos, Negotiate, Basic, NtlmDomain, Digest, CredSSP.
+    - Use Kerberos in-domain, Negotiate cross-domain, Basic only with SSL, CredSSP for second-hop (risky).
+        EG.
+            New-CimSession -ComputerName "Server01" -Authentication Kerberos
+
+
+5. -CertificateThumbprint.
+    - Use cert-based authentication.
+    - Handy for automation (no password prompts)
+        EG.
+            New-CimSession -ComputerName "Core01" -CertificateThumbprint "9A1B2C3D4E..."
+
+
+6. -Port 
+    - Override port (default 5985 HTTP / 598 HTTPS for WSMan)
+    - Required for nonstandard endpoints.
+        EG.
+            New-CimSession -ComputerName "Server01" -Port 5986
+
+
+7. -SessionOption <CimSessionOptions>
+    - Fine-tune protocol behavior (SSL, ignore cert errors, switch protocol).
+    - Built with New-CimSessionOption.
+        EG.
+            $opt = New-CimSessionOption -UseSsl -SkipCNCheck -SkipCACheck
+            New-CimSession -ComputerName "Server01" -Credential $cred -SessionOption $opt
+
+
+8. -OperationTimeoutSec 
+    - Server-side operation timeout (not connection)
+        EG.
+            New-CimSession -ComputerName "Server01" -OperationTimeoutSec 120
+
+
+9. -SkipTestConnection
+    - Creates the session without testing immediately.
+    - Useful when spinning up hundreds of sessions fast.
+        EG.
+            New-CimSession -ComputerName (Get-Content .\servers.txt) -SkipTestConnection
+
+
+10. [CommonParameters]
+    - -Verbose, -ErrorAction, etc.
+      
+      
+11. Real-World Scenarios.
+    i. Create sessions for a fleet.
+        EG.
+            $cred = Get-Credential
+            $servers = Get-Content .\servers.txt
+            $sessions = New-CimSession -ComputerName $servers -Credential $cred -Name "PatchWave1"
+
+    ii. Use sessions for fast inventory.
+        EG.
+            Get-CimInstance Win32_OperatingSystem -CimSession $sessions |
+            Select PSComputerName, Caption, Version, LastBootUpTime
+      
+    iii. Force DCOM (for legacy servers.)
+        EG.
+            $opt = New-CimSessionOption -Protocol Dcom
+            New-CimSession -ComputerName "LegacySQL01" -Credential $cred -SessionOption $opt
+      
+    iv. SSL with invalid lab certs.
+        EG.
+            $opt = New-CimSessionOption -UseSsl -SkipCNCheck -SkipCACheck
+            New-CimSession -ComputerName "TestCore01" -Credential $cred -SessionOption $opt -Port 5986
+
+
+12. Gotchas and pitfalls.
+    - Requires WinRM service for WSMan transport. Run winrm quickconfig to enable.
+    - Kerberos fails if you use IP instead of hostname.
+    - Double hop problem still applies (use CredSSP or Kerberos delegation).
+    - DCOM mode = firewall headache (RPC ports). WSMan is simpler.
+    - SkipTestConnection → session object is created, but may fail on first use. Don’t confuse “created” with “usable”.
+    - Always clean up with Remove-CimSession to free server resources.
+      
+      
+                                GET CIMSESSION.
+                            =======================
+- What it does:
+    > Retrieves the active CIM session objects in your current PowerShell process.
+    > Lets you view, filter, or pipe sessions into other cmdlets.
+
+
+                SYNTAX.
+            --------------
+EG.
+    Get-CimSession
+        [[-ComputerName] <String[]>]
+        [[-Id] <UInt32[]>]
+        [[-Name] <String[]>]
+        [<CommonParameters>]
+
+
+                PARAMETERS.
+            -----------------
+1. -ComputerName
+    - Filters sessions by the computer name(s) they’re connected to.
+        EG.
+            Get-CimSession -ComputerName "Server01"
+
+
+2. -Id 
+    - Filters sessions by their unique numeric ID.
+        EG.
+            Get-CimSession -Id 3
+
+
+3. -Name 
+    - Filters sessions by the friendly -Name you gave them when creating.
+        EG.
+            Get-CimSession -Name "DBSession"
+
+
+4. [CommonParameters]
+    - -Verbose, -ErrorAction, etc.
+
+
+5. Examples.
+    i. List all active sessions.
+        EG.
+            Get-CimSession
+
+    ii. Find sessions to a specific ste of servers.
+        EG.
+            Get-CimSession -ComputerName "Server01","Server02"
+
+    iii. Use session objects directly.
+        EG.
+            $sess = Get-CimSession -Name "PatchWave1"
+            Get-CimInstance Win32_OperatingSystem -CimSession $sess
+
+6. Gotchas and pitfalls.
+    - Sessions are local to the PowerShell runspace. They don’t survive closing the shell (unless exported/imported).
+    - If you used -SkipTestConnection in New-CimSession, a session may appear “alive” but will fail when used.
+    - If the remote host dies, the session object still exists locally — it just errors out when used.
+
+
+                                REMOVE CIMSESSION.
+                            =======================
+- What it does
+    > Deletes CIM session objects from your local PowerShell process.
+    > Frees up associated resources on the remote system (and locally).
+    > After removal, that session can no longer be used for queries or methods.
+
+
+                SYNTAX.
+            ------------
+EG.
+    Remove-CimSession
+        [-CimSession] <CimSession[]>
+        [<CommonParameters>]
+
+    Remove-CimSession
+        [-ComputerName] <String[]>
+        [<CommonParameters>]
+
+    Remove-CimSession
+        [-Id] <UInt32[]>
+        [<CommonParameters>]
+
+    Remove-CimSession
+        [-Name] <String[]>
+        [<CommonParameters>]
+
+
+                PARAMETERS.
+            -----------------
+1. -CimSession 
+    - The actual session object(s) to remove.
+    - Often piped from Get-CimSession.
+        EG.
+            Get-CimSession -ComputerName "Server01" | Remove-CimSession
+
+
+2. -ComputerName 
+    - Closes sessions by their target computer(s).
+        EG.
+            Remove-CimSession -ComputerName "Server01","Server02"
+
+
+3. -Id 
+    - Removes sessions by their numerical ID.
+        EG.
+            Remove-CimSession -Id 4,5
+
+
+4. -Name 
+    - Removes sessions by their friendly names.
+        EG.
+            Remove-CimSession -Name "DBSession"
+
+
+5. [CommonParameters]
+    - -Verbose, -ErrorAction, etc.
+
+
+6. Examples.
+    i. Remove all sessions.
+        EG.
+            Get-CimSession | Remove-CimSession
+
+    ii. Remove sessions for a specific server.
+        EG.
+            Remove-CimSession -ComputerName "Server01"
+
+    iii. Remove by name.
+        EG.
+            Remove-CimSession -Name "PatchWave1"
+
+
+7. Gotchas and pitfalls.
+    - Removing a session doesn’t “log you off” the remote server in the traditional sense — it just closes the management channel.
+    - If you remove the wrong session, you’ll need to create it again (New-CimSession).
+    - Forgetting to remove sessions in scripts can leave dozens of stale session objects hanging around.
+    - If a session is dead (remote host gone), Remove-CimSession still works fine — it just cleans it locally.
+
+
+                                EXPORT CIMSESSION.
+                            =========================
+- what it does:
+    > Saves one or more CIM session objects to a file on disk.
+    > Lets you transfer session objects between scripts or re-import them later.
+    > Session objects include authentication details, so you don’t need to re-supply credentials when you reload them.
+
+
+                SYNTAX.
+            -------------
+EG.
+    Export-CimSession
+        [-CimSession] <CimSession[]>
+        [-Path] <String>
+        [<CommonParameters>]
+
+
+                PARAMETERS.
+            ----------------
+1. -CimSession <CimSession[]>
+    - Specifies the CIM session(s) you want to export.
+    - Usually piped from Get-CimSession.
+        EG.
+            Get-CimSession -Name "DBSession" | Export-CimSession -Path C:\temp\DBSession.cimsession
+
+
+2. -Path.
+    - Destination file path where the session(s) will be saved.
+    - File extension convention is .cimsession, but any name works.
+        EG.
+            Export-CimSession -CimSession $sess -Path "C:\temp\servers.cimsession"
+
+
+3. [CommonParameters]
+    - -Verbose, ErrorAction, etc.
+
+
+4. Examples.
+    i. Export a single session.
+        EG.
+            $sess = New-CimSession -ComputerName "Server01" -Name "DBSession"
+            Export-CimSession -CimSession $sess -Path "C:\temp\DBSession.cimsession"
+
+    ii. Export multiple sessions.
+        EG.
+            $sessions = New-CimSession -ComputerName "Server01","Server02" -Name "Fleet"
+            Export-CimSession -CimSession $sessions -Path "C:\temp\FleetSessions.cimsession"
+
+
+5. Real-World scenarios.
+    - Export files contain credential material.
+        > They are protected using DPAPI (Windows Data Protection API), meaning only the same user account on the same computer can import them.
+        > You cannot just copy them to another machine and expect them to work.
+    - Lifetime issue: If the remote session times out/host reboots, the imported session may still exist locally but will fail on use.
+    - Export only what you need — don’t dump hundreds of sessions into a single file unless that’s intentional.
+
+
+                                IMPORT CIMSESSION.
+                            ========================
+- What it does:
+    > Reads one or more session objects from a .cimsession file (created by Export-CimSession).
+    > Restores them into your current PowerShell process, ready to use.
+    > Saves you from re-creating sessions or re-entering credentials.
+
+
+                SYNTAX.
+            -------------
+EG.
+    Import-CimSession
+        [-Path] <String[]>
+        [<CommonParameters>]
+
+
+                PARAMETERS.
+            -----------------
+1. -Path <String[]>
+    - Path(s) to the exported session file(s).
+    - Accepts multiple files at once.
+        EG.
+            Import-CimSession -Path "C:\temp\DBSession.cimsession"
+
+
+2. [CommonParameters]
+    - -Verbose, -ErrorAction, etc.
+
+
+3. Examples.
+    i. Import a single session.
+        EG.
+            $sess = Import-CimSession -Path "C:\temp\DBSession.cimsession"
+            Get-CimInstance Win32_Service -CimSession $sess -Filter "State='Running'"
+
+    ii. Import multiple sessions.
+        EG.
+            $sessions = Import-CimSession -Path "C:\temp\FleetSessions.cimsession"
+            Get-CimInstance Win32_OperatingSystem -CimSession $sessions |
+            Select PSComputerName, Caption, LastBootUpTime
+
+    iii. Pipeline use.
+        EG.
+            Import-CimSession -Path "C:\temp\*.cimsession" | Remove-CimSession
+
+
+4. Gotchas and pitfalls.
+    - DPAPI protection:
+        > Exported sessions are encrypted and can only be imported by the same user account on the same machine. You cannot move .cimsession files between users or computers.
+    - Session staleness:
+        > If the remote machine rebooted or dropped the session, importing restores the object, but calls against it may fail — you’ll need to recreate.
+    - File security:
+        > .cimsession files contain sensitive session info. Protect them with ACLs.
+    - No merging:
+        > Import doesn’t merge into existing sessions with the same name; it just adds new objects.
+
+
+                                REGISTER CIMINDICATIONEVENT.
+                            ===================================
+- What it does
+    > Subscribes to WMI/CIM indication events.
+    > Creates a persistent subscription in your current PowerShell session.
+    > When the event fires (process start, service change, hardware event, etc.), PowerShell raises an event you can handle.
+
+
+                SYNTAX.
+            ------------
+EG.
+    Register-CimIndicationEvent
+        [-ClassName] <String>
+        [[-SourceIdentifier] <String>]
+        [-Namespace <String>]
+        [-ComputerName <String[]>]
+        [-CimSession <CimSession[]>]
+        [-Credential <PSCredential>]
+        [-Filter <String>]
+        [<CommonParameters>]
+
+
+                PARAMETERS
+            ------------------
+1. -ClassName <String> (Mandatory)
+    > The CIM class that emits events.
+    > Common ones:
+        * Win32_ProcessStartTrace → process creation.
+        * Win32_ProcessStopTrace → process termination.
+        * Win32_ServiceStartTrace / Win32_ServiceStopTrace.
+        * __InstanceCreationEvent / __InstanceDeletionEvent (generic).
+            EG.
+                Register-CimIndicationEvent -ClassName Win32_ProcessStartTrace -SourceIdentifier ProcStart
+
+
+2. -SourceIdentifier
+    - Friendly tag you assign to the subscription.
+    - Used later with Get-Event, Unregister-Event.
+        EG.
+            Register-CimIndicationEvent -ClassName Win32_ServiceStopTrace -SourceIdentifier "SvcStop"
+
+
+3. -Namespace.
+    - WMI namespace (default root/cimv2)
+    - used root/wmi, root/virtualization/v2, etc. for specialized events.
+        EG.
+            Register-CimIndicationEvent -Namespace root/wmi -ClassName WmiMonitorBrightnessEvent -SourceIdentifier "BrightnessWatch"
+
+
+4. -ComputerName
+    - Subscribe to events from remote machines.
+    - Less flexible that -CimSession, but works.
+        EG.
+            Register-CimIndicationEvent -ComputerName "Server01" -ClassName Win32_ProcessStopTrace -SourceIdentifier RemoteProcStop
+
+
+5. -CimSession 
+    - Better option for remote subscriptions.
+    - Use sessions for multiple servers or secure creds.
+        EG.
+            $session = New-CimSession -ComputerName "Server01"
+            Register-CimIndicationEvent -CimSession $session -ClassName Win32_ServiceStartTrace -SourceIdentifier "RemoteSvcStart"
+
+
+6. -Credential 
+    - Alt creds when connecting with -ComputerName.
+        EG.
+            $cred = Get-Credential
+            New-CimSession -ComputerName "Server01" -Credential $cred
+
+
+7. -Filter 
+    - WQL filter (WHERE clause)
+    - Narrows which events fire.
+        EG.
+            Register-CimIndicationEvent -ClassName Win32_ProcessStartTrace -SourceIdentifier "OnlyNotepad" -Filter "ProcessName = 'notepad.exe'"
+
+
+8. [CommonParameters]
+    - Same global switches (-Verbose, -ErrorAction, etc)
+
+
+9. Examples.
+    i. Monitor process creation.
+        EG.
+            Register-CimIndicationEvent -ClassName Win32_ProcessStartTrace -SourceIdentifier ProcStart
+            Wait-Event -SourceIdentifier ProcStart
+
+    ii. Watch for a service stopping.
+        EG.
+            Register-CimIndicationEvent -ClassName Win32_ServiceStopTrace -SourceIdentifier "SvcStop"
+
+    iii. Filter for only specific process.
+        EG.
+            Register-CimIndicationEvent -ClassName Win32_ProcessStartTrace -SourceIdentifier "OnlyNotepad" -Filter "ProcessName = 'notepad.exe'"
+
+    iv. Handle events.
+        EG.
+            Register-CimIndicationEvent -ClassName Win32_ProcessStopTrace -SourceIdentifier "ProcStop"
+
+            while ($true) {
+                $event = Wait-Event -SourceIdentifier "ProcStop"
+                $eventArgs = $event.SourceEventArgs.NewEvent
+                Write-Host "Process stopped: $($eventArgs.ProcessName)"
+                Remove-Event $event.EventIdentifier
+            }
+
+
+10. Gotchas and pitfalls.
+    - Events exist only in the PowerShell session. If you close the shell, the subscription is gone.
+    - High-volume events (like process start) can flood your session. Always filter (-Filter) or clear old events (Remove-Event).
+    - Remote subscriptions may fail if the firewall or DCOM/WSMan config blocks event delivery.
+    - For long-running monitoring, consider running inside a background job or scheduled task.

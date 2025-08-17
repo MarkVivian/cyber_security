@@ -1,160 +1,177 @@
-                            INVOKE-RESTMETHOD.
-                        =============================
-- A PowerShell-native cmdlet built specifically for **RESTful web services**.  
-- It simplifies API interaction by **parsing JSON/XML responses into native PowerShell objects** automatically.
+                                                            INVOKE COMMAND.
+                                                        =======================
+- What it does
+    > Executes a command or script block locally or on remote machines (via PowerShell Remoting/WinRM).
+    > Can target one machine, many machines, or persistent remote sessions.
+    > Supports parallel execution (via -AsJob).
 
 
-            BASIC SYNTAX:
-        ----------------------
+                        SYNTAX.
+                    ----------------
 EG.
-    Invoke-RestMethod -Uri <string> [-Method <string>] [-Headers <hashtable>] [-Body <object>] [-ContentType <string>] [-Credential <pscredential>] [-UseBasicParsing] [-SkipHttpErrorCheck]
+    Invoke-Command
+        [-ScriptBlock] <ScriptBlock>
+        [-ComputerName <String[]>]
+        [-Credential <PSCredential>]
+        [-Port <Int32>]
+        [-UseSSL]
+        [-SessionOption <PSSessionOption>]
+        [-ConfigurationName <String>]
+        [-ApplicationName <String>]
+        [-ThrottleLimit <Int32>]
+        [-AsJob]
+        [-HideComputerName]
+        [-JobName <String>]
+        [-InputObject <PSObject>]
+        [-Session <PSSession[]>]
+        [-ArgumentList <Object[]>]
+        [<CommonParameters>]
 
 
-        CORE PARAMETERS:
-    -------------------------
--Uri             
-    → Required. The API endpoint to hit.
--Method          
-    → GET, POST, PUT, DELETE, PATCH (default = GET).
--Headers         
-    → Custom headers (hashtable).
--Body            
-    → Payload to send, usually a JSON string.
--ContentType     
-    → MIME type, e.g., "application/json".
--Credential      
-    → For Basic, NTLM, Windows auth (use `Get-Credential`).
--SkipHttpErrorCheck 
-    → Allows access to 400/500 responses.
-
-
-
-            COMMON USES.
-        ---------------------
-1. GET REQUEST – FETCHING DATA
-    Fetch basic data from a public API
+                    PARAMETERS.
+                -------------------
+1. -ScriptBlock <ScriptBlock> (Mandatory)
+    - The code to run.
+    - This is where you drop PowerShell commands.   
         EG.
-            $response = Invoke-RestMethod -Uri "https://api.agify.io/?name=michael"
-            $response.age  # e.g. 69
+            Invoke-Command -ComputerName Server01 -ScriptBlock { Get-Service }
 
-    GET with custom headers (e.g., tokens)
+
+2. -ComputerName 
+    - Specifies one or more remote computers.
+    - Uses WinRM (TCP 5985 for HTTP, 5986 for HTTPS)
         EG.
-            $headers = @{ Authorization = "Bearer TOKEN123" }
-            $response = Invoke-RestMethod -Uri "https://api.example.com/user/me" -Headers $headers
+            Invoke-Command -ComputerName Server01,Server02 -ScriptBlock { Get-Process }
 
 
-2. POST DATA - JSON PAYLOADS.
-    Submit JSON data to an API.
-        EG.
-            $data = @{
-                name = "Alice"
-                age  = 30
-            } | ConvertTo-Json
-
-            $response = Invoke-RestMethod -Uri "https://api.example.com/users" -Method Post -Body $data -ContentType "application/json"
-
-    POST with authentication.
-        EG.
-            $headers = @{ Authorization = "Bearer TOKEN123" }
-            $data = @{ product = "PowerShell"; version = "7.4" } | ConvertTo-Json
-
-            Invoke-RestMethod -Uri "https://api.example.com/submit" -Method Post -Headers $headers -Body $data -ContentType "application/json"
-
-
-3. PUT/ PATCH/ DELETE EXAMPLES 
-    Update a user with PUT.
-        EG.
-            $data = @{ email = "new@email.com" } | ConvertTo-Json
-            Invoke-RestMethod -Uri "https://api.example.com/users/5" -Method Put -Body $data -ContentType "application/json"
-
-    DELETE a record.
-        EG.
-            Invoke-RestMethod -Uri "https://api.example.com/posts/44" -Method Delete
-
-
-4. AUTHENTICATION - CREDENTIALS AND TOKENS.
-    Prompts for credentials (Basic Auth)
+3. -Credential
+    - Supply alternate credentials for authentication.
         EG.
             $cred = Get-Credential
-            Invoke-RestMethod -Uri "https://secure.site.com/data" -Credential $cred
+            Invoke-Command -ComputerName Server01 -Credential $cred -ScriptBlock { Get-Date }
 
-    OAuth / Bearer token.
+
+4. -Port 
+    - Custom port for WinRM (default is 5985/5986).
         EG.
-            $headers = @{ Authorization = "Bearer YOUR-TOKEN-HERE" }
-            Invoke-RestMethod -Uri "https://api.service.com/account" -Headers $headers
+            Invoke-Command -ComputerName Server01 -Port 5986 -UseSSL -ScriptBlock { hostname }
 
 
-5. PARSE JSON/XML RESPONSES AUTOMATICALLY
-    Parse JSON response
+5. -UseSSL 
+    - force HTTPS (encrypted channel)
         EG.
-            $response = Invoke-RestMethod -Uri "https://api.github.com/repos/microsoft/winget-cli"
-            $response.full_name   # Output: microsoft/winget-cli
-            $response.owner.login # Output: microsoft
+            Invoke-Command -ComputerName Server01 -UseSSL -ScriptBlock { Get-Date }
 
-    XML response parsing (less common)
+
+6. -SessionOption 
+    - customize behaviour (timeouts, proxies, culture, etc.)
         EG.
-            $response = Invoke-RestMethod -Uri "https://www.w3schools.com/xml/note.xml"
-            $response.note.body
+            $opt = New-PSSessionOption -IdleTimeout 60000
+            Invoke-Command -ComputerName Server01 -SessionOption $opt -ScriptBlock { Get-Process }
 
 
-6. DEBUGGING + ERROR HANDLING
-     View raw content if parsing fails
+7. -ConfigurationName
+    - Choose a custom endpoint (default is Microsoft.Powershell)
         EG.
-            $response = Invoke-RestMethod -Uri "https://api.badsite.com" -ErrorAction Stop
-            $response | Format-List *
+            Invoke-Command -ComputerName Server01 -ConfigurationName "MyRestrictedShell" -ScriptBlock { whoami }
 
-    Graceful error handling
+
+8. -ApplicationName
+    - Sets the WSMan endpoint app name (default: WSMAN). 
+    - Rarely needed unless you have custom WSMan listeners.
         EG.
-            try {
-                Invoke-RestMethod -Uri "https://api.nonexistent.com" -ErrorAction Stop
-            } catch {
-                Write-Warning "❌ Failed: $($_.Exception.Message)"
+            Invoke-Command -ComputerName Server01 -ApplicationName "CustomWSMan" -ScriptBlock { hostname }
+
+
+9. -ThrottleLimit 
+    - Limits how many remoting commands run in parallel. Default = 32.
+        EG.
+            $servers = Get-Content .\servers.txt
+            Invoke-Command -ComputerName $servers -ThrottleLimit 10 -ScriptBlock { Get-Uptime }
+
+
+10. -ASJob 
+    - Runs the command as a background job.
+        EG.
+            Invoke-Command -ComputerName Server01 -ScriptBlock { Start-Sleep 10 } -AsJob
+
+
+11. HideComputerName 
+    - Removes the PSComputerName property from output(cleans results).
+        EG.
+            Invoke-Command -ComputerName Server01 -ScriptBlock { Get-Date } -HideComputerName
+
+
+12. -JobName 
+    - When using -AsJob, lets you name the job.
+        EG.
+            Invoke-Command -ComputerName Server01 -ScriptBlock { Get-Process } -AsJob -JobName "ProcCheck"
+
+
+13. -InputObject
+    - Passes piped input to the scriptblock.
+        EG.
+            "notepad","explorer" | Invoke-Command -ComputerName Server01 -ScriptBlock { param($p) Get-Process $p }
+
+
+14. -Session 
+    - Use existing persistent sessions. (more efficient).
+        EG.
+            $s = New-PSSession -ComputerName Server01
+            Invoke-Command -Session $s -ScriptBlock { Get-HotFix }
+
+
+15. -ArgumentList 
+    - pass arguments into the scriptblock.
+        EG.
+            Invoke-Command -ComputerName Server01 -ScriptBlock { param($name) Get-Process $name } -ArgumentList "powershell"
+
+
+16. [CommonParameters]
+    - -Verbose, -Debug, -ErrorAction, etc.
+        EG.
+            Invoke-Command -ComputerName Server01 -ScriptBlock { Get-Service } -Verbose
+
+
+17. Examples.
+    i. Collecting system uptime from all servers in a domain.
+        EG.
+            $servers = Get-Content .\servers.txt
+            Invoke-Command -ComputerName $servers -ScriptBlock { (Get-CimInstance Win32_OperatingSystem).LastBootUpTime }
+
+    ii. Killing a malicious process across multiple servers.
+        EG.
+            Invoke-Command -ComputerName DC1,DC2,DC3 -ScriptBlock { Stop-Process -Name "mimikatz" -Force }
+
+    iii. Pushing a file to remote servers.
+        EG.
+            $servers = "Server01","Server02"
+            Invoke-Command -ComputerName $servers -ScriptBlock {
+                Copy-Item -Path "\\fileshare\tools\agent.msi" -Destination "C:\Temp"
             }
 
-    Skip HTTP error throwing
+    iv. Gathering event logs for troubleshooting.
         EG.
-            $response = Invoke-RestMethod -Uri "https://example.com/does-not-exist" `
-                -SkipHttpErrorCheck
-            Write-Host "Status: $($response.StatusCode)"
-
-
-7. ADVANCED USAGE – FORMS, FILES, PAGINATION
-    Multipart form data (file upload)
-        EG.
-            $form = @{
-                file = Get-Item "C:\upload\report.csv"
-            }
-            Invoke-RestMethod -Uri "https://api.example.com/upload" -Method Post -Form $form
-
-    Pagination handling
-        EG.
-            $page = 1
-            do {
-                $result = Invoke-RestMethod -Uri "https://api.site.com/items?page=$page"
-                $result.items | ForEach-Object { Write-Host $_.name }
-                $page++
-            } while ($result.nextPage -ne $null)
-
-
-8. REAL-WORLD APPLICATIONS
-    Automate service status check
-        EG.
-            $status = Invoke-RestMethod "https://api.statuspage.io/v1/status"
-            if ($status.indicator -ne 'none') {
-                Write-Warning "🚨 Service issue detected!"
+            Invoke-Command -ComputerName Web01,Web02 -ScriptBlock {
+                Get-EventLog -LogName Application -Newest 10
             }
 
-    Fetch GitHub release tags
+    v. Mass service management.
         EG.
-            $releases = Invoke-RestMethod "https://api.github.com/repos/powershell/powershell/releases"
-            $releases | Select-Object tag_name, published_at
+            Invoke-Command -ComputerName (Get-Content .\servers.txt) -ScriptBlock {
+                Restart-Service -Name Spooler
+            }
+
+    vi. Parallel background execution.
+        EG.
+            Invoke-Command -ComputerName (Get-Content .\servers.txt) -ScriptBlock {
+                Start-Sleep 15; Get-Date
+            } -AsJob -JobName "UptimeCheck"
 
 
-9. DIFFERENCE VS INVOKE-WEBREQUEST.
-    | Feature          | `Invoke-RestMethod`     | `Invoke-WebRequest`               |
-    | ---------------- | ----------------------- | --------------------------------- |
-    | Auto-parses JSON | ✅ Yes (into objects)    | ❌ No (you have to parse manually) |
-    | Meant for APIs   | ✅ Built for REST APIs   | ❌ Built for webpages / scraping   |
-    | HTML parsing     | ❌ No                    | ✅ Yes (.Links, .ParsedHtml)       |
-    | File downloads   | ❌ Not intended for that | ✅ Use `-OutFile`                  |
-    | Verbosity        | Cleaner for APIs        | More verbose response             |
+18. Gotchas 
+    - Requires Enable-PSRemoting -Force on target.
+    - Firewall must allow WinRM.
+    - Authentication quirks (Kerberos vs CredSSP vs NTLM).
+    - Double-hop problem (remote → remote).
+    - Flooding logs if used without ThrottleLimit.

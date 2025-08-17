@@ -1,0 +1,131 @@
+                                                            CALL OPERATOR. (&)
+                                                        =======================
+- What it does:
+    > Executes commands, scriptblocks or executables.
+    > It's the "just run this" operator.
+    > Needed when the thing you want to run is stored in a variable, String path, or scriptBlock.
+
+
+                    SYNTAX.
+                --------------
+EG.
+    & <Command | ScriptBlock | Path>
+
+
+                USE CASE.
+            ---------------
+1. Run a scriptblock.
+    EG.
+        & { Get-Date }
+
+            - Directly executes the block.
+            - Equivalent to :Invoke-Command -ScriptBlock {Get-Date} (but local only)
+
+
+2. Run a script file.
+    EG.
+        & "C:\Scripts\hello.ps1"
+
+            - Executes the script file.
+            - Equivalent to double-clicking it, but keeps you inside the same session.
+
+
+3. run an executable.
+    EG.
+        & "C:\Windows\System32\notepad.exe"
+
+            - Opens Notepad.
+            - Same effect as typing notepad in CMD.
+
+
+4. Run a command stored in variable.
+    EG.
+        $cmd = "Get-Process"
+        & $cmd
+            
+            - Executes Get-Process.
+
+
+5. Run with arguments.
+    EG.
+        $exe = "ping.exe"
+        & $exe "127.0.0.1"
+
+            - Runs ping 127.0.0.1 
+            - Notice you pass arguments after the call operator.
+
+
+6. Dynamic function calling.
+    EG.
+        function Say-Hello { "Hello World" }
+        $func = "Say-Hello"
+        & $func
+
+            - Runs Say-Hello dynamically.
+
+
+7. Gotchas 
+    - If you try to run a string directly, powershell might confuse it as a literal string instead of a command:
+        EG.
+            "notepad.exe"
+
+                - Just outputs "notepad.exe"
+
+            & "notepad.exe"
+
+                - Actually launches Notepad.
+
+    - If your path has spaces, you still need quotes, but & handles it.
+        & "C:\Program Files\Notepad++\notepad++.exe"
+
+
+8. Comparing with invoke-expression when calling a powershell file.
+    i. Using &:
+        EG.
+            & "C:\Scripts\B.ps1"
+
+                - Execution model: 
+                    > PowerShell spins up ScriptB in its own execution context (new scope). Once ScriptB finishes, control returns to ScriptA.
+
+                - Memory use:
+                    > Lower, because ScriptB is compiled and executed directly from disk — no extra parsing needed.
+
+                - Scope:
+                    > ScriptB’s variables/functions do not leak into ScriptA (unless dot-sourced intentionally).
+
+                - Error behavior:
+                    > If ScriptB has invalid code, ScriptA will throw an error, but you can catch it with try/catch. Execution can continue.
+
+                - Visual difference:
+                    > Looks like a clean script call, output is exactly what ScriptB produces.
+
+                - Speed:
+                    > Faster, since PowerShell doesn’t need to parse the script text into code — it just runs the script.
+
+    ii. Using Invoke-Expression.
+        EG.
+            Invoke-Expression (Get-Content "C:\Scripts\B.ps1" -Raw)
+
+                - Execution model:
+                    > PowerShell reads ScriptB as raw text, then reparses it as if you pasted its code directly into ScriptA.
+
+                - Memory use:
+                    > Higher, since the whole script must be loaded into memory as a string before parsing.
+
+                - Scope:
+                    > ScriptB runs in ScriptA’s scope. Variables/functions from ScriptB can pollute ScriptA.
+
+                - Error behavior:
+                    > If ScriptB has invalid code:
+
+                - Parsing errors:
+                    > entire execution can stop right there.
+
+                - Runtime errors:
+                    > invalid line errors out, but other lines continue unless error action is Stop.
+
+                - Visual difference:
+                    > Harder to tell where ScriptA ends and ScriptB begins — because it’s inline. Debugging is messier.
+
+                - Speed: 
+                    > Slower, because parsing text into code has overhead.

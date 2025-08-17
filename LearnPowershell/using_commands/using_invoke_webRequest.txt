@@ -18,36 +18,274 @@
             BASIC SYNTAX.
         -------------------
 EG.
-    Invoke-WebRequest -Uri <string> [-Method <string>] [-Body <object>] [-ContentType <string>] [-OutFile <string>] [-Headers <hashtable>] [-Credential <pscredential>]
+    Invoke-WebRequest
+        [-UseBasicParsing]
+        [-Uri] <Uri>
+        [-WebSession <WebRequestSession>]
+        [-SessionVariable <String>]
+        [-Credential <PSCredential>]
+        [-UseDefaultCredentials]
+        [-CertificateThumbprint <String>]
+        [-Certificate <X509Certificate>]
+        [-UserAgent <String>]
+        [-DisableKeepAlive]
+        [-TimeoutSec <Int32>]
+        [-Headers <IDictionary>]
+        [-MaximumRedirection <Int32>]
+        [-Method <WebRequestMethod>]
+        [-Proxy <Uri>]
+        [-ProxyCredential <PSCredential>]
+        [-ProxyUseDefaultCredentials]
+        [-Body <Object>]
+        [-ContentType <String>]
+        [-TransferEncoding <String>]
+        [-InFile <String>]
+        [-OutFile <String>]
+        [-PassThru]
+        [<CommonParameters>]
 
-        > Parameters explained:
-            - Uri   
-                * The URL to send the request to.
-            - OutFile 
-                * The local file path to save the downloaded content.
-            - Method    
-                * HTTP method to use : Get (default), POST, PUT, DELETE, etc.
-            - Body 
-                * The payload to send (e.g., a JSON body).
-                * Example: -Body '{"key": "value"}'
-            - ContentType 
-                * MIME type of the body content (e.g., application/json)
-            - Headers
-                * Custom HTTP headers as a hashtable.
-                * Example: -Headers @{"Authorization" = "Bearer token"}
-            - Credential 
-                * supply username/password credentials
-            - UseBasicParsing 
-                * Legacy switch to disable IE-based parsing (mostly obsolete).
-            - Invoke-WebRequest:
-                * Sends an HTTP/HTTPS request to the specified URI.
-                * Supports HTTP methods like GET, POST, PUT, DELETE, etc.
-            - Additional Parameters:
-                -TimeoutSec: Sets the timeout in seconds.
-                -Proxy: Specifies a proxy server.
-                -SessionVariable: Creates a web request session.
-            
-            
+                
+                PARAMETERS.
+            -------------------
+1. -Uri 
+    - Mandatory.
+    - Accepts a string or system.Uri object.
+    - Must be an absolute URL (http://, https://, ftp://, file://)
+        EG.
+            Invoke-WebRequest -Uri "https://example.com"
+            Invoke-WebRequest -Uri (New-Object System.Uri("https://api.example.com/v1/info"))
+
+                - If the host requires TLS versions newer than your runtime supports, IWR can fail with protocol error.
+                - (you may need newer PowerShell/OS or set TLS settings).
+
+
+2. -Method.
+    - Defines HTTP Verb. Default is GET.
+    - Options: GET, HEAD, POST, PUT, DELETE, TRACE, OPTIONS, MERGE, PATCH .
+        EG.
+            # GET request
+            Invoke-WebRequest -Uri "https://example.com"
+
+            # POST JSON
+            Invoke-WebRequest -Uri "https://api.example.com/users" `
+            -Method POST -Body '{"name":"Mark"}' -ContentType "application/json"
+
+                - Servers can enforce method semantics; POST vs PUT differences matter for idempotency.
+
+
+3. -Body 
+    - The request payload (data you send to the server.)
+    - Accepts strings, byte arrays, or hashtables.
+    - If it's a hashtable, Powershell auto-encodes it into form data (application/x-www-form-urlencoded) unless you specify contentType.
+        EG.
+            # Send form data
+            Invoke-WebRequest -Uri "https://httpbin.org/post" -Method POST -Body @{name="Mark"; age=30}
+
+            # Send JSON
+            Invoke-WebRequest -Uri "https://httpbin.org/post" -Method POST -Body '{"key":"value"}' -ContentType "application/json"
+
+            # Send raw bytes (e.g., file upload)
+            Invoke-WebRequest -Uri "https://upload.example.com" -Method POST -Body ([System.IO.File]::ReadAllBytes("file.exe"))
+
+                - Wrong ContentType will confuse the server; hashtable sends application/x-www-form-urlencoded by default.
+
+
+4. -Headers.
+    - Hashtable of custom HTTP headers.
+    - Syntax.
+        EG.
+            @{HeaderName = "Value"}
+    - Common for Authorization, Accept, User-Agent, etc.
+        EG.
+            # Add custom header
+            Invoke-WebRequest -Uri "https://api.example.com" -Headers @{Authorization="Bearer 12345"}
+
+            # Pretend to be Chrome
+            Invoke-WebRequest -Uri "https://example.com" -Headers @{ "User-Agent" = "Mozilla/5.0 Chrome" }
+
+                - Header names are case-insensitive but provide them as strings in the hashtable.
+                - Watch out for reserved headers the runtime may manage (Host, Content-Length).
+
+
+5. -ContentType.
+    - Defines MIME type for the body.
+    - Common: application/json, application/xml, text/plain, application/x-www-form-urlencoded.
+        EG.
+            # Tell server it's JSON
+            Invoke-WebRequest -Uri "https://api.example.com" -Method POST `
+            -Body '{"user":"mark"}' -ContentType "application/json"
+
+            # Send raw text
+            Invoke-WebRequest -Uri "https://api.example.com/log" -Method POST `
+            -Body "just some text" -ContentType "text/plain"
+
+
+6. -Credential 
+    - Accepts a PSCredential object (username + password).
+    - Used for Basic, NTLM, Digest, Kerberos auth depending on server support.
+        EG.
+            $cred = Get-Credential
+            Invoke-WebRequest -Uri "https://secure.example.com" -Credential $cred
+
+                - How the credential is used depends on server negotiation; it’s not a catch-all for every auth scheme (OAuth/Bearer tokens still require headers).
+
+
+8. -UseBasicParsing
+    - Legacy switch controlling HTML parsing mode
+    - Present for backward compatibility; in PowerShell Core / 7+ the cmdlet uses basic parsing by default and this switch is effectively deprecated
+        EG.
+            Invoke-WebRequest -Uri "https://example.com" -UseBasicParsing
+
+                - If you have scripts written for Windows PowerShell 5.1 that relied on ParsedHtml, forms or the IE COM internals, behavior will differ under PowerShell 7+.
+                - Prefer code that parses returned HTML/Text explicitly rather than relying on the deprecated IE behavior. 
+
+
+9. -Certificate.
+    - Pass an X509Certificate object to use client-side SSL/TLS authentication.
+    - Rare, but some APIs require it.
+        EG.
+            $cert = Get-PfxCertificate "C:\mycert.pfx"
+            Invoke-WebRequest -Uri "https://secure.api.com" -Certificate $cert
+
+                    - Keep PFX/passwords secure. Some platforms require certificate plus specific TLS settings.
+                    
+
+10. -CertificateThumbprint
+    - Provide a certificate thumbprint to select a client certificate from the user certificate store for TLS client auth.
+        EG.
+            Invoke-WebRequest -Uri "https://tls-client.example" -CertificateThumbprint "9f...ab"
+
+                - The certificate must be installed in the appropriate user/machine store and accessible to the account running the script.
+
+
+11. -TimeoutSec.
+    - Maximum time (in seconds) to wait for a response before failing.
+    - Default = 100 seconds.
+        EG.
+            Invoke-WebRequest -Uri "https://slow.api.com" -TimeoutSec 10
+
+                - Network latency and server slowness can require raising this; lower values help scripts fail fast.
+
+
+12. -DisableKeepAlive
+    - Disable HTTP keep-alive for the connection (forces connection close after response).
+        EG.
+            Invoke-WebRequest -Uri "https://example.com" -DisableKeepAlive
+
+                - Disabling keep-alive may slightly increase overhead for many sequential requests.
+
+
+13. -MaximumRedirection.
+    - Number of auto-redirects allowed (default=5).
+    - prevents infinite loops with misconfigured servers.
+        EG.
+            Invoke-WebRequest -Uri "http://oldsite.com" -MaximumRedirection 2
+
+                -Some redirects lose Authorization headers; consider session/preserve options when crossing domains.
+
+
+14. -UserAgent.
+    - Override the HTTP User-Agent header. Default agent includes PowerShell details.
+    - Some sites block powershell's default.
+        EG.
+            Invoke-WebRequest -Uri "https://example.com" -UserAgent "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+
+                - Some sites block obvious PowerShell UA strings; changing UA can help access but can also violate policies.
+
+
+15. -Proxy and -ProxyCredential, -ProxyUseDefaultCredentials
+    -ProxyCredential
+        - If the proxy requires login, supply creds.
+            EG.
+                $cred = Get-Credential
+                Invoke-WebRequest -Uri "https://api.example.com" -Proxy "http://proxy.local:8080" -ProxyCredential $cred
+
+    -Proxy.
+        - Route traffic through an HTTP/S proxy.
+            EG.
+                Invoke-WebRequest -Uri "https://api.example.com" -Proxy "http://proxy.local:8080"
+
+                    - Proxy may require authentication or interfere with TLS if doing SSL inspection.
+
+    -ProxyUseDefaultCredentials
+        - Use the current user’s credentials for the proxy (if proxy accepts integrated Windows auth).
+
+
+16. InFile.
+    - Path to file to use as the request body (uploads). Useful when you want to stream a file as the POST body.
+        EG.
+            Invoke-WebRequest -Uri "https://upload" -Method Put -InFile "C:\bigfile.bin"
+
+                - For multipart/form data or form uploads you may prefer -Form (not in this parameter list but available in some PS versions) or constructing the multipart manually.
+
+
+17. -OutFile 
+    - Save the response body directly to disk. Use for binary downloads (zips, exes, images).
+        EG.
+            Invoke-WebRequest -Uri "https://example.com/some.zip" -OutFile "C:\Downloads\some.zip"
+
+            # Save and return object to pipeline:
+            Invoke-WebRequest -Uri "https://example.com/some.zip" -OutFile "C:\Downloads\some.zip" -PassThru
+
+                - -Resume semantics exist in some versions/options — check your PowerShell version for resume support.
+                - Use -OutFile rather than piping when you want reliable binary output.
+
+
+18. -PassThru 
+    - When used with -OutFile or similar file ops, also return the response object to the pipeline.
+
+
+19. -TransferEncoding
+    - Sets HTTP Transfer-Encoding header. Typically chunked.
+    - Rarely needed unless talking to picky servers.
+        EG.
+            Invoke-WebRequest -Uri "https://example.com" -TransferEncoding "chunked"
+
+                - Rarely needed; servers may expect certain transfer encodings — defaults are usually fine.
+                
+
+20. -UseDefaultCredentials
+    - Sends the currently logged-on Windows user credentials (Kerberos/NTLM) automatically. Useful for intranet endpoints.
+        EG.
+            Invoke-WebRequest -Uri "https://intranet.local" -UseDefaultCredentials
+
+                - Only works for protocols/servers that accept Windows integrated auth. Don’t use this for public APIs.
+
+
+21. Common parameters.
+    -Verbose : Show detailed activity.
+    -ErrorAction : Control error behavior (Stop, SilentContinue)
+    -ErrorVariable : Store error output.
+    -OutVariable : Store results in a variable.
+        EG.
+            Invoke-WebRequest -Uri "https://example.com" -Verbose -ErrorAction Stop
+
+                - Use -ErrorAction Stop to catch network failures in a try/catch.
+
+
+22. -WebSession.
+    - Accepts a WebRequestSession object to reuse cookies/headers across requests.
+    - Use this to maintain state (like a browser session).
+        EG.
+            $session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
+            Invoke-WebRequest -Uri "https://site.example/login" -Method POST -Body $creds -WebSession $session
+            Invoke-WebRequest -Uri "https://site.example/dashboard" -WebSession $session
+
+                - You can’t use -SessionVariable and -WebSession in the same call (one creates the session variable, the other consumes it).
+                - Cookies and auth flow stay in the session object — capture it for subsequent calls
+
+
+23. -SessionVariable
+    - Name a variable to automatically create and store a WebRequestSession from this call. Later reuse the variable with -WebSession.
+        EG.
+            Invoke-WebRequest -Uri "https://site/login" -Method POST -Body $body -SessionVariable MySession
+            # Reuse
+            Invoke-WebRequest -Uri "https://site/next" -WebSession $MySession
+
+                - Session objects contain cookies and other state — be careful storing them long-term (sensitive tokens).
+                - SessionVariable is convenient for scraping or multi-step API logins.
+
+
             COMMON USAGE SCENARIOS 
         ------------------------------
 1) Downloading a File

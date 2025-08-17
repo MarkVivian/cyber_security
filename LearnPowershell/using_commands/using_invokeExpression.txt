@@ -2,82 +2,168 @@
                 ========================
 - This is a powerful cmdlet in PowerShell that executes a string as a command. 
 - This can be useful for dynamically constructing and running commands. 
+- Essentially takes text and turns it into executable commands.
 - However, due to the potential security risks associated with executing arbitrary strings, it should be used with caution.
 
 
         BASIC SYNTAX
     ----------------------
-Invoke-Expression -Command "command string"
+Invoke-Expression -Command <String> [<CommonParameters>]
 
 
-            USAGE
-        ------------
-1) Running a Simple Command.
-    EG.
-        $command = "Get-Process"
-        Invoke-Expression -Command $command
+            PARAMETERS
+        ----------------------
+1. -Command 
+    - Mandatory.
+    - The string that contains powershell commands to execute.
+        EG.
+            Invoke-Expression -Command "Get-Process | Where-Object CPU -gt 100"
+
+                - It runs the text inside the quotes like real powershell.
 
 
-2) Running a command with variables.
-    EG.
-        $processName = "powershell"
-        $command = "Get-Process -Name $processName"
-        Invoke-Expression -Command $command
+2. [CommonParameters]
+    - -Verbose, -ErrorAction, etc.
+        EG.
+            Invoke-Expression -Command "Get-Date" -Verbose
 
 
-3) Running a script from a string.
-    EG.
-        $script = @"
-        Write-Output "Hello, World!"
-        Get-Date
-        "@
+3. Real world Usage
+    i. Running a dynamically built command.
+        EG.
+            $path = "C:\Logs"
+            $cmd = "Get-ChildItem -Path $path -Recurse"
+            Invoke-Expression $cmd
 
-        Invoke-Expression -Command $script
+    ii. Download and execute a script (Careful)
+        EG.
+            $code = (Invoke-WebRequest "https://example.com/myscript.ps1").Content
+            Invoke-Expression $code
+
+    iii. Use variables to pick commands.
+        EG.
+            $tool = "Get-Service"
+            Invoke-Expression $tool
+
+    iv. Math/String building.
+        EG.
+            $op = "2+3*5"
+            Invoke-Expression $op
+
+    v. Bypassing quoting headaches.
+        EG.
+            $server = "Server01"
+            Invoke-Expression "ping $server"
+
+    vi. Running a script from a string.
+        EG.
+            $script = @"
+            Write-Output "Hello, World!"
+            Get-Date
+            "@
+
+            Invoke-Expression -Command $script
+
+    vii. Combining `start-job` and `invoke-expression`
+        EG.
+            $executionPolicy = "Bypass"
+            $scriptPath = "C:\path\to\your\script.ps1"
+            $scriptArguments = "argument1 argument2"
+
+            $command = "Start-Process powershell.exe -Verb RunAs -ArgumentList `"-NoProfile -ExecutionPolicy $executionPolicy -File `"$scriptPath`" $scriptArguments`""
+
+            $job = Start-Job -ScriptBlock {
+                param ($command)
+                Invoke-Expression -Command $using:command
+            } -ArgumentList $command
+
+            # Wait for the job to complete
+            Wait-Job -Id $job.Id
+
+            # Retrieve job results
+            Receive-Job -Id $job.Id
+
+            # Clean up
+            Remove-Job -Id $job.Id
+
+    viii. handling double quotes inside the string.
+        EG.
+            # Escape with backticks.
+            Invoke-Expression "Write-Output `"Hello World`""
+
+            # use doubled double-quotes.
+            Invoke-Expression "Write-Output ""Hello World"""
+
+            # Using single quotes outside, double inside 
+            Invoke-Expression 'Write-Output "Hello World"'
 
 
-4) Running a Command with Arguments.
-    EG.
-        $directory = "C:\"
-        $command = "Get-ChildItem -Path $directory"
-        Invoke-Expression -Command $command
+4. Gotchas and security risks.
+    - Code Injection Risk.
+        > if Input comes from untrusted sources, attackers can inject arbitrary commands.
+            EG.
+                $userInput = "Get-Process; Remove-Item C:\* -Force"
+                Invoke-Expression $userInput
+
+                    - that would nuke your system.
+
+    - Better alternatives.
+        > Instead of building strings, use ScriptBlocks or call operators (&)
+            EG.
+                $cmd = { Get-Service }
+                & $cmd
+
+    - Performance overhead.
+        > Slower than direct calls.
 
 
-5) Combining `start-job` and `invoke-expression`
-    EG.
-        $executionPolicy = "Bypass"
-        $scriptPath = "C:\path\to\your\script.ps1"
-        $scriptArguments = "argument1 argument2"
+5. Comparing with call operator(&) when calling a powershell file.
+    i. Using &:
+        EG.
+            & "C:\Scripts\B.ps1"
 
-        $command = "Start-Process powershell.exe -Verb RunAs -ArgumentList `"-NoProfile -ExecutionPolicy $executionPolicy -File `"$scriptPath`" $scriptArguments`""
+                - Execution model: 
+                    > PowerShell spins up ScriptB in its own execution context (new scope). Once ScriptB finishes, control returns to ScriptA.
 
-        $job = Start-Job -ScriptBlock {
-            param ($command)
-            Invoke-Expression -Command $using:command
-        } -ArgumentList $command
+                - Memory use:
+                    > Lower, because ScriptB is compiled and executed directly from disk — no extra parsing needed.
 
-        # Wait for the job to complete
-        Wait-Job -Id $job.Id
+                - Scope:
+                    > ScriptB’s variables/functions do not leak into ScriptA (unless dot-sourced intentionally).
 
-        # Retrieve job results
-        Receive-Job -Id $job.Id
+                - Error behavior:
+                    > If ScriptB has invalid code, ScriptA will throw an error, but you can catch it with try/catch. Execution can continue.
 
-        # Clean up
-        Remove-Job -Id $job.Id
+                - Visual difference:
+                    > Looks like a clean script call, output is exactly what ScriptB produces.
 
+                - Speed:
+                    > Faster, since PowerShell doesn’t need to parse the script text into code — it just runs the script.
 
-6) Handling Script output.
-    EG.
-        $command = "Get-Process | Select-Object -First 5"
-        $output = Invoke-Expression -Command $command
+    ii. Using Invoke-Expression.
+        EG.
+            Invoke-Expression (Get-Content "C:\Scripts\B.ps1" -Raw)
 
-        # Display output
-        $output | ForEach-Object { Write-Output $_ }
+                - Execution model:
+                    > PowerShell reads ScriptB as raw text, then reparses it as if you pasted its code directly into ScriptA.
 
+                - Memory use:
+                    > Higher, since the whole script must be loaded into memory as a string before parsing.
 
-7) Running multiple commands.
-    EG.
-        # Run the commands.
-        $cscript_command="cscript.exe `'$vbs_script`' /sethst:kms.03k.org"           
-        $cscript_activation="cscript.exe `'$vbs_script`' /act"
-            
-        $Output = Invoke-Expression -Command "$cscript_command; $cscript_activation" 2>&1
+                - Scope:
+                    > ScriptB runs in ScriptA’s scope. Variables/functions from ScriptB can pollute ScriptA.
+
+                - Error behavior:
+                    > If ScriptB has invalid code:
+
+                - Parsing errors:
+                    > entire execution can stop right there.
+
+                - Runtime errors:
+                    > invalid line errors out, but other lines continue unless error action is Stop.
+
+                - Visual difference:
+                    > Harder to tell where ScriptA ends and ScriptB begins — because it’s inline. Debugging is messier.
+
+                - Speed: 
+                    > Slower, because parsing text into code has overhead.

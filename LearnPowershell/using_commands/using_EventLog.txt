@@ -1,0 +1,588 @@
+                                        EVENTLOG GROUP.
+                                    ======================
+- We’ll cover these in sequence, each with full charter detail:
+    > Get-EventLog 
+        * Read logs, filter by type/date/ID.
+
+    > Clear-EventLog 
+        * Wipe logs clean.
+
+    > Limit-EventLog 
+        * Configure log properties (size, retention).
+
+    > New-EventLog 
+        * Create a new custom log.
+
+    > Remove-EventLog 
+        * Delete custom logs.
+
+    > Show-EventLog 
+        * GUI viewer (old-school).
+
+    > Write-EventLog 
+        * Write custom entries into logs.
+
+
+                        GET EVENTLOG.
+                    ==================
+- What it does
+    > Reads Windows Event Logs (System, Application, Security, or custom logs).
+    > Can filter by: log name, instance count, entry type, source, event ID, date/time, and computer.
+
+
+            SYNTAX.
+        -------------
+EG.
+    Get-EventLog
+        [-LogName] <String>
+        [[-InstanceId] <Int64[]>]
+        [-After <DateTime>]
+        [-Before <DateTime>]
+        [-ComputerName <String[]>]
+        [-EntryType {Error | Information | FailureAudit | SuccessAudit | Warning}]
+        [-Index <Int32[]>]
+        [-Newest <Int32>]
+        [-Source <String[]>]
+        [-UserName <String[]>]
+        [<CommonParameters>]
+
+
+                PARAMETERS.
+            -----------------
+1. -LogName <String> (Mandatory)
+    - Which log to read.
+    - Common built-ins: Application, System, Security.
+    - Custom logs: anything apps create.
+        EG.
+            Get-EventLog -LogName System
+
+
+2. -InsanceId 
+    - Filters by specific event IDs (numeric)
+        EG.
+            Get-EventLog -LogName Security -InstanceId 4625
+
+
+3. -After / -Before.
+    - Filter by timestamp.
+        EG.
+            Get-EventLog -LogName System -After (Get-Date).AddDays(-1)
+
+
+4. -ComputerName 
+    - Query logs from remote systems.
+        EG.
+            Get-EventLog -LogName Application -ComputerName Server01
+
+
+5. -EntryType 
+    - Filters by event type:
+        > Error, Warning, Information 
+        > FailureAudit, SuccessAudit (security log only).
+            EG.
+                Get-EventLog -LogName System -EntryType Error
+
+
+6. -Index 
+    - Reads events by their index number (log-specific)
+    - Rarely used except forensic pinpointing.
+        EG.
+            Get-EventLog -LogName System -Index 10123
+
+
+7. -Newest 
+    - Gets the most recent N entries.
+        EG.
+            Get-EventLog -LogName System -After (Get-Date).AddDays(-1)
+
+
+8. -Source 
+    - Filter by the event source (which service/app logged it)
+        EG.
+            Get-EventLog -LogName Application -Source "MSSQLSERVER"
+
+
+9. -UserName    
+    - Filter by account name associated with the event.
+        EG.
+            Get-EventLog -LogName Security -UserName "DOMAIN\User1"
+
+
+10. Examples
+    i. Get last 20 Application log entries.
+        EG.
+            Get-EventLog -LogName Application -Newest 20
+
+    ii. Find recent system errors.
+        EG.
+            Get-EventLog -LogName System -EntryType Error -Newest 50
+
+    iii. Filter by date range.
+        EG.
+            Get-EventLog -LogName Security -After (Get-Date).AddDays(-7)
+
+    iv. find failed logons (Event ID 4625)
+        EG.
+            Get-EventLog -LogName Security -InstanceId 4625 -Newest 10
+
+    v. Cross-server query.
+        EG.
+            Get-EventLog -LogName System -ComputerName DC01,DC02 -Newest 5
+
+
+11. Gotchas and pitfalls.
+    - Performance:
+        * Get-EventLog is slower for large logs (millions of entries). Newer Get-WinEvent is much faster.
+    
+    - Security log access:
+        * Requires elevation (run PowerShell as admin).
+    
+    - Event ID vs InstanceId:
+        * In some docs, they’re interchangeable — but -InstanceId expects the full 64-bit value, not just the short “Event ID.”
+    
+    - Remote access:
+        * Needs admin rights + Event Log service firewall exception.
+
+
+                                CLEAR EVENTLOG.
+                            ========================
+- What it does:
+    > Deletes all entries from one or more event logs.
+    > Can target local or remote computers.
+    > Useful for maintenance, troubleshooting, or (red team side) covering tracks
+
+
+                SYNTAX.
+            --------------
+EG.
+    Clear-EventLog
+        [-LogName] <String[]>
+        [-ComputerName <String[]>]
+        [<CommonParameters>]
+
+    Clear-EventLog
+        [-InputObject] <EventLog[]>
+        [<CommonParameters>]
+
+
+                PARAMETERS.
+            ------------------
+1. -LogName 
+    - One or more logs to clear.
+    - Common: Application, System, Security.
+        EG.
+            Clear-EventLog -LogName Application, System
+
+
+2. -ComputerName 
+    - clears logs on remote computers.
+    - Requires admin rights + Event log service firewall exception.
+        EG.
+            Clear-EventLog -LogName Security -ComputerName DC01
+
+
+3. -InputObject 
+    - Accepts event log objects (from Get-EventLog -List)
+        EG.
+            Get-EventLog -List | Where-Object {$_.LogDisplayName -like "*SQL*"} | Clear-EventLog
+
+
+4. [CommonParameters]
+    - Works with -Verbose, -ErrorAction, etc.
+
+
+5. Examples.
+    i. Clear the Application log.
+        EG.
+            Clear-EventLog -LogName Application
+
+    ii. Clear multiple logs at once.
+        EG.
+            Clear-EventLog -LogName System, Application, Security
+
+    iii. Clear logs on a remote server.
+        EG.
+            Clear-EventLog -LogName System -ComputerName Server01
+
+    iv. Pipe from Get-EventLog -List 
+        EG.
+            Get-EventLog -List | Where-Object {$_.LogDisplayName -like "*Directory Service*"} | Clear-EventLog
+
+
+6. Gotchas and pitfalls.
+    - No undo:
+        > Once cleared, entries are gone forever.
+
+    - Permissions:
+        >  Requires admin rights. Security log especially needs elevated privileges.
+
+    - Auditing:
+        > Clearing Security log itself generates a new event (Event ID 1102), which ironically leaves a trace that someone tried to hide something.
+
+    - Remote use:
+        > If the Event Log service is disabled or blocked by firewall, remote clears fail.
+
+    - Modern logs: 
+        > On Windows 10/11 and Server 2016+, Get-WinEvent handles both classic and modern logs.
+        > Clear-EventLog only works with classic logs (System, Application, Security).
+
+
+                                        LIMIT EVENTLOG.
+                                    ====================
+- What it does
+    > Configures properties of classic Windows event logs.
+    > Lets you adjust:
+        * Maximum log size.
+        * Retention policy (overwrite vs archive vs stop).
+
+    > Useful for controlling disk usage or compliance retention rules.
+
+
+                    SYNTAX.
+                -------------
+EG.
+    Limit-EventLog
+        [-LogName] <String[]>
+        [[-ComputerName] <String[]>]
+        [-OverflowAction {DoNotOverwrite | OverwriteAsNeeded | OverwriteOlder}]
+        [-RetentionDays <Int32>]
+        [-MaximumSize <Int64>]
+        [<CommonParameters>]
+
+
+                    PARAMETERS.
+                -----------------
+1. -LogName 
+    - Mandatory.
+    - Which log(s) to modify.
+    - Example : System, Application, Security.
+        EG.
+            Limit-EventLog -LogName System -MaximumSize 50MB
+
+
+2. -ComputerName 
+    - Configure logs on remote systems.
+        EG.
+            Limit-EventLog -LogName Application -ComputerName Server01 -MaximumSize 100MB
+
+
+3. -OverflowAction {DoNotOverwrite | OverwriteAsNeeded | OverwriteOlder}
+    - Controls what happens when log fills up.
+        > DoNotOverwrite 
+            * Stop logging (bad idea unless compliance requires).
+        
+        > OverwriteAsNeeded 
+            * Replace oldest events automatically (default for most).
+        
+        > OverwriteOlder 
+            * Only overwrite entries older than a set number of days (-RetentionDays).
+                EG.
+                    Limit-EventLog -LogName Security -OverflowAction OverwriteOlder -RetentionDays 90
+
+
+4. -RetentionDays 
+    - Defines how many days logs are preserved before being overwritten (used with OverwriteOlder)
+        EG.
+            Limit-EventLog -LogName System -OverflowAction OverwriteOlder -RetentionDays 30
+
+
+5. -MaximumSize 
+    - Maximum size of the log(bytes).
+    - Can specify in KB, MB, GB.
+        EG.
+            Limit-EventLog -LogName Application -MaximumSize 256MB
+
+
+6. [CommonParameters]
+    - -Verbose, -ErrorAction, etc.
+
+
+7. Example.
+    i. Increase system log size.
+        EG.
+            Limit-EventLog -LogName System -MaximumSize 200MB
+
+    ii. Set logs to overwrite as needed.
+        EG.
+            Limit-EventLog -LogName Application -OverflowAction OverwriteAsNeeded
+
+    iii. keep security log entries for 90 days.
+        EG.
+            Limit-EventLog -LogName Security -OverflowAction OverwriteOlder -RetentionDays 90
+
+    iv. Apply settings on multiple servers.
+        EG.
+            Limit-EventLog -LogName System -ComputerName DC01,DC02 -MaximumSize 300MB
+
+
+8. Gotchas and pitfalls.
+    - Classic logs only:
+        > Like the other *-EventLog cmdlets, this doesn’t touch modern event logs (those require wevtutil or Get-WinEvent).
+
+    - Permissions:
+        > Requires admin rights.
+
+    - Trade-offs:
+        > DoNotOverwrite can cause logging to silently stop — dangerous for troubleshooting and security.
+        > Too small max size means you’ll lose valuable history quickly.
+
+    - Changes apply immediately: No need to restart Event Log service, but old entries may be purged to comply with new size.
+
+
+                                        NEW EVENTLOG.
+                                    ==================
+- What it does:
+    > Creates a new custom event log.
+    > Associates it with a source (the app/service that will write into it).
+    > Used for structured logging in enterprise scripts, apps and monitoring setups.
+
+
+                    SYNTAX.
+                -------------
+EG.
+    New-EventLog
+        [-LogName] <String>
+        [-Source] <String[]>
+        [[-ComputerName] <String[]>]
+        [<CommonParameters>]
+
+
+                    PARAMETERS.
+                -----------------
+1. -LogName 
+    - Mandatory.
+    - Name of the new event log.
+    - Can't reuse built-in ones (System, Security, etc)
+        EG.
+            New-EventLog -LogName "MyAppLog" -Source "MyApp"
+
+
+2. -Source 
+    - Mandatory.
+    - The program/Script/Service that will write entries into this log.
+    - Required when creating the log.
+    - Multiple sources can share the same log.
+        EG.
+            New-EventLog -LogName "DeploymentLog" -Source "DeployScript"
+
+
+3. -ComputerName 
+    - Create event logs on remote machines.
+        EG.
+            New-EventLog -LogName "AuditLog" -Source "AuditTool" -ComputerName Server01
+
+
+4. [CommonParameters]
+    - -Verbose, -ErrorAction, etc.
+
+
+5. Examples.
+    i. Create a custom log with one source.
+        EG.
+            New-EventLog -LogName "AuditLog" -Source "AuditTool" -ComputerName Server01
+
+    ii. Multiple sources into one log.
+        EG.
+            New-EventLog -LogName "WebAppLog" -Source "IISApp","APIService"
+
+    iii. Remote log creation.
+        EG.
+            New-EventLog -LogName "RemoteLog" -Source "RemoteScript" -ComputerName "Server01"
+
+
+6. Gotchas and pitfalls.
+    - Admin rights required:
+        > You need elevation to create new event logs.
+    
+    - Must define a source:
+        > Without a -Source, log creation fails.
+    
+    - Legacy scope:
+        > Works only with “classic” logs (the same limitation as Get-EventLog).
+    
+    - Source collisions:
+        > If a source name already exists under a different log, you’ll hit errors. You’d need to remove/re-map it first.
+    
+    - First write delay:
+        > Sometimes the new log doesn’t show up until the first entry is written to it.
+
+
+                                    REMOVE EVENTLOG.
+                                ======================
+- What it does:
+    > Deletes custom event logs created with New-EventLog.
+    > Also removes their associated sources.
+    > Can operate locally or remotely.
+
+
+                SYNTAX.
+            ------------
+EG.
+    Remove-EventLog
+        [-LogName] <String[]>
+        [[-ComputerName] <String[]>]
+        [<CommonParameters>]
+
+
+                PARAMETERS.
+            -----------------
+1. -LogName <String[]> (Mandatory)
+    - One or more custom logs to remove.
+    - Only works for logs you created — can’t delete built-in ones (System, Application, Security). 
+        EG.
+            Remove-EventLog -LogName "AutomationLog"
+
+
+2. -ComputerName 
+    - Remove logs on remote machines.
+        EG.
+            Remove-EventLog -LogName "RemoteLog" -ComputerName "Server01"
+
+
+3. [CommonParameters]
+    - -Verbose, -ErrorAction, etc.
+
+
+4. Examples.
+    i. Delete a single custom log.
+        EG.
+            Remove-EventLog -LogName "AutomationLog"
+
+    ii. Delete multiple logs.
+        EG.
+            Remove-EventLog -LogName "WebAppLog","DeploymentLog"
+
+    iii. Delete remote log.
+        EG.
+            Remove-EventLog -LogName "AuditLog" -ComputerName "Server01"
+
+
+5. Gotchas and pitfalls.
+    - Admin rights required: Just like creation, deletion needs elevation.
+    - Built-in logs cannot be removed: Only works on logs you added.
+    - Sources tied to log are deleted: If multiple apps shared the same log, their source mappings vanish too.
+    - In-use logs: If a process is actively writing to a log while you delete it, you may get errors — stop the app first.
+
+
+                                    WRITE EVENTLOG.
+                                =====================
+- What it does:
+    > Writes entries into event logs (system, application, or custom)
+    > Requires a source that's already registered to the log.
+    > Lets you define entry type, event ID, message and category.
+
+
+                    SYNTAX.
+                --------------
+EG. 
+    Write-EventLog
+        [-LogName] <String>
+        [-Source] <String>
+        [-EntryType] {Error | Information | FailureAudit | SuccessAudit | Warning}
+        [-EventId] <Int32>
+        [-Message] <String>
+        [-Category <Int16>]
+        [-RawData <Byte[]>]
+        [-ComputerName <String[]>]
+        [<CommonParameters>]
+
+
+                    PARAMETERS.
+                -----------------
+1. -LogName 
+    - Mandatory.
+    - The log to write into (custom or built-in).
+        EG.
+            Write-EventLog -LogName "AutomationLog" -Source "BackupScript" ...
+
+
+2. -Source 
+    - The event source linked to the log.
+    - Must exist(via New-EventLog or predefined sources like "Service Control Manager")
+        EG.
+            Write-EventLog -LogName "Application" -Source "MyApp" ...
+
+
+3. -EntryType {Error | Information | FailureAudit | SuccessAudit | Warning}
+    - Mandatory
+    - Defines severity of the log entry.
+    - Error = serious failure,
+    - Warning = potential problem,
+    - Information = normal messages,
+    - FailureAudit / SuccessAudit = security-related.   
+        EG.
+            -EntryType Warning
+
+
+4. -EventId 
+    - Mandatory.
+    - Numeric identifier for the event.
+    - Typically chosen by the app/script (for structured troubleshooting)
+        EG.
+            -EventId 1001 
+
+
+5. -Message 
+    - Mandatory.
+    - The actual text of the log entry.
+    - Supports multi-line strings.
+        EG.
+            -Message "Backup completed successfully at $(Get-Date)"
+
+
+6. -Category 
+    - Optional category number (app-defined, often unused)
+        EG.
+            -Category 5
+
+
+7. -RawData 
+    - Attach raw binary data.
+    - Rarely used outside custom apps.
+        EG.
+            -RawData (1,2,3,4)
+
+
+8. -computerName 
+    - Write to logs on remote computers.
+        EG.
+            Write-EventLog -LogName "AutomationLog" -Source "BackupScript" -ComputerName Server01 ...
+
+
+9. [CommonParameters]
+    - -Verbose, -ErrorAction, etc.
+
+
+10. Examples.
+    i. Write a simple information entry.
+        EG.
+            Write-EventLog -LogName "Application" -Source "MyApp" -EntryType Information -EventId 1000 -Message "Application started successfully."
+
+    ii. Write a warning into a custom log.
+        EG.
+            Write-EventLog -LogName "AutomationLog" -Source "BackupScript" -EntryType Warning -EventId 2001 -Message "Backup delayed due to low disk space."
+
+    iii. Write an error event with category.
+        EG.
+            Write-EventLog -LogName "DeploymentLog" -Source "DeployScript" -EntryType Error -EventId 3001 -Category 7 -Message "Deployment failed at step 3."
+
+    iv. Log remotely.
+        EG.
+            Write-EventLog -LogName "AuditLog" -Source "AuditTool" -EntryType Information -EventId 4001 -Message "Audit started on remote server." -ComputerName Server01
+
+
+11. Gotchas and pitfalls.
+    > Source required:
+        *  The -Source must already exist, else you’ll get an error. Use New-EventLog first.
+    
+    > EventId discipline:
+        * If you randomly assign IDs, your logs get messy. Consistency is key.
+    
+    > Admin rights:
+        * Writing to system/security logs often requires elevation.
+    
+    > Legacy limitation:
+        * Only works with “classic” logs — not the newer Windows Eventing system channels. For modern stuff, you’d use wevtutil or Write-ETW.
+    
+    > Flood risk:
+        * Poorly designed scripts can spam logs and overwhelm storage/monitoring tools.
