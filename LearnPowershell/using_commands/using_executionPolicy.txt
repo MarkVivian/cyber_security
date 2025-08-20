@@ -1,0 +1,281 @@
+                                                        EXECUTION POLICY.
+                                                    =======================
+- It's not a security boundary.
+- Think of it as the "Speed governor" on a rental car - it limits how fast you can run, but if your determined (local admin, Group Policy) you can bypass it.
+- It's designed to protect against accidental script execution, not a malicious admin.
+- Cmdlet(s) Involved:
+    > Get-ExecutionPolicy 
+        * Shows the current policy.
+    
+    > Set-ExecutionPolicy
+        * Starts a new execution Policy.
+
+    > Get-ExecutionPolicy -List.
+        * Shows every scope's setting (Process, User, Machine, Policy)
+
+
+                            GET EXECUTION POLICY.
+                        ---------------------------
+                SYNTAX.
+            -------------
+EG.
+    Get-ExecutionPolicy [[-Scope] <ExecutionPolicyScope>] [<CommonParameters>]
+
+
+                PARAMETER.
+            ------------------
+1. -Scope 
+    - Lets you see the policy at a specific scope instead of the effective one.
+    - it " check the rule at this layer instead of the final answer."
+    - Options:
+        > Process.
+        > CurrentUser.
+        > LocalMachine.
+        > UserPolicy.
+        > MachinePolicy.
+            EG.
+                # See the effective policy (the one in use right now)
+                Get-ExecutionPolicy
+
+                # Check what the CurrentUser scope is set to
+                Get-ExecutionPolicy -Scope CurrentUser
+
+                # Show all scopes at once (shortcut instead of checking one by one)
+                Get-ExecutionPolicy -List
+
+                # show the execution policy for just the running powershell session.
+                Get-ExecutionPolicy -Scope Process 
+
+
+2. <CommonParameters>
+    - Stuff like -Verbose, -ErrorAction, etc. Nothing unique here, just standard powershell noise we can use for debugging/logging.
+        EG.
+            Get-ExecutionPolicy -Verbose
+
+                - Tells you what scope it's checking in a chatty way.
+
+
+                    REAL WORLD USAGE.
+                ------------------------
+1. Baseline check (SysAdmin)
+    - Before running automation scripts on a server, check what policy is set:
+        EG.
+            Get-ExecutionPolicy
+
+                - If it returns Restricted, you know your scripts won't run.
+
+
+2. Compliance Auditing (Security.)
+    - Audit all scopes to see if someone weakened the policy.
+        EG.
+            Get-ExecutionPolicy -List
+
+                - Shows all scopes in order of precedence, so you can detect a malicious user setting Unrestricted at CurrentUser.
+
+
+3. Process-Specific Bypass check (Pentester/Red Teamer)
+    - When you inject a powershell process, check if it's already weakened for just that process:
+        EG.
+            Get-ExecutionPolicy -Scope Process
+
+                - If it says Bypass, game on.
+
+
+4. Troubleshooting Conflicts. (DevOps)
+    - If a script runs fine in ISE but not in Console, compare scopes.
+        EG.
+            Get-ExecutionPolicy -Scope CurrentUser
+            Get-ExecutionPolicy -Scope LocalMachine
+
+                - Maybe ISE loads with user policy, while console inherits machine policy.
+
+
+5. Chaining Scenarios 
+    - Check execution policy across multiple servers in one line.
+        EG.
+            Invoke-Command -ComputerName Server1,Server2 -ScriptBlock { Get-ExecutionPolicy -List }
+
+                - Great for compliance checks across environments.
+
+
+                    GOTCHAS.
+                --------------
+1. Precedence 
+    - If multiple scopes are set, the highest precedence wins (Process > CurrentUser > LocalMachine).
+    - So Get-ExecutionPolicy without -Scope shows the effective one, but it might not tell you the whole story.
+    - Use -List for the full picture.
+
+2. Default values.
+    - On Windows client 
+        > Restricted (no scripts run).
+
+    - On windows Server.
+        > RemoteSigned (local scripts run, remote must be signed).
+
+3. Group Policy Rules all 
+    - If MachinePolicy or UserPolicy is set by GPO, you cannot override it with Set-ExecutionPolicy.
+
+
+                            SET EXECUTION POLICY.
+                        ----------------------------
+                SYNTAX.
+            --------------
+EG.
+    Set-ExecutionPolicy [-ExecutionPolicy] <ExecutionPolicy> 
+                   [[-Scope] <ExecutionPolicyScope>] 
+                   [-Force] 
+                   [-WhatIf] 
+                   [-Confirm] 
+                   [<CommonParameters>]
+
+
+                PARAMETERS.
+            ----------------
+1. -ExecutionPolicy 
+    - Sets the desired execution policy. Accepted values:
+        i. Restricted.
+            > No scripts, only interactive commands. (safe mode).
+            > "all doors locked, no one gets in."
+
+        ii. AllSigned 
+            > Scripts must be signed by a trusted publisher.
+            > "valet only if they have your key"
+
+        iii. RemoteSigned
+            > Local scripts run, remote scripts must be signed.
+            > "friends ride with you, strangers need ID"
+
+        iv. Unrestricted
+            > All scripts run, but warns before running remote.
+            > "Everyone piles in, but you yell 'are you sure?'"
+
+        v. Bypass 
+            > No restrictions, no warnings (Wild West).
+            > "uber driver, no questions asked"
+
+        vi. Undefined 
+            > Removes the policy at that scope.
+        EG.
+            Set-ExecutionPolicy RemoteSigned
+
+                - Now local scripts run, remote ones need to be signed.
+
+
+2. -Scope 
+    - Defines where the policy applies. precedence order
+        i. Process 
+            > Just this powershell session.
+            > Putting on a hoodie (temporary, only you, only now)
+
+        ii. CurrentUser
+            > Applies to current user profile.
+            > new wardrobe (sticks with your account).
+        
+        iii. LocalMachine 
+            > Applies to all users on the system.
+            > company uniform (everyone wears it).
+
+        iv. (MachinePolicy and UserPolicy exist but are group policy- controlled, not settable here).
+            EG.
+                Set-ExecutionPolicy Bypass -Scope Process
+
+                    - Lets you run scripts freely, but only for this session. Close powershell -> policy gone.
+                    - powershell checks top-down, the first scope with a defined value applies:
+                        > Process = Bypass 
+                        > CurrentUser = RemoteSigned 
+                        > Localmachine = Restricted 
+                            -> Effective = Bypass (Process trumps)
+
+
+3. -Force 
+    - Suppresses the "Are you sure?" prompt.
+        EG.
+            Set-ExecutionPolicy RemoteSigned -Force
+
+
+4. -WhatIf 
+    - Simulates the command without actually changing anything.
+        EG.
+            Set-ExecutionPolicy Unrestricted -WhatIf
+
+
+5. -Confirm 
+    - Forces a confirmation prompt before executing.
+        EG.
+            Set-ExecutionPolicy Restricted -Confirm
+
+
+6. <CommonParameters>
+    - Usual suspects: -Verbose, -ErrorAction, etc.
+        EG.
+            Set-ExecutionPolicy AllSigned -Verbose
+
+
+                REAL WORLD USAGE.
+            ------------------------
+1. Locking down a server (Sysadmin)
+    - To prevent any unsigned script execution.
+        EG.
+            Set-ExecutionPolicy AllSigned -Scope LocalMachine
+
+
+2. Developer workstation (Automation)
+    - Allow local scripts to run freely, but protect against remote jumk:
+        EG.
+            Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+
+3. temporarily Bypass (Pentesting/Troubleshooting)
+    - During a red team engagement, run scripts without tripping policy.
+        EG.
+            Set-ExecutionPolicy Bypass -Scope Process
+
+                - Leaves no lasting trace once the session closes.
+
+
+4. Compliance Enforcement (Security)
+    - Push a stricter policy across all users on a shared machine.
+        EG.
+            Set-ExecutionPolicy Restricted -Scope LocalMachine
+
+
+5. Script packaging / Deployment Testing (DevOps)
+    - Test how your script behaves under different restrictions.
+        EG.
+            Set-ExecutionPolicy Unrestricted -Scope Process
+            # run test script
+
+
+6. Chaining Scenarios
+    - Audit then enforce.
+        EG.
+            Get-ExecutionPolicy -List
+            Set-ExecutionPolicy RemoteSigned -Scope LocalMachine -Force
+
+    - Deploy via remote command:
+        EG.
+            Invoke-Command -ComputerName Server1,Server2 -ScriptBlock {
+                Set-ExecutionPolicy RemoteSigned -Scope LocalMachine -Force
+            }
+
+
+                GOTCHAS.
+            -----------------
+1. Group policy beats you 
+    - If MachinePolicy or UserPolicy is set by GPO, Set-ExecutionPolicy does nothing. 
+    - You can try, but the domain will slap it back.
+
+2. Admin vs Users 
+    - Setting LocalMachine requires admin rights.
+
+3. Scope Confusion.
+    - People often think Set-ExecutionPolicy is global.
+    - Nope, it only applies at the scope you pick.
+
+4. Danger Mode 
+    - Bypass or Unrestricted basically turns off script protections. Great for testing/pentests, bad for compliance.
+
+5. Persistence Trick 
+    - Attackers often abuse CurrentUser scope to silently set policy without needing admin rights.
+
+
