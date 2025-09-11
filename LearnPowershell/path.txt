@@ -1,0 +1,47 @@
+🔩 PowerShell: Core Concepts / Data Sources
+Topic	Status	Notes
+system and environment variables	🔄 Pending	$env: usage, ExecutionPolicy, invoke-* group, Netsh & Net tools, bluetooth control tools, file and folder Ownership, ACL management.
+pakcage and archive handling	🔄 Pending	Get-Package, Find-Package, Expand-Archive, Compress-Archive
+windows defender config	🔄 Pending	Get-MpPreference, Set-MpPreference, add exclusions/config, etc.
+winget 
+
+🧮 External Tools & Platforms
+Topic	Status	Notes
+shuf (Linux)	🔄 Pending	Randomizer in bash (alt to Get-Random)
+Image width/height	🔄 Pending	Get dimensions in PS & Linux
+
+🧠 Final Boss Topic
+Topic	Status	Notes
+Regex (read/write)	🔄 Final	Regex reading, writing, applying in PS & Linux
+
+
+
+Command/Function	Status	Notes
+🔩 4. System & Environment
+Concept/Tool	Status	Notes
+ Netsh & net tools	🔄	Interface/IP/WiFi enumeration
+Bluetooth tools (Windows)	🔄	PowerShell-accessible Bluetooth control
+File/Folder ownership	🔄	takeown, icacls
+ACL management	🔄	Get-Acl, Set-Acl, etc.
+start job
+📦 5. Package & Archive Handling
+Command	Status	Notes
+Get-Package	🔄	View installed packages
+Find-Package	🔄	Package discovery
+Expand-Archive	🔄	Unzip
+Compress-Archive	🔄	Zip creation
+🛡️ 6. Windows Defender Configuration
+Command	Status
+Get-MpPreference	🔄
+Set-MpPreference	🔄
+Add exclusions/config	🔄
+🧮 7. External Tools & Platform Integration
+Tool/Concept	Status	Notes
+shuf (Linux)	🔄	CLI randomizer
+Image dimensions	🔄	Height/width via PowerShell/Linux
+🧠 8. Regex Mastery (Final Topic)
+Skill	Status
+Reading regex patterns	🔄
+Writing regex	🔄
+Testing regex	🔄
+Applying in PowerShell/Linux	🔄

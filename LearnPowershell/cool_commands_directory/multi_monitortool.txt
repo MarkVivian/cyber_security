@@ -1,0 +1,427 @@
+                                MULTIMONITOR TOOL (MMT)
+                            ==============================
+                HOW ARE MONITORS IDENTIFIED.
+            ---------------------------------
+- Values you can use for <Monitor> (What Name= or any <Monitor> field accepts):
+    > Primary 
+        * The current primary monitor.
+
+    > Monitor Name 
+        * as in the tool's Name column: \\. \DISPLAY1, \\.\DISPLAY2, ...
+    
+    > Monitor Number 
+        * the number part (1,2,3)
+    
+    > Monitor ID 
+        * Long ID from tool MONITOR\GSM59A4\{GUID}\0008.
+
+    > Short Monitor ID 
+        * e.g., GSM59A4
+
+    > Serial Number 
+        * the monitor serial from the list.
+
+            - Serial and Monitor ID are the most stable across docks/RDP; \\. \DISPLAY# can renumber.
+
+
+                    PARAMETERS.
+                ------------------
+1. /SetMonitors 
+    EG.
+        MultiMonitorTool.exe /SetMonitors "Name=<...> Primary=<0|1> BitsPerPixel=<bpp> Width=<w> Height=<h> DisplayFlags=<flags> DisplayFrequency=<hz> DisplayOrientation=<0|90|180|270> PositionX=<x> PositionY=<y>" "Name=..."
+
+        i. Name= 
+            - Target Monitor identifier 
+                EG.
+                    Name=\\.\DISPLAY2, Name=GSM59A4, Name=334DFRGV451, Name=Primary
+
+                        - Use /scomma to get exact Name/ID before scripting.
+
+        ii. Primary=
+            - 1 makes that monitor primary; 0 clears primary.
+                EG.
+                    Primary=1 
+
+                        - Always ensure exactly one monitor has Primary=1 in the same command or Windows will pick one unpredictably.
+                        - Verify via /scomma.
+
+        ii. BitsPerPixel=
+            - Color depth: 32, 24, 16.
+                EG.
+                    BitsPerPixel=32 
+
+                        - Drivers often ignore changes. 
+                        - Rarely used on modern systems.
+
+        iii. Width= & Height= 
+            - Resolution in pixels.
+                EG.
+                    Width=1920 Height=1080, Width=3840 Height=2160
+
+                        - Unsupported combos may blank the screen.
+                        - Always SaveConfig before changing critical displays.
+
+        iv. DisplayFlags=
+            - Numeric internal flags (vendor/tool-specific). Default commonly 0.
+            - Low-level switches you probably don’t need.
+                EG.
+                    DisplayFlags=0
+
+                        - Undocumented; don’t change unless you know the value meaning. Use 0 normally.
+
+        v. DisplayFrequency=
+            - Refresh rate (Hz) — 60, 75, 120, 144, etc.
+                EG.
+                    DisplayFrequency=144
+
+                        -  Must match EDID/driver support.
+                        - Use /setmax to choose highest supported automatically if unsure.
+
+        vi. DisplayOrientation=
+            - Rotation: 0, 90, 180, 270.
+            - Turn the monitor portrait or landscape.
+                EG.
+                    DisplayOrientation=90
+
+                        - Apps/windows can reflow — expect repositioning. Verify visually.
+
+        vii. PositionX= and PositionY=
+            - Top-left coordinates of monitor relative to virtual desktop origin.
+                EG.
+                    PositionX=0 PositionY=0 and PositionX=1920 PositionY=0 (to the right)
+                        
+                        - Negative values are valid (left of origin). 
+                        - Calculate using monitor widths to avoid weird mouse transitions.
+
+
+        viii. General /SetMonitors notes
+            - You may include only the keys you want to change.
+            - Missing fields are left unchanged.
+            ** Best practice: /SaveConfig before changing; /LoadConfig to restore.
+            ** Verification: /scomma to inspect Width/Height/PositionX/PositionY/Primary.
+
+
+2. /disable <Monitors>
+    - Marks monitor(s) disabled in Windows (treated as not present).
+        EG.
+            MultiMonitorTool.exe /disable 1
+            MultiMonitorTool.exe /disable \\.\DISPLAY3
+            MultiMonitorTool.exe /disable 1 2 3
+
+                - If you disable the primary, Windows will auto-select a new primary.
+                - Verify with /scomma.
+                - Use /EnableAtPosition if you need to bring it back at a specific spot.
+
+
+3. /enable <Monitors>
+    - Enables previously disabled monitor(s).
+        EG:
+            MultiMonitorTool.exe /enable 3
+            MultiMonitorTool.exe /enable \\.\DISPLAY1
+
+                - Plain /enable can place the monitor at unexpected coordinates — use /EnableAtPosition if position matters.
+
+
+4. /EnableAtPosition <Monitor> <X Position> <Y Position>
+    - Enables a monitor and sets its PositionX/Y in one step.
+        EG.
+             MultiMonitorTool.exe /EnableAtPosition "\\.\DISPLAY2" 1920 0
+
+                - Fixes cases where /enable puts the monitor at a wrong offset.
+                - /scomma for PositionX/Y.
+
+
+5. /switch <Monitors>
+    - Toggles enabled/disabled state of the listed monitors.
+        EG.
+            MultiMonitorTool.exe /switch 3
+            MultiMonitorTool.exe /switch \\.\DISPLAY1 \\.\DISPLAY3
+
+                - If toggling many monitors, primary selection may change.
+                - Check /SetPrimary after batch toggles if needed.
+
+
+6. /setmax <Monitors>
+    - Sets the monitor(s) to the maximum resolution supported (by EDID/driver).
+        EG.
+            MultiMonitorTool.exe /setmax 3
+            MultiMonitorTool.exe /setmax \\.\DISPLAY2 \\.\DISPLAY3
+
+                - “Max” depends on GPU and cable; use after enabling a monitor to ensure it uses proper resolution.
+
+
+7. /SetOrientation <Monitor> <Orientation [0, 90, 180, 270] >
+    - Sets rotation per specified monitor(s). You can provide multiple pairs: Monitor Orientation Monitor Orientation.
+        EG:
+            MultiMonitorTool.exe /SetOrientation 2 270
+            MultiMonitorTool.exe /SetOrientation \\.\DISPLAY2 180 \\.\DISPLAY3 90
+
+                - Rotation + resolution combos may be refused by drivers. Verify with /scomma or visual check.
+
+
+8. /SetPrimary <Monitor>
+    - Set chosen monitor as primary.
+        EG.
+            MultiMonitorTool.exe /SetPrimary 2
+            MultiMonitorTool.exe /SetPrimary \\.\DISPLAY2
+
+                - Some apps pinned to old primary may not follow. Use in scripts where you plan followup window moves.
+
+
+9. /SetNextPrimary
+    - Cycle the primary monitor to the next available. Repeated calls rotate through monitors.
+        EG.
+             MultiMonitorTool.exe /SetNextPrimary
+
+                - Kiosk or multi-presenter setups where presenters rotate.
+
+
+10. /SetScale <Monitor> <Scale Value>
+    - Set Windows Display scaling (Windows 10/11). 
+    - <Scale Value> can be absolute (100,125,150,...) or relative: 0 = recommended, positive 1,2,... = bigger than recommended, negative -1,-2,... = smaller than recommended.
+        EG.
+            MultiMonitorTool.exe /SetScale "\\.\DISPLAY1" 125
+            MultiMonitorTool.exe /SetScale "Primary" 150
+            MultiMonitorTool.exe /SetScale "\\.\DISPLAY2" -1
+
+                - Gotchas:
+                    * Changes may require sign-out or app restart for effects to appear.
+                    * Mixing very different scales across monitors may make dragging windows ugly/blurry.
+
+
+11. /TurnOff <Monitors>
+    - Sends DDC/CI command to power-off monitor(s) (if supported).
+        EG.
+            MultiMonitorTool.exe /TurnOff 1
+            MultiMonitorTool.exe /TurnOff \\.\DISPLAY3
+
+                - Gotchas:
+                    * Requires DDC/CI support and a path that passes DDC signals (some docks/adapters don’t). If not supported, it often silently fails.
+
+
+12. /TurnOn <Monitors>
+    -  Sends DDC/CI command to turn monitor on.
+        EG.
+            MultiMonitorTool.exe /TurnOn 3
+            MultiMonitorTool.exe /TurnOn \\.\DISPLAY1
+
+                - Gotcha:
+                    * Some monitors won’t wake from DDC — physically pushing the power button may be required.
+
+
+13. /SwitchOffOn <Monitors>
+    - Toggle the DDC/CI on/off hardware state.
+        EG.
+             MultiMonitorTool.exe /SwitchOffOn 3
+                
+                - Gotcha:
+                    * Same hardware limitations — not a replacement for /disable which affects Windows presence.
+
+
+14. /PreviewOnly <Monitor> {x} {y} {width} {height}
+    - Launch MultiMonitorTool in preview-only mode showing only the specified monitor preview.
+    - Optionally supply preview window position and size.
+        EG.
+            MultiMonitorTool.exe /PreviewOnly \\.\DISPLAY2
+            MultiMonitorTool.exe /PreviewOnly \\.\DISPLAY1 10 10 300 200
+            Use-case: Inspect what an output will show without changing config.
+
+
+15. /MonitorPreviewWindow <0 | 1>
+    - Toggle whether the monitor preview window is displayed (0=no, 1=yes).
+        EG.
+             MultiMonitorTool.exe /MonitorPreviewWindow 1
+            
+                - Gotchas:
+                    * Purely GUI; safe.
+
+
+16. /PreviewMode <1 | 2>
+    - 1 = fast & low quality preview, 2 = slow & high quality.
+        EG.
+             MultiMonitorTool.exe /PreviewMode 2
+
+                - Gotcha:
+                    * Mode 2 can be CPU/GPU heavy with multiple previews.
+
+
+17. /DrawCursorPreview <0 | 1>
+    - Whether to render cursor inside preview window.
+        EG.
+             MultiMonitorTool.exe /DrawCursorPreview 1
+
+
+18. /HideInactiveMonitors <0 | 1>
+    - Whether to hide inactive monitors from the preview/list.
+        EG.
+            MultiMonitorTool.exe /HideInactiveMonitors 1
+
+
+19. /TrayIcon <0 | 1>
+    - Put/remove an icon in the system tray for the tool.
+        EG.
+            MultiMonitorTool.exe /TrayIcon 1
+
+
+20. /StartAsHidden <0 | 1>
+    - Start the main window hidden — works only if TrayIcon is on.
+        EG.
+            MultiMonitorTool.exe /StartAsHidden 1
+
+                - Gotcha:
+                    * Requires TrayIcon=1 or it won’t take effect.
+
+
+21. /AutoRefresh <0 | 1>
+    - Auto refresh the monitors/windows info in the UI.
+        EG.
+            MultiMonitorTool.exe /AutoRefresh 1
+
+
+22. /MoveWindow 
+    EG.
+        MultiMonitorTool.exe /MoveWindow <To Monitor> Process <Process Name>
+        MultiMonitorTool.exe /MoveWindow <To Monitor> Title <Title Text>
+        MultiMonitorTool.exe /MoveWindow <To Monitor> Class <Window Class>
+        MultiMonitorTool.exe /MoveWindow <To Monitor> All <From Monitor>
+
+            - Options modifiers 
+                > /WindowLeft <n> - Set left offset relative to target monitor origin
+                > /WindowTop <n>
+                > /WindowWidth <n>
+                > /WindowHeight <n>
+
+            - Explanation of matching types:
+                > Process "iexplore.exe" 
+                    - match all top-level windows owned by that process executable name.
+
+                > Title "Hello World" 
+                    - match windows whose title contains the string (substring matching).
+
+                > Class "CabinetWClass" 
+                    -  match windows by their window class (useful for Explorer and many system windows).
+
+                > All <From Monitor> 
+                    - move all windows from <From Monitor> (if omitted, moves from all monitors).
+            
+            - Examples:
+                > Move all windows to primary:
+                    EG 
+                        MultiMonitorTool.exe /MoveWindow Primary All
+
+                > Move Firefox windows to the next monitor:
+                    EG 
+                        MultiMonitorTool.exe /MoveWindow Next Process "firefox.exe"
+
+                > Move windows whose title contains 'Hello World' to DISPLAY2:
+                    EG 
+                        MultiMonitorTool.exe /MoveWindow 2 Title "Hello World"
+
+                > Move Explorer windows by class:
+                    EG 
+                        MultiMonitorTool.exe /MoveWindow 3 Class "CabinetWClass"
+
+                > Move all windows from DISPLAY3 to DISPLAY2:
+                    EG 
+                        MultiMonitorTool.exe /MoveWindow 2 All 3
+
+                > Move firefox windows to Next monitor and place at (10,10) relative to target monitor:
+                    EG 
+                        MultiMonitorTool.exe /MoveWindow Next Process "firefox.exe" /WindowLeft 10 /WindowTop 10
+
+                > Move and resize to 600x400:
+                    EG 
+                        MultiMonitorTool.exe /MoveWindow Next Process "firefox.exe" /WindowWidth 600 /WindowHeight 400
+
+            - Gotchas & behaviors:
+                > Matching by Title is substring-based and case-insensitive generally — fragile if titles change.
+                > Minimized windows: some windows might need to be restored before moving; check behavior.
+                > Coordinates (WindowLeft/Top) are relative to the target monitor’s origin — not global desktop coordinates — when combined with a To Monitor.
+                > Some UWP or elevated windows may not be movable by a non-elevated process — run tool elevated if moves silently fail.
+                > Verify visually and via /scomma for window positions if you have tooling that captures positions (MultiMonitorTool itself may list windows in its GUI).
+
+
+            Save/Load configs and list exports
+        -----------------------------------------
+1. /SaveConfig <Filename>
+    - Save all current monitor config (resolution, color depth, position) to a file (tool-specific format).
+        EG.
+             MultiMonitorTool.exe /SaveConfig "C:\temp\monitors1.cfg"
+
+                - Verify:
+                    * File existence and ability to /LoadConfig.
+
+
+2. /LoadConfig <Filename>
+    - Technical: Load a saved config file and apply.
+        EG.
+            MultiMonitorTool.exe /LoadConfig "C:\temp\monitors1.cfg"
+
+                - Gotcha:
+                    * If config references monitors by \\.\DISPLAY# and numbering changed, use serial or ID in the saved file for resilience.
+
+
+            Export list outputs (human-readable/reporting)
+            ----------------------------------------------
+1. /stext <Filename>
+    - plain text list
+
+2. /stab <Filename>
+    - tab-delimited file
+
+3. /scomma <Filename> 
+    - CSV (my recommendation for scripting)
+
+4. /stabular <Filename> 
+    - tabular text
+
+5. /shtml <Filename> 
+    - HTML horizontal
+
+6. /sverhtml <Filename> 
+    - HTML vertical
+
+7. /sxml <Filename> 
+    - XML
+        EG.
+            MultiMonitorTool.exe /scomma "C:\Temp\monitors.csv"
+            MultiMonitorTool.exe /sxml "C:\Temp\monitors.xml"
+
+                - Use these to capture "before" and "after" state and proggrammatically diff.
+
+
+                RECOMMENDED SAFE PRACTICES.
+            -------------------------------
+1. Always save current states before major changes.
+    EG.
+        MultiMonitorTool.exe /SaveConfig "C:\Temp\monitors-before.cfg"
+        MultiMonitorTool.exe /scomma "C:\Temp\monitors-before.csv"
+
+2. Apply changes (example /SetMonitors or /enable)
+
+3. Verify with MultiMonitorTool.exe /scomma "C:\Temp\Monitors-after.csv" and diff against before (Powershell Compare-Object or git diff)
+
+4. Rollback 
+    EG.
+        MultiMonitorTool.exe /LoadConfig "C:\Temp\monitors-before.cfg"
+
+5. If DDC/CI-based /TurnOff doesn't work, try phisical check or TurnOn /SwitchOffOn.
+    - If screen goes black after a mode change and remote access is used, keep backup plan (KVM, local user, or remote power control).
+
+
+                COMMON TROUBLESHOOTING.
+            ---------------------------
+No change or silent failure: run as Administrator; re-run elevated.
+
+DDC/CI commands not working: test on a known DDC-supporting monitor; some hubs/docks block DDC.
+
+Resolutions/Refresh rates rejected: check GPU driver and monitor EDID; use /setmax to ask tool to set max supported to avoid unsupported combos.
+
+Naming instability: use Serial/MonitorID for scripts that must survive reboots/dock changes.
+
+Scaling glitches: changing scale can require sign-out. Test critical apps after changing /SetScale.
+
+MoveWindow failures: try elevation, ensure windows aren’t “special” (UWP, elevated, or system modal).
+
+PreviewMode heavy: use /PreviewMode 1 if CPU/GPU stressed.
+

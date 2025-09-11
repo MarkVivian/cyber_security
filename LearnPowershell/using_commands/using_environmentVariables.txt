@@ -1,36 +1,171 @@
-                            ENVIRONMENT VARIABLES.
-                        ==============================
-1. Accessing environment variables.
-    EG.
-        # List all environment variables
-        Get-ChildItem Env:
+                                                ENVIRONMENT VARIABLES.
+                                            ==============================
+- $env is a drive (like C: or HKLM:) that exposes alll environment variables on your system.
+- They are just key=value pairs that live in memory for your shell/session.
+- They're used for things like:
+    > Telling programs where to find files (PATH)
+    > Storing usernames (USERNAME)
+    > Storing the current temp directory (TEMP)
+    > Setting configuration switches (PSModulePath, HTTP_PROXY, etc)
 
-        # Get a specific environment variable, e.g., PATH
-        $env:PATH
+- The 3 levels of Environment Variables  in windows:
+    1. Process/session 
+        - Lives until you close that powershell/process.
+        - Easy, fast, good for testing.
+        - No impact after reboot.
+            EG.
+                $env:VAR.
+
+    2. User 
+        - Stored in registry: HKCU:\Environment
+        - Persists across reboots/logons for that user only.
+        - No admin rights needed.
+            EG.
+                [System.EnvironmentVariableTarget]::User 
+
+    3. System (Machine)
+        - Stored in registry : HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+        - Global for all users.
+        - Requires admin rights.
+        - Dangerous if you break PATH here - you can cripple your system.
+            EG.
+                [System.EnvironmentVariableTarget]::Machine
+
+
+                    SYNTAX.
+                -------------------
+EG.
+    # You access them like properties.
+    $env:PATH
+    $env:USERNAME
+    $env:COMPUTERNAME
+
+    # You can set them by assigning.
+    $env:MYVAR = "HelloWorld"
+
+    # Check all variables.
+    Get-ChildItem Env:
+
+
+                    USAGE.
+                -----------------
+1. Viewing.
+    EG.
+        # See a single variable
+        $env:Path
+
+        # See all env variables (like `printenv` in Linux)
+        Get-ChildItem Env:
 
         # Get a user-specific environment variable, e.g., TEMP
         $env:TEMP
 
-    > Handling the path variables.
-        - Since the PATH variable is a semicolon-separated string of paths, managing it can be a bit tricky. Here are some useful techniques:
+
+2. Creating.
+    EG.
+        # Create a variable for your session
+        $env:API_KEY = "12345-ABCDE"
+
+            - This exists only for this powershell sessions.
+            - Close the terminal, it dies.
+            - For Permanent methods:
+                EG.
+                    # New user variable
+                    [System.Environment]::SetEnvironmentVariable(
+                        "MyVariable", "MyValue",
+                        [System.EnvironmentVariableTarget]::User
+                    )
+
+                    # New system variable
+                    [System.Environment]::SetEnvironmentVariable(
+                        "MySystemVariable", "MySystemValue",
+                        [System.EnvironmentVariableTarget]::Machine
+                    )
+
+
+3. Modifying
+    EG.
+        # Append a folder to PATH
+        $env:Path += ";C:\MyTools"
+
+            - Session-only (dies after powershell closes.)
+            - Good for testing path.
+            - for Permanent methods:
+                EG.
+                    # System PATH (all users) → needs admin
+                    [System.Environment]::SetEnvironmentVariable(
+                        "Path",
+                        $env:Path + ";C:\NewPath",
+                        [System.EnvironmentVariableTarget]::Machine
+                    )
+
+                    # User PATH (just your account)
+                    [System.Environment]::SetEnvironmentVariable(
+                        "Path",
+                        $env:Path + ";C:\NewPath",
+                        [System.EnvironmentVariableTarget]::User
+                    )
+
+                        - If you keep using $env:Path directly in these calls, you might accidentally stack session changes into Permanent ones.
+                        - Safer pattern is to retrieve from the registry first before modifying:
+                            EG.
+                                # Modify user PATH
+                                $oldUserPath = [System.Environment]::GetEnvironmentVariable(
+                                    "Path",
+                                    [System.EnvironmentVariableTarget]::User
+                                )
+                                $newUserPath = $oldUserPath + ";C:\NewUserPath"
+                                [System.Environment]::SetEnvironmentVariable(
+                                    "Path",
+                                    $newUserPath,
+                                    [System.EnvironmentVariableTarget]::User
+                                )
+
+                                # Modify system PATH (admin needed!)
+                                $oldSystemPath = [System.Environment]::GetEnvironmentVariable(
+                                    "Path",
+                                    [System.EnvironmentVariableTarget]::Machine
+                                )
+                                $newSystemPath = $oldSystemPath + ";C:\NewSystemPath"
+                                [System.Environment]::SetEnvironmentVariable(
+                                    "Path",
+                                    $newSystemPath,
+                                    [System.EnvironmentVariableTarget]::Machine
+                                )
+
+
+4. Removing 
+    EG.
+        Remove-Item Env:MYVAR
+
+            - For Permanent methods:
+                EG.
+                    # User variables 
+                    [System.Environment]::SetEnvironmentVariable(
+                        "MyVariable", $null,
+                        [System.EnvironmentVariableTarget]::User
+                    )
+
+                    # System Variable.
+                    [System.Environment]::SetEnvironmentVariable(
+                        "MySystemVariable", $null,
+                        [System.EnvironmentVariableTarget]::Machine
+                    )
+                    
+                        - Setting it to $null = delete.
+                        - Needs admin, same $null trick.
+
+
+5. Permanent Variables.
+    - Temporary changes dies when the shell closes.
+    - Permanent changes live in:
+        > User level : HKCU:\Environment
+        > System level : HKLM:\System\CurrentControlSet\Control\Session Manager\Environment
             EG.
-                # Split the PATH variable into an array
-                $pathArray = $env:PATH -split ";"
+                # Permanent user PATH addition.
+                setx PATH "$env:Path;C:\MyTools"
 
-                # Check if a path is already in the PATH variable
-                $targetPath = "C:\NewPath"
-                $pathArray -contains $targetPath
-
-                # Remove a path from the PATH variable
-                $targetPath = "C:\NewPath"
-                $pathArray = $pathArray | Where-Object { $_ -ne $targetPath }
-                $env:PATH = $pathArray -join ";"
-
-                # Check if a path exists before adding it to avoid duplicates.
-                $targetPath = "C:\NewPath"
-                if (-not ($pathArray -contains $targetPath)) {
-                    $env:PATH += ";$targetPath"
-                }
+                    - setx writes permanently but doesn’t affect the current session — only new shells.
 
 
 
@@ -82,3 +217,25 @@
 
                 - Requires elevated privileges.
 
+
+4. Gotchas and deep notes:
+    i. Session vs Permanent 
+        - $env : Updates affect only running processes.
+        - [System.Environment]::SetEnvironmentVariable updates registry, so new processes (new shells, apps , logons) see it.
+
+    ii. Immediate effect.
+        - Programs launched from the current powershell won't see registry changes unless you refresh their environment.
+        - That's why people log out/in, or restart Explorer.
+
+    iii. Path length limit. 
+        - old windows had 2048/4096 char limits for PATH. 
+        - Modern version support ~32k, but older apps may still break.
+
+    iv. Safety net.
+        - Always dump your path before touching it.
+            EG.
+                [System.Environment]::GetEnvironmentVariable("Path", "Machine") | Out-File C:\path-backup.txt
+
+    v. Malware angle.
+        - Malicious actors love poisoning PATH by prepending bad directories. 
+        - e.g putting a fake net.exe earlier in PATH that C:\Windows\System32, and suddenly every call to net executes attacker code.
