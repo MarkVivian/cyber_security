@@ -1,0 +1,115 @@
+                                        DIALOG BOX .
+                                    ====================
+        STA REQUIREMENTS.
+    -----------------------
+- Windows dialogs need an STA Thread.
+    EG. (to check if have a STA thread)
+        [Threading.Thread]::CurrentThread.GetApartmentState().ToString()
+
+            - Expected STA 
+            - MTA is common in powershell 7 by default.
+            - If you see MTA, spawn a -STA session and run there.
+                EG.
+                    powershell -Sta -File .\Script.ps1
+                    # or for powershell core (pwsh) on windows:
+                    pwsh -NoProfile -Sta -File .\Script.ps1
+
+            - If you prefer not to launch a new process, you can create a new STA thread inside your script, run the dialog then return the result.
+                EG. 
+                    Add-Type -AssemblyName System.Windows.Forms
+
+                    $selectedFolder = $null
+
+                    $start = [Threading.ThreadStart]{
+                        $dlg = New-Object System.Windows.Forms.FolderBrowserDialog
+                        $dlg.Description = "Select the folder where the script is located"
+                        $dlg.RootFolder = [System.Environment+SpecialFolder]::MyComputer
+                        if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
+                            $script:selectedFolder = $dlg.SelectedPath
+                        }
+                    }
+
+                    $thread = New-Object System.Threading.Thread($start)
+                    $thread.SetApartmentState([System.Threading.ApartmentState]::STA)
+                    $thread.Start()
+                    $thread.Join()
+
+                    Write-Host "Selected: $selectedFolder"
+
+
+            BASIC SETUP (ADD-TYPE)
+        -----------------------------
+- Load the .NET assemblies used by the small examples.
+- Always put this at the top of your snippet.
+    EG.
+        Add-Type -AssemblyName System.Windows.Forms
+        Add-Type -AssemblyName System.Drawing
+
+
+1. Create 
+    i. Open Single file (modern dialog)
+        - Show a vista-style open file dialog and return the chosen path.
+            EG.
+                # OpenFile single (copy-paste inside STA session)
+                Add-Type -AssemblyName System.Windows.Forms
+                $ofd = New-Object System.Windows.Forms.OpenFileDialog
+                $ofd.Title = "Pick a file"
+                $ofd.Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*"
+                $ofd.Multiselect = $false
+
+                if ($ofd.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
+                    $chosen = $ofd.FileName
+                    Write-Host "CHOICE:$chosen"
+                } else {
+                    Write-Host "CANCEL"
+                }
+
+    
+    ii. Open multiple files.
+        - Allow selecting many files (returns array).
+            EG.
+                Add-Type -AssemblyName System.Windows.Forms
+                $ofd = New-Object System.Windows.Forms.OpenFileDialog
+                $ofd.Title = "Pick images"
+                $ofd.Filter = "Images (*.png;*.jpg)|*.png;*.jpg|All|*.*"
+                $ofd.Multiselect = $true
+
+                if ($ofd.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
+                    $files = $ofd.FileNames
+                    $files | ForEach-Object { Write-Host "FILE: $_" }
+                }
+    
+
+    iii. Folder picker (modern trick)
+        - Modern-looking folder picker using OpenFileDialog trick. Single folder.
+            EG.
+                Add-Type -AssemblyName System.Windows.Forms
+                $ofd = New-Object System.Windows.Forms.OpenFileDialog
+                $ofd.Title = "Select a folder"
+                $ofd.CheckFileExists = $false
+                $ofd.ValidateNames = $false
+                $ofd.FileName = "SelectFolder"      # trick
+                if ($ofd.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
+                    $folder = [System.IO.Path]::GetDirectoryName($ofd.FileName)
+                    Write-Host "FOLDER:$folder"
+                } else {
+                    Write-Host "CANCEL"
+                }
+
+
+    iv. Save file dialog.
+        - Ask user where to save; return full path.
+            EG.
+                Add-Type -AssemblyName System.Windows.Forms
+                $sfd = New-Object System.Windows.Forms.SaveFileDialog
+                $sfd.Title = "Save report as..."
+                $sfd.Filter = "CSV (*.csv)|*.csv|All|*.*"
+                $sfd.DefaultExt = "csv"
+                if ($sfd.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
+                    Write-Host "SAVE:$($sfd.FileName)"
+                }
+
+
+2. Filtering.
+    i. Restrict selection to allowed folders (whitelist)
+        - After user selects, validate that the path is inside one of your allowed folders.

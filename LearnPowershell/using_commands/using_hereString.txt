@@ -1,0 +1,208 @@
+                                    HERE-STRING (similar to EOF in linux)
+                                ==============================================
+- when you want multi-line blocks or complex code without constantly escaping, you use here-strings.
+- tells powershell " take everything between these markers literally, keep newlines and don't treat quotes or special characters as syntax."
+- so instead of fighting with escape characters (\", `n, etc) you just drop your block of text in.
+
+1. Single-Quoted here-sting (@' .... '@)
+    - Literal block, no expansions.
+    - Newlines preserved exactly.
+    - Start with @' on its own line, end with '@ on its own line.
+        EG.
+            $var = "World"
+            $literalHere = @'
+            Hello $var
+            This stays exactly as typed.
+            Even "quotes" are untouched.
+            '@
+
+            Write-Output $literalHere
+            # Output:
+            # Hello $var
+            # This stays exactly as typed.
+            # Even "quotes" are untouched.
+
+                - Gread for embedding:
+                    C# code.
+                    SQL Queries.
+                    JSON/XML
+                    Anything you don't want powershell messing with.
+
+
+2. Double quoted here-string (@" .... "@)
+    - Interpolated block, $variables and escape sequences expand.
+    - Newlines preserved.
+    - Start with @", end with "@.
+        EG.
+            $var = "World"
+            $expandHere = @"
+            Hello $var
+            This string expands.
+            Newlines and tabs: `n `t
+            "@
+
+            Write-Output $expandHere
+            # Output:
+            # Hello World
+            # This string expands.
+            # Newlines and tabs:
+            #   (with a real newline + tab)
+
+                - Great for:
+                    Templates (e.g., HTML, JSON configs with values injected)
+                    Dynamic text generation.
+                    Readable scripts where you don't want backtick soup.
+
+
+3. Side by side comparison.
+    EG.
+        $var = "World"
+
+        'Hello $var'      # => Hello $var
+        "Hello $var"      # => Hello World
+
+        @'Hello $var'@    # => Hello $var
+        @"Hello $var"@    # => Hello World
+
+
+            SPECIAL USES.
+        ------------------
+1. Embedding C# code 
+    EG.
+        Add-Type -TypeDefinition @'
+        using System;
+        public class Greeter {
+            public static void SayHello(string name) {
+                Console.WriteLine("Hello " + name);
+            }
+        }
+        '@
+        [Greeter]::SayHello("Mark")
+
+
+2. JSON (don't expand variables)
+    EG.
+        $var = "Mark"
+        $json = @"
+        {
+        "Name": "$var",
+        "Literal": false
+        }
+        "@
+
+        # Parse in PowerShell
+        $psObj = $json | ConvertFrom-Json
+        $psObj.Name   # -> $var 
+        $psObj.Literal   # -> false 
+
+            - $var stays $var. Perfect for defining templates.
+
+
+3. JSON (do expand variables)
+    EG.
+        $var = "Mark"
+        $json = @"
+        {
+        "Name": "$var",
+        "Literal": false
+        }
+        "@
+
+        Write-Output $json
+
+
+4. SQL Queries
+    EG.
+        $UserId = 42
+        $query = @"
+        SELECT * FROM Users
+        WHERE Id = $UserId
+        "@
+
+        Invoke-Sqlcmd -Query $query
+
+            - Waycleaner than "SELECT * FROM Users WHERE Id = $UserId"
+
+
+5. python function without parameters.
+    EG.
+        # PowerShell code
+        # Call Python with inline code that defines a function and calls it
+        $pyCode = @'
+        import random
+        def get_random_number():
+            return random.randint(1, 100)
+
+        print(get_random_number())
+        '@
+
+        # Run the Python code and capture output
+        $result = python -c $pyCode
+
+        Write-Host "Python returned: $result"
+
+            - Here:
+                * Powershell sends a short python program to python -c.
+                * the python function get_random_number() returns a number.
+                * Print() outputs to stdout.
+                * powrshell captures stdout in $result.
+                    EG.
+                        Python returned: 42
+
+
+6. Python function with parameters (width, height -> area)
+    i. Method 1
+        EG.
+            # PowerShell code
+            # Define parameters in PowerShell
+            $width = 5
+            $height = 10
+
+            # Pass them into Python using formatted string
+            $pyCode = @"
+            def rectangle_area(w, h):
+                return w * h
+
+            print(rectangle_area($width, $height))
+            "@
+
+            # Run Python code
+            $result = python -c $pyCode
+
+            Write-Host "Area returned from Python: $result"
+
+                - Here.
+                    * $width and $height are interpolated into the python script string.
+                    * The python code defines rectangle_area() and calls it with those values.
+                    * Output is captured back into $result.
+                        EG.
+                            Area returned from Python: 50
+
+    ii. Method 2.
+        EG.
+            import sys
+
+            def rectangle_area(w, h):
+                return w * h
+
+            if __name__ == "__main__":
+                width = float(sys.argv[1])
+                height = float(sys.argv[2])
+                print(rectangle_area(width, height))
+
+            # powershell code.
+            # Width and height in PowerShell
+            $width = 7
+            $height = 3
+
+            # Call python script with arguments
+            $result = python .\geometry.py $width $height
+
+            Write-Host "Area from Python: $result"
+
+                -Here.
+                    * No @" ... "@
+                    * Python reads values from sys.argv 
+                    * Powershell just passes $width and $height like command-line args.
+                        EG.
+                            Area from Python: 21
