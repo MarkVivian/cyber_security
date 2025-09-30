@@ -1,0 +1,340 @@
+1. tell me more about the keypair, how it works , how many can one put on a single machine .. .does the number of users you put keys for match the number of users of the machine or can i hallucinate users, also does that mean i can only use the key or can i use either the key or password, does the logger have to have the key meaning after i create the key i need to send it to that person, do i send the .pub or the other... what is their differences, why the ED algorithm, why use the you@example.com can i use a ip address instead, how , i have so many questions and please answer all and all other questions someone might have pertaining this topic, 
+2. for the command thing , why do people do this, like is it because they don't really need to open the shell just needed something from it ... or what is the reason
+3. also when you say using sudo , why can't the person sshing just ssh as the normal user then sudo inside there or is the process different or is it to cut down time and just ssh into sudo directly... also what if the user used the key instead of the password does that mean they won't be able to sudo since sudo requires a password, or does in all situation it will ask for a password to enter into sudo or does when you use ssh with a password will the sudo run with the same password you use ... i know you see my trail of questions answer them and any other question i might have...
+4. when you talk about copying your public key to the server, why do i have to do this... i thought it would be backwards like we send the public key a copy to the user so that he can use it or im i wrong..also is the public key created on the server or on the user then copied to the server, and if so does  that mean you need to configure ssh to send specific keys to specific username or users and if so how, or do they all just log to the same user  and is it posible to send all to the same user....
+5. lets say in this scp where we are sending files, can we send them the other way like from the server to the user sshing , or do i have to already been ssh into the server then use scp, what is the difference between scp and ftp because i feel like both transfer files or does scp also create a TTY(interactive shell),  also what is the difference between the normal ftp and sftp  except for the secure because i imagine the s stands for secure , and does it matter if the machine doesn't have ssh or it configured thus we can't use sftp and need to use ftp , also does ftp create a shell in also sftp...
+6. when you said local port forwarding -L does this require the machine to have a webpage running on port 80 so that i can view it on my 8080, what does the localhost mean like is it a preset thing or can i use something else or is it only for localhost , also does it only work if the servers webpage we are trying to access runs on localhost aswell like what if it runs on something else but not accessible from the internet, 
+7. for the remote port forwarding , what if the server has multiple user does that mean only the user of the server can access my webpage , also redo the questions for 6 to this because its the same questions... also does this like run in the background or foreground or does typing the command not show anything on my side like its like turning something on or do i have to be running it for the others to access it.
+8. is this similar to proxy or is it different , i thought it mean't everything i search has to pass through the server or host im connecting to , why would anyone do this, does that mean the server has access to see all the sites i search or im i getting something wrong here.....explain this SOCKS thing in deeper detail because im oblivious to it.
+9. i did not understand the Agent forwarding, i don't understand what its doing, why anyone would do this and what it assists with like is it a shortcut to something and if so what is the longer method, and what is this local key is it the same public or private key we have been talking about 
+10. in the ssh config file , you are saying its saving me from typing but most of the commands you haven't told me what they do like -J and -A , also can i do the configuration for a server that has a password like instead of always login in by typing the long command can i configure the ssh to log in for me to the server using password, what is forward agent and why set it to yes or is it to allow the user to ssh to something else from the previous ssh , like from user -> machine1 then from machine 1 to machine 2 and if not how can i achieve this and why would someone do or not do this.
+11. for connection multiplexing, what situation is this because i didn't understand when to use this configuration, also does that mean i can set a timeout for ssh to log people out after a while, is this for sitautions where i don't want to keep getting kicked , then loggin back in then kicked continuously, and does it just create the connection when i get timeout without me having to do it manually, also for the skipping host key verification what situation is this , and what is it doing , and how im i under risk of MITM, 
+12. im alittle confused so after all this please teach me about scp then ftp then sftp and ensure to be as detailed as you were before, remember im doing notes so that i can use then when i need to remember something. also know most of the questions i asked were asked in order of how i was reading the answers or notes you had provided so there might be some repeated question please if you find a repeated question you can just as long as you had explained it in detailed above you can do a passthrough just showing a summery but ensure the questions are identical because i would like to avoid a situation where the questions are almost a like but different and you didn't explain the other use case...
+
+
+
+
+Below is a **recipe‑style deep dive** answering all your questions about SSH keys, commands, and related tools. Each numbered section covers one major topic; under each, you’ll find:
+
+1. **When** you need it.
+2. The exact **command(s)**.
+3. A **plain‑English** description you can use as notes.
+4. **Copy‑&‑paste** examples you can trust.
+
+---
+
+## 1. SSH Keypairs: How They Work
+
+**When** you want passwordless, secure logins.
+
+1. **Keypair Basics**
+
+   ```bash
+   ssh-keygen -t ed25519 -C "you@example.com"
+   ```
+
+   * Generates a **private key** (`~/.ssh/id_ed25519`) and a **public key** (`~/.ssh/id_ed25519.pub`).
+   * *Plain English*: you keep the private key secret; the public key goes on servers you’ll log into.
+
+2. **One Machine, Many Keys**
+
+   * You can store **any number** of keypairs in `~/.ssh/` (e.g. `id_work`, `id_personal`).
+   * *Note*: each user account on a server can authorize many public keys.
+
+3. **Users vs. Keys**
+
+   * **Separate user accounts** on a server (e.g. `alice`, `bob`) each have their own `~/.ssh/authorized_keys` file.
+   * You cannot “hallucinate” users: keys map to real Linux user accounts.
+
+4. **Password vs. Key**
+
+   * A server can allow login by **either** password or key (or both).
+   * *Plain English*: if your key works, you won’t be prompted for a password; otherwise, SSH falls back to password (if enabled).
+
+5. **Distributing Keys**
+
+   ```bash
+   ssh-copy-id -i ~/.ssh/id_ed25519.pub user@server
+   ```
+
+   * You send the **public key** (`.pub`) to the server; you never share the private key.
+   * *Why public only?* It can’t decrypt anything—you prove identity with the matching private key.
+
+6. **Why `ed25519`?**
+
+   * **Ed25519** is fast, small, and secure against modern attacks; preferred over older RSA by default.
+   * *[You@example.com](mailto:You@example.com) tag*: purely for your own identification; you can use your email, IP, or any string.
+
+7. **Using IP instead of email**
+
+   ```bash
+   ssh-keygen -t ed25519 -C "192.0.2.10"
+   ```
+
+   * Empty `-C` or any label is fine; it doesn’t affect security.
+
+---
+
+## 2. Non‑Interactive Commands vs. Shells
+
+**When** you only need output, not a prompt.
+
+1. **Run & Exit**
+
+   ```bash
+   ssh user@host uname -a
+   ```
+
+   * Runs `uname -a` remotely, prints the result locally, then disconnects.
+   * *Plain English*: no prompt appears, but output streams back into your terminal.
+
+2. **Why Use It**
+
+   * Automation scripts, cron jobs, or one‑off info queries don’t need a full shell.
+   * Saves time and network overhead by avoiding TTY setup.
+
+---
+
+## 3. SSH + sudo in One Go
+
+**When** you must run privileged commands remotely.
+
+1. **Inside a Single Call**
+
+   ```bash
+   ssh -t user@host sudo apt update
+   ```
+
+   * `-t` forces a TTY so `sudo` can prompt for your password.
+   * *Plain English*: you SSH once and immediately run `sudo`, without typing `sudo` at the prompt.
+
+2. **Key vs. Password for sudo**
+
+   * **Key login** only authenticates SSH; `sudo` still asks for the account’s password (unless passwordless sudo is configured).
+   * *Tip*: to avoid double prompts, servers can allow `NOPASSWD` for specific commands in `/etc/sudoers`.
+
+---
+
+## 4. Copying Your Public Key: Why & How
+
+**When** you set up key‑based login.
+
+1. **Client‑side Generation**
+
+   * Always create the key on **your** machine, never on the server.
+   * *Reason*: private key never leaves your laptop.
+
+2. **Server‑side Storage**
+
+   ```bash
+   cat ~/.ssh/id_ed25519.pub | ssh user@host "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"
+   ```
+
+   * Appends your public key to the server’s `authorized_keys`.
+
+3. **Multiple Keys per User**
+
+   * A single Linux user can have many public keys listed; each keyholder logs in as that user.
+
+---
+
+## 5. File Transfer: `scp` vs. `ftp` vs. `sftp`
+
+**When** you need to move files.
+
+1. **`scp`** (over SSH)
+
+   ```bash
+   scp -P 2222 file.txt user@host:/path/
+   ```
+
+   * Uses SSH under the hood; no interactive shell; just copies and exits.
+
+2. **`sftp`** (secure FTP)
+
+   ```bash
+   sftp -P 2222 user@host
+   # then at prompt: get file.txt or put file.txt
+   ```
+
+   * Provides an interactive file‑transfer shell; all data encrypted.
+
+3. **`ftp`** (unsecure)
+
+   ```bash
+   ftp host
+   # at prompt: user username, password, get file.txt
+   ```
+
+   * Plaintext; only works if the server runs an FTP daemon; not related to SSH; unencrypted.
+
+4. **Direction**
+
+   * Both `scp` and `sftp` let you copy **to** or **from** the server by swapping source/destination.
+   * No need to log in first; you specify both endpoints in one command.
+
+---
+
+## 6. Local Port Forwarding (`-L`)
+
+**When** you want to reach a remote service locally.
+
+1. **Example**
+
+   ```bash
+   ssh -L 8080:localhost:80 user@host
+   ```
+
+   * Opens `user@host`, then forwards your `localhost:8080` → `host:80`.
+   * *Plain English*: you browse `http://localhost:8080` and see the remote’s web server.
+
+2. **`localhost` Meaning**
+
+   * First `localhost` is **on the remote** (the service’s address).
+   * Second `localhost:8080` is **on your local** machine.
+
+3. **Custom Addresses**
+
+   * You can forward any host\:port pair reachable from the server; not limited to `localhost`.
+
+---
+
+## 7. Remote Port Forwarding (`-R`)
+
+**When** you expose your local service to the remote.
+
+1. **Example**
+
+   ```bash
+   ssh -R 9000:localhost:3000 user@host
+   ```
+
+   * Anyone on `host` can connect to `host:9000` and reach your `localhost:3000`.
+
+2. **Multi‑User Access**
+
+   * By default only the SSH server’s localhost can connect; to allow others, add `GatewayPorts yes` in `/etc/ssh/sshd_config`.
+
+3. **Foreground Operation**
+
+   * The SSH session stays open in your terminal; if you close it, the forwarding stops.
+
+---
+
+## 8. Dynamic (“SOCKS”) Proxy (`-D`)
+
+**When** you want to route apps’ traffic through SSH.
+
+1. **Example**
+
+   ```bash
+   ssh -D 1080 user@host
+   ```
+
+   * Sets up a SOCKS5 proxy at `localhost:1080`.
+   * *Plain English*: configure your browser or tool to use `socks5://localhost:1080`; all requests tunnel via `host`.
+
+2. **Why Use It**
+
+   * Encrypts your web traffic and makes it appear to originate from the SSH server.
+   * The server can see your destination sites, but upstream observers (e.g. your ISP) only see the SSH connection.
+
+---
+
+## 9. Agent Forwarding (`-A`)
+
+**When** you hop through one server to another.
+
+1. **Example**
+
+   ```bash
+   ssh -A user@bastion
+   # then once inside:
+   ssh user@internal
+   ```
+
+   * Your local SSH agent provides credentials for the second hop.
+
+2. **Why**
+
+   * You keep private keys on your laptop; they never touch the bastion.
+   * *Plain English*: the bastion “forwards” your identity to the next server.
+
+---
+
+## 10. SSH Config File (`~/.ssh/config`)
+
+**When** you want shortcuts and saved options.
+
+1. **Basic Entry**
+
+   ```
+   Host web
+     HostName web.example.com
+     User alice
+     Port 2222
+     IdentityFile ~/.ssh/id_ed25519_work
+   ```
+
+   * Now `ssh web` uses all those options automatically.
+
+2. **Jump Host (`-J`)**
+
+   ```bash
+   Host internal
+     HostName internal.example.com
+     User bob
+     ProxyJump bastion.example.com
+   ```
+
+   * `-J` makes SSH connect via the bastion in one command.
+
+3. **Agent Forward (`-A`)**
+
+   ```
+   ForwardAgent yes
+   ```
+
+   * Allows SSH agent forwarding for that host (used when `ssh -A`).
+
+4. **Password in Config**
+
+   * SSH config does **not** store passwords; keys or `sshpass` are the only way to automate passwords.
+
+---
+
+## 11. Connection Multiplexing & Host‑Key Checks
+
+**When** you want faster reconnects and scripted hosts.
+
+1. **Multiplexing**
+
+   ```
+   Host *
+     ControlMaster auto
+     ControlPath ~/.ssh/cm-%r@%h:%p
+     ControlPersist 600
+   ```
+
+   * Reuses one TCP connection for all sessions for 10 minutes.
+
+2. **Host‑Key Verification**
+
+   ```bash
+   ssh -o StrictHostKeyChecking=no user@newhost
+   ```
+
+   * Auto‑accepts the server’s host key.
+   * *Risk*: a MITM attacker could pose as your server and you’d accept a fake key.
+
+---
+
+## 12. Summary of File‑Transfer Tools
+
+| Tool | Protocol | Interactive? | Encryption | Port     |
+| ---- | -------- | ------------ | ---------- | -------- |
+| scp  | SSH      | No           | Yes        | SSH (22) |
+| sftp | SSH/SFTP | Yes          | Yes        | SSH (22) |
+| ftp  | FTP      | Yes          | No         | 21       |
+
+Use this as your **master reference**—each recipe is copy‑&‑paste‑ready and explained in plain English. Let me know what to drill into next!

@@ -1,36 +1,168 @@
                 SSH
             ===========
+TTY - this is an interactive shell.
 Common comands:
     -p port: Specifies the port to connect to on the remote host. The default is 22.
     -i identity_file: Selects a file from which the identity (private key) for public key authentication is read.
+    -t TTY : forces a TTY even for commands.
+    -tt : always allocate a TTY even if stdin isn't a terminal.
 
 
-1) basic ssh connection:
-    EG.
-        ssh user@remotehost
+1. Intractive shell.
+    - When you want to login and get a prompt.
+        EG.
+            ssh bandit4@bandit.labs.overthewire.org -p 2220
 
-        - you can also use -l 
-            EG.
-                ssh -l user localhost
-
-
-2) connecting to a remote-host on a non-default port
-    EG.
-        ssh -p 2222 user@remotehost
+                > What it does.
+                    Make SSH detect your local terminal, allocates a remote TTY, then gives you bandit4@... to type commands.
 
 
-3) using a specific identity file (private key)
-    EG.
-        ssh -i ~/.ssh/id_rsa user@remotehost
-        
+2. Run one command and exit.
+    - When you just need output from a single command.
+        EG.
+            ssh user@remote.example.com df -h /
 
-4) we can also run a command after ssh .
-    EG.
-        ssh user@remotehost <command to run> --> ssh user@remotehost ls ~       
+                > Runs df -h / remotely, prints the result locally, then disconnects.
 
 
-5. if you want to ssh and pass the password without going through the authenticator.
-    EG,
-        sshpass -p "yourpassword" ssh -p <port> user@host 
+3. Force a Terminal (-t / -tt)
+    - When you need interactive behavior (e.g. sudo, editors) inside a non-interactive call.
+        EG.
+            ssh -tt user@host -p 2222 sudo journalctl -f
 
-            - warning the password will appear in ps listings or shell history.
+                > Allocates a TTY even in scripts or pipelines so sudo (and other TTY-aware programs) work.
+
+
+4. Specify a port.(-p)
+    - When the server listens somewhere other than port 22.
+        ssh -p 2222 user@remote.example.com
+
+            > connects on port 2222 instead of the default 22.
+
+
+5. Use a specific identity file (-i)
+    - When you have multiple SSH keys or a non-standard key location.
+        EG.
+            ssh -i ~/.ssh/id_ed25519_work alice@server
+
+                > Uses the private key at ~/.ssh/id_ed25519_work to authenticate as alice 
+
+
+6. Password-Automation with sshpass
+    - insecure since password may appear in process list or logs.
+        EG.
+            sshpass -p 'MySecretPwd' ssh -p 2222 user@host
+
+                > Injects MySecretPwd at the password prompt so you don't have to type it.
+
+
+7. Generating a keypair.
+    - When you're setting up key-based authentication for the first time.
+        EG.
+            ssh-keygen -t ed25519 -C "you@example.com"
+
+                > Creates `~/.ssh/id_ed25519 and .pub , using the Ed25519 algorithm.
+                > The public key (~/.ssh/id_ed25519.pub) is sent to the server you'll log into.
+                > The private key (~/.ssh/id_ed25519) is kept secret.
+
+
+8. Copying your public key to the server.
+    - When you want passwordless logins going forward.
+        EG.
+            ssh-copy-id -i ~/.ssh/id_ed25519.pub user@remote.example.com
+
+                > Appends your public key to ~/.ssh/authorized_keys on the remote.
+
+
+9. Secure File Transfer with scp.
+    - When you need to copy files over SSH.
+        EG
+            scp -P 2222 report.pdf user@host:/home/user/
+
+                > Copies report.pdf into /home/user/ on the remote via port 2222.
+
+
+10. Interactive File Transfer with sftp.
+    - When you want an FTP-like shell over SSH.
+        EG.
+            sftp -P 2222 user@host 
+            # then at the sftp> prompt, use commands like: ls, get file, put file
+
+                > Opens an SFTP session where you can get, put and ls files interactively.
+
+
+11. Local port forwarding (-L)
+    - When you need to access a remote service as if it were local.
+        EG.
+            ssh -L 8080:localhost:80 user@host.
+
+                > lets you browse http://localhost:8080 on your machine to see the remote's port 80.
+
+
+12. Remote port forwarding (-R)
+    - When you want to expose a local service on the remote.
+        EG.
+            ssh -R 9000:localhost:3000 user@host
+
+                > Anyone on host connecting to port 9000 reaches your local port 3000.
+
+
+13. Dynamic ("SOCKS") Proxy (-D)
+    - When you want to route browser or tool traffic through the SSH tunnel.
+        EG.
+            ssh -D 1080 user@host
+
+                > Sets up a SOCKS proxy on localhost:1080 - point your browser there to tunnel all traffic via host.
+
+
+14.  Agent Forwarding (-A)
+    - When you hop through a bastion to another server and want to reuse your local key.
+        EG.
+            ssh -A user@bastion.example.com
+            # from bastion:
+            ssh user@internal.example.com
+
+                > Your local SSH agent handles authentication for the second hop—no private key on the bastion.
+
+
+15. SSH Config File (~/.ssh/config)
+    - When you have multiple servers or complex options - avoid long command lines.
+        EG.
+            Host web
+                HostName web.example.com
+                User deploy
+                Port 2222
+                IdentityFile ~/.ssh/id_ed25519_work
+                ForwardAgent yes
+
+            Host bastion
+                HostName bastion.example.com
+                User admin
+                ProxyJump web
+
+                > then simply
+                    ssh web
+                    ssh bastion
+
+                    > saves you from typing -p, -i, -J, and -A every time.
+
+
+16. Connection Multiplexing
+    - When you open many SSH sessions to the same host and want speedier starts.
+    - Add to ~/.ssh/config:
+        EG.
+            Host *
+                ControlMaster auto
+                ControlPath ~/.ssh/cm-%r@%h:%p
+                ControlPersist 600
+
+                    > Reuses an existing TCP connection for up to 10 minutes, making new sessions nearly instant.
+
+
+17. Skipping Host‑Key Verification (-o StrictHostKeyChecking=no)
+    - When you’re scripting against brand‑new or disposable servers (use with caution).
+        EG.
+            ssh -o StrictHostKeyChecking=no user@newhost
+
+                > Automatically accepts the remote’s host key so you’re not prompted.
+                > Beware: opens you to MITM attacks if used carelessly.
