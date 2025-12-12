@@ -1,0 +1,119 @@
+ADB Mastery Roadmap
+
+(This is the path we’ll follow step-by-step.)
+
+MODULE 1 — Foundations (Basics You MUST Know)
+
+Installing ADB on Windows
+
+Installing ADB on Linux
+
+USB vs Wi-Fi ADB
+
+Device authorization (RSA key handshake)
+
+Running your first commands
+
+Understanding shell mode
+
+MODULE 2 — Device Control
+
+adb devices
+
+adb reboot, adb reboot recovery, adb reboot bootloader
+
+Pulling files from the device
+
+Pushing files to the device
+
+Checking device health (battery, storage, RAM)
+
+Logcat basics (malware evidence hunting)
+
+MODULE 3 — Package Management (Your core goal)
+
+This is where your malware/bloat removal magic happens.
+
+Listing installed apps
+
+pm list packages
+
+Checking if an app is a system app or user app
+
+Finding the package name of ANY malware app
+
+Uninstalling
+
+user apps
+
+system apps (for user 0)
+
+Disabling system apps
+
+Clearing app data
+
+Detecting hidden adware apps
+
+Removing Tecno HiOS bloat safely
+
+MODULE 4 — Advanced Control
+
+Using dumpsys to identify rogue behaviors
+
+Detecting autostart receivers
+
+Killing services
+
+Capturing screen programmatically
+
+Dumping APKs from the device for analysis
+
+Forensic extraction (photos, videos, configs)
+
+MODULE 5 — Scripting and Automation
+
+Calling ADB from PowerShell
+
+Writing a malware/bloat removal script
+
+Logging + reporting
+
+Doing the same in Bash for Linux
+
+Cross-platform automation templates
+
+MODULE 6 — Extreme Scenarios
+
+You will learn:
+
+working with locked screens
+
+removing malware that prevents USB debugging
+
+limited recovery mode operations
+
+handling broken screens
+
+bypass techniques (legal) for data recovery
+
+safely interacting with water-damaged devices
+
+MODULE 7 — Full Project
+
+You and I build:
+
+The “Android Debloat & Malware Cleaner Toolkit”
+
+PowerShell version
+
+Bash version (Linux)
+
+Safe removal list
+
+Dangerous removal list
+
+Automatic malware detection
+
+Optional GUI
+
+This will be your signature tool.

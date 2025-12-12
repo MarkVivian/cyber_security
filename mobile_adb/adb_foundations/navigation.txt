@@ -1,0 +1,43 @@
+                            NAVIGATING THE ANDROID SHELL AND COMMON LOCATIONS.
+                        =======================================================
+- Android shell is linux-like.
+- Basic commands available via toybox or toolbox. 
+- Use ls, cd, pwd, find, grep (if present).
+
+        Common directories.
+    ---------------------------
+> /sdcard or /storage/emulated/0 
+    - User-accesible internal storage (photos, downloads)
+
+> /storage 
+    - mount points (external and internal)
+
+> /data/data/<package>/ 
+    - app private data (needs root or run-as)
+
+> /mnt/media_rw/ 
+    - Physical storage mounts.
+
+> /system/ and /vendor/ 
+    - Read-only system partitions.
+
+        EG.
+            adb shell
+            # list storage root
+            ls -la /storage
+            ls -la /sdcard
+            # find all jpgs
+            find /sdcard -type f -name "*.jpg" -print
+            # check sizes
+            du -h /sdcard/DCIM | head
+            # view WhatsApp media path (common)
+            ls -la /sdcard/WhatsApp/Media/
+            # search for WhatsApp DB (private)
+            find /data -name "msgstore*.db" 2>/dev/null
+            # (if run-as/permissions fail 'permission denied' will appear)
+
+                - If a command is missing you can use toybox:
+                    EG.
+                        toybox find /sdcard -name '*.jpg'
+
+                -

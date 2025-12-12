@@ -1,0 +1,224 @@
+            1. Start the ADB Server and list devices. 
+            -------------------------------------------
+i. Start / Restart server.
+    EG.
+        adb kill-server
+        adb start-server 
+
+
+ii. List attached Devices.
+    EG.
+        adb devices.
+        # Output:
+        # List of devices attached
+        # R58M32AF9XD    device
+
+            - The long ID = device serial (unique identifier)
+            - The state after the serial
+                > device (authorized) = Selected PC is authorized by the phone ( you can run commands)
+                > unauthorized = Phone needs user approval (RSA Prompt) to trust this PC. Happens when you see if the phone popped "Allow USB debugging?".
+                > offline = Connection hiccup (USB power/cable/driver issue).
+
+
+iii. How authorization works (the trusted-PC list)
+    - When the phone shows the "Allow USB Debugging?" dialog and you check Always allow, Android adds the PC's ADB public key to the phone's trust list.
+    - On the device the list is stored at:
+        EG.
+            /data/misc/adb/adb_keys   (user-installed keys)
+            /adb_keys               (vendor keys embedded at build time)
+
+                - That file is the phone's remembered list of trusted PCs.
+                - If your PC is in that file, you can use ADB even if the screen later dies.
+
+                - The PC stores your private adb key locally (usually ~/.android/adbkey and adbkey.pub).
+                - The phone only stores the public key entry in /data/misc/adb/adb_keys.
+                - This is why an already-authorized PC remains trusted.
+
+                - this files can only be read/access on typically rooted phones.
+
+
+                2. Basic useful commands 
+                ---------------------------
+i. Get a basic shell on the device.
+    EG.
+        adb shell
+        # drops you into device shell (like ssh to the phone)
+
+            - adb <something> runs on your host.
+            - inside the shell you do not prefix commands with adb.
+                EG.
+                    # From host (not in shell)
+                    adb pull /sdcard/DCIM/ ~/DCIM_backup    # host pulls files from device
+                    adb shell pm uninstall --user 0 com.pkg.name   # runs pm from host (one-liner)
+
+                    # inside shell.
+                    adb shell
+                    # now at device prompt
+                    ls /sdcard/DCIM/    # list files on device
+                    pm uninstall --user 0 com.pkg.name   # run pm locally on device shell
+                    exit
+
+
+ii. Run a single shell command without dropping into interactive shell.
+    EG.
+        adb shell <command>
+        # example
+        adb shell getprop ro.product.model
+        # returns the device model string (e.g., "TECNO Spark 6")
+
+            - getprop is the key to pull device properties (model, manufacturer, Android Version).
+
+
+iii. pull data (copy from device to PC)
+    EG.
+        adb pull <remote-path> <local-path>
+        # example - pull DCIM (photos)
+        adb pull /sdcard/DCIM/ ~/phone_backup/DCIM
+
+            - Ensure to use the / instead of \ since android runs on linux.
+
+
+iv. Push files (copy from PC to device)
+    EG.
+        adb push <local-path> <remote-path>
+        # example - push APK to device /sdcard
+        adb push test.apk /sdcard/test.apk
+
+
+v. List installed packages (finding candidate malware/bloat)
+    EG.
+        adb shell pm list packages
+        # find packages containing "phoenix"
+        adb shell
+        pm list packages | grep phoenix
+        # or 
+        # host PowerShell
+        adb shell pm list packages | Select-String 'phoenix'
+
+
+            - To list packages with APK paths.
+                EG.
+                    adb shell pm list packages -f
+                    # prints lines like:
+                    # package:/data/app/com.phoenix.browser-1/base.apk=com.phoenix.browser
+
+vi. Uninstall (user) package (no-root)
+    - User apps (installed by the user) live in /data/app/ and can usually be uninstalled by non-root adb with:
+        EG.
+            # syntax: pm uninstall [--user <USER_ID>] <PACKAGE>
+            adb shell pm uninstall com.phoenix.browser.
+            # to uninstall for the current user only.
+            adb shell pm uninstall --user 0 com.phoenix.browser
+
+    - Preinstalled/System apps are placed on the system partition (/system/priv-app or /system/app) in the ROM image.
+    - You cannot remove the APK from system partition without root.
+    - However you can remove them for the current user.
+        EG.
+            adb shell pm uninstall --user 0 com.manufacturer.bloat
+
+                - This hides the app for user 0 ( the primary user) but does not delete the APK from the system partition.
+                - Its non-distructive and reversable (reappear on factory reset).
+                - To permanently remove, you must remount /system and delete the apk which requires rooting the device.
+
+
+vii. Take a screenshot(headless)
+    EG.
+        adb exec-out screencap -p > screen.png
+
+
+viii. Simulate input ( useful if screen touch broken but display works, or to automate unlocking)
+    EG.
+        # press power
+        adb shell input keyevent 26
+        # swipe (x1 y1 x2 y2 duration_ms)
+        adb shell input swipe 300 1000 300 200 200
+        # type text (spaces escaped or use quotes)
+        adb shell input text "1234"
+
+
+ix. Boot to recovery/bootloader
+    EG.
+        adb reboot recovery
+        adb reboot bootloader   # then use fastboot commands
+
+
+x. Show device w/ extra info (useful if multiple devices)
+    EG.
+        adb devices -l
+        # shows SERIAL device product:MODEL model:MODEL device:DEVICE
+
+
+xi. If multiple devices attached, target a specific one:
+    EG.
+        adb -s <SERIAL/TCPIP> shell getprop ro.product.model
+
+
+xii. Read or View file contents(quick)
+    EG.
+        # print small text file to terminal
+        adb shell cat /sdcard/Notes/todo.txt
+
+        # or, to save to host(pc being used):
+        adb exec-out cat /sdcard/Notes/todo.txt > todo.txt
+
+            - If file in app private data (e.g., /data/data/com.app/) you would need root or the app to be debuggable and use run-as:
+                EG.
+                    # if app is debuggable or run-as works
+                    adb shell
+                    run-as com.example.app
+                    cd /data/data/com.example.app/files
+                    cat somefile.db
+                    # Or from host:
+                    adb shell run-as com.example.app cat /data/data/com.example.app/databases/dbname > localdb.sqlite
+
+                        - run-as works only if the app was built as debuggable or if the device allows it.
+
+xiii. listing Users 
+    EG.
+        adb shell pm list users
+        # output example:
+        # Users:
+        #     UserInfo{0:Owner:13}  (running)
+
+            - Most phones have a primary user 0. 
+            - So --user 0 is usually the right choice.
+
+
+            3. Understanding Device ID (serial) and what you can learn from it
+            -------------------------------------------------------------------
+- When adb devices shows:
+    EG.
+        0123456789abcdef   device
+
+- That serial is the device indentifier exposed by the device and used by ADB to target commands.
+- It's not enough by itself to pull private data unless the PC is authorized.
+- You can query the device (if authorized) to learn model, manufacturer, Android Version.
+    EG.
+        adb -s 0123456789abcdef shell getprop ro.product.model
+        adb -s 0123456789abcdef shell getprop ro.product.manufacturer
+        adb -s 0123456789abcdef shell getprop ro.build.version.release
+        # you can use either the serial or the tcp connection if you use over wifi.
+        adb -s 192.168.0.103:1111 shell getprop ro.product.model
+
+
+- So yes — if you have ADB access, that serial plus getprop gives you model/build info.
+- If you do not have ADB authorization, the serial alone is just an identifier — not an open door.  
+
+
+            4. MTP (No ADB required, just user unlock and accept file transfer)
+            -----------------------------------------------------------------------
+- Media Transfer Protocol.
+- It’s a USB protocol (based on PTP) that allows file-level access to media storage on devices without mounting raw block devices.
+- Windows communicates with the phone via MTP to show the phone’s storage in Explorer.
+- MTP is the normal Windows "Phone" connection (plug phone, choose File transfer on phone).
+- Then you can use File Explorer to copy images.
+- On linux, use mtpfs or simple-mtpfs to mount; e.g.:
+    EG.
+        # Linux example using simple-mtpfs (install first)
+        simple-mtpfs ~/phone_mount
+        cp -r ~/phone_mount/DCIM ~/phone_backup/
+        fusermount -u ~/phone_mount
+
+            - When to use which:
+                > Use ADB for programmatic extraction, pulling entire directories, or when MTP not available (or you need app data).
+                > Use MTP for straightforward user-driven file copy (photos, downloads) when phone can be unlocked.

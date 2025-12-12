@@ -1,0 +1,45 @@
+                            ADB over Wi-Fi (how it works and command pattern)
+                        ========================================================
+- avoids cables for long debugging sessions or when USB port is busted (but requires initial USB setup and authorization).
+
+Steps:
+    i. Connect device to PC via USB (and authorize the PC once).
+
+
+    ii. Put device into tcpip mode:
+        EG.
+            adb tcpip 5555          # restarts adbd listening on TCP port 5555
+
+                - To close the open port.
+                    EG.
+                        adb usb         # to switch back to USB.
+
+
+    iii. Disconnect USB. find device IP 
+        EG.(from phone or)
+            adb shell ip -f inet addr show wlan0
+            # sample output:
+            # 3: wlan0: <...> mtu 1500 qdisc mq state UP group default qlen 3000
+            #     inet 192.168.1.42/24 brd 192.168.1.255 scope global wlan0
+            #        valid_lft forever preferred_lft forever
+
+                - This prints the IPv4 address and interface details for wlan0.  
+                - This discovers the phone's local IP for adb connect.
+
+
+    iv. Connect over Wi-Fi:
+        EG.
+            adb connect 192.168.1.42:5555
+
+                - it Connects to the TCP port exposed by the phone.
+                - If the phone has a local IP and the PC is on the same LAN, you can connect.
+                - If you expose the phone's port to the internet (public IP + port forwarding), theoretically anyone could try to connect over the internet.
+                - But since ADB used key-based authentication, it makes it hard unless the pc connecting was already authorized.
+
+
+    v. adb devices will now show the device over TCP.
+
+NB : Caveat: - if ADB wasn't authorized previously, you still need to accept the RSA dialog on the phone during the initial USB pairing.
+
+
+                        
