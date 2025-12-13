@@ -1,5 +1,5 @@
                     NMAP (NETWORK MAPPER)
-                    =====
+                    ========================
 - Nmap is used to scan network and:
     1. find all devices connected
     2. find open ports in specific ip's.
@@ -8,7 +8,7 @@
 
 
                     OVERVIEW
-                    ======
+                    ===========
 - There are three basic types of scans that can be done:
     1. TCP connection scans (-sT)
     2. SYN "Half-open" Scans (-sS)
@@ -51,6 +51,53 @@ Additionally there are several less common port scan types, some of which we wil
         EG.
             nmap -sn <ip address/CIDR> --------- nmap -sn 192.168.0.1/24
 
+                - the /24 is called the CIDR Notation (Classless inter-Domain Routing).
+                - Its a shorthand way of telling Nmap how many IP Addresses to scan.
+                - it means "the first 24 bits (the first 3 numbers) are fixed. only change the remaining bits.
+                    EG.
+                        nmap -sn 192.168.0.1/24
+                        # Fixed : 192.168.0 (The Network ID)
+                        # Variable : the last number (the Host ID)
+                        # Action : Nmap will scan from 192.168.0.0 to 192.168.0.255. (About 254 usable hosts)
+
+                - To acquire the value:
+                    > Windows 
+                        * Type ipconfig in CMD. Look for "Subnet mask".
+                        * if it says  255.255.255.0, that is 3 blocks of 255. Each 255 represents 8 bits.
+                            8 + 8 + 8 = 24 so you use /24
+                    
+                    > Mathematically.
+                        * The subnet mask is just a way of counting how many 1s are in the binary address.
+                            255 in binary is 11111111 (8 ones)
+                            0 in binary is 00000000 (0 ones)
+                        * To find the CIDR, you just convert the numbers to binary and count the 1s.
+                            EG. (255.255.240.0)
+                                255 = 11111111 (8 bits) (check how to convert numbers to binary)
+                                255 = 11111111 (8 bits)
+                                240 = 11110000 (4 bits)
+                                  0 = 00000000 (0 bits)
+
+                                total = 8 + 8 + 4 + 0 = 20 so 255.255.240.0 is a /20.
+                                # The range : with /20, Nmap will vary the 3rd number from 0 to 15 and the 4th number from 0 to 255.
+                                # The scan : it starts at 192.168.0.0
+                                             goes to 192.168.0.255
+                                             Then continues 192.168.1.0 .... all the way to 192.168.1.255
+                                             Ends at : 192.168.15.255 
+                                # it scans 4096 IPs.
+                        
+                        |Subnet Mask     |  Binary Breakdown|CIDR  | Common Use         |
+                        |----------------|------------------|------|--------------------|
+                        |255.0.0.0       |   8 + 0 + 0 + 0  |/8    | Huge ISPs / Gov    |
+                        |255.255.0.0     |   8 + 8 + 0 + 0  |/16   | Large Offices      |
+                        |255.255.255.0   |   8 + 8 + 8 + 0  |/24   | Home WiFi          |
+                        |255.255.255.128 |   8 + 8 + 8 + 1  |/25   | VPNs / Small VLANs |
+                        |255.255.252.0   |   8 + 8 + 6 + 0  |/22   | Medium Offices     |
+                        ----------------------------------------------------------------|
+
+                - How it changes the scan.
+                    > /24 scans 256 IPs. (e.g 255.255.255.0)
+                    > /16 scans 65, 536 IPs. (e.g. 255.255.0.0)
+                    > /32 scans 1 IP. (e.g. 255.255.255.255)
 
 >> SYN Scan : `-sS`
     -> Also known as half-open scan.
