@@ -33,6 +33,9 @@ iii. How authorization works (the trusted-PC list)
                 - The PC stores your private adb key locally (usually ~/.android/adbkey and adbkey.pub).
                 - The phone only stores the public key entry in /data/misc/adb/adb_keys.
                 - This is why an already-authorized PC remains trusted.
+                - If you wanted a different PC to have access to the phone with the permissions of another that had previously connected:
+                    i. backup the different pc's adbkeys.
+                    ii. copy the current pc adbkey to the different pc.
 
                 - this files can only be read/access on typically rooted phones.
 

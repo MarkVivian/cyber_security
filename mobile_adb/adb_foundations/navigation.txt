@@ -1,8 +1,9 @@
                             NAVIGATING THE ANDROID SHELL AND COMMON LOCATIONS.
                         =======================================================
-- Android shell is linux-like.
+- Android shell is linux-like. (Bourne shell) sh shell.
 - Basic commands available via toybox or toolbox. 
 - Use ls, cd, pwd, find, grep (if present).
+
 
         Common directories.
     ---------------------------
@@ -41,3 +42,22 @@
                         toybox find /sdcard -name '*.jpg'
 
                 -
+
+
+                SH VS BASH.
+            -----------------
+- sh:  historically refers to the POSIX shell (Bourne shell).
+       On modern Linux systems /bin/sh is often a minimal POSIX-compatible shell (dash, ash, or busybox sh) — smaller feature set, faster, and less memory.
+       It supports POSIX shell syntax.
+
+- bash: (Bourne Again SHell) is much richer: arrays, [[ ]] test, (( )) arithmetic, brace expansion, advanced parameter expansions, coproc, select, etc.
+
+- Rule of thumb: If a script uses Bash-specific features ([[, arrays, =~ regex operator, process substitution <(...)), it needs bash.
+                 If it uses simple POSIX constructs only, it will run in sh.
+
+- You can test if a script is a POSIX shell compatible:
+    EG.
+        # Run it with sh explicitly.
+        sh myscript.sh 
+        # run a syntax check with bash (it will accept bashisms)
+        bash -n myscript.sh

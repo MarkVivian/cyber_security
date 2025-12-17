@@ -64,8 +64,16 @@ v. List installed packages (finding candidate malware/bloat)
                     # prints lines like:
                     # package:/data/app/com.phoenix.browser-1/base.apk=com.phoenix.browser
 
+vi. Installing packages onto device.
+    EG.
+        adb install /path/to/app.apk        # installs to /data/app (user app)
+        # to upgrade while keeping data:
+        adb install -r app.apk
+        # to install on a specific user:
+        adb install --user 0 app.apk
 
-vi. Uninstall (user) package (no-root)
+
+vii. Uninstall (user) package (no-root)
     - User apps (installed by the user) live in /data/app/ and can usually be uninstalled by non-root adb with:
         EG.
             # syntax: pm uninstall [--user <USER_ID>] <PACKAGE>
@@ -88,8 +96,30 @@ vi. Uninstall (user) package (no-root)
                 - To permanently remove, you must remount /system and delete the apk which requires rooting the device.
 
 
-vii. Take a screenshot(headless)
+viii. Disabling an application.
+    - This disables the package for user 0 (stops it running, prevents launcher entry).
+    - Notifications and background services should stop.
+    - Useful to silence bloat without deleting APKs.
+        EG.
+            adb shell pm disable-user --user 0 com.phoenix.browser
+
+                - If the app reanables itself it could be mitigated using:
+                    EG.
+                        adb shell am force-stop com.phoenix.browser         # immediately stops processes.
+                                # and 
+                        adb shell pm clear com.phoenix.browser              # to remove data (may remove ad triggers).
+
+                            - if it's device-admin, you must first remove its admin rights.
+
+
+ix. Take a screenshot(headless)
     EG.
+        adb shell 
+        screencap /sdcard/test.png 
+            # then exit 
+        adb pull /sdcard/test.png 
+            
+            
         adb exec-out screencap -p > screen.png
 
             - the exec-out only runs on the host (pc).
@@ -97,7 +127,7 @@ vii. Take a screenshot(headless)
             - Without -p it outputs raw framebuffer data (platform-dependant). use -p for PNG.
 
 
-viii. Simulate input ( useful if screen touch broken but display works, or to automate unlocking)
+x. Simulate input ( useful if screen touch broken but display works, or to automate unlocking)
     EG.
         # press power
         adb shell input keyevent 26
@@ -107,24 +137,24 @@ viii. Simulate input ( useful if screen touch broken but display works, or to au
         adb shell input text "1234"
 
 
-ix. Boot to recovery/bootloader
+xi. Boot to recovery/bootloader
     EG.
         adb reboot recovery
         adb reboot bootloader   # then use fastboot commands
 
 
-x. Show device w/ extra info (useful if multiple devices)
+xii. Show device w/ extra info (useful if multiple devices)
     EG.
         adb devices -l
         # shows SERIAL device product:MODEL model:MODEL device:DEVICE
 
 
-xi. If multiple devices attached, target a specific one:
+xiii. If multiple devices attached, target a specific one:
     EG.
         adb -s <SERIAL/TCPIP> shell getprop ro.product.model
 
 
-xii. Read or View file contents(quick)
+xiv. Read or View file contents(quick)
     EG.
         # print small text file to terminal
         adb shell cat /sdcard/Notes/todo.txt
@@ -148,7 +178,7 @@ xii. Read or View file contents(quick)
             - Mnay other paths (e.g. /data/data/<package>) are protected and require root or run-as of the app.
 
 
-xiii. listing Users 
+xv. listing Users 
     EG.
         adb shell pm list users
         # output example:
