@@ -22,7 +22,76 @@
     |
     |----------------------------------> N ( Input Size )
 
+- O(Log N) 
+    * If a recursive algorithm reduces the size of the input data by a constant factor (e.g., halving it) with each step, it typically has a logarithmic time complexity of O(log N).
+
+- O(N)
+    * If an algorithm processes each element of the input data exactly once, it has a linear time complexity of O(N).
+
+- O(N log N)
+    * If an algorithm divides the input data into smaller parts (log N divisions) and processes each part in linear time (N), it has a linearithmic time complexity of O(N log N).
+
+- O(N^2)
+    * If an algorithm involves nested loops where each loop iterates over the input data, it has a quadratic time complexity of O(N^2).
+
+- O(N!)
+    * If an algorithm generates all possible permutations of the input data, it has a factorial time complexity of O(N!).
+
+- O(2^N)
+    * If an algorithm makes two recursive calls for each element in the input data, it has an exponential time complexity of O(2^N).
+
+- O(1)
+    * If an algorithm performs a fixed number of operations regardless of the input size, it has a constant time complexity of O(1).
 '''
+
+                                # SPACE COMPLEXITY.
+'''
+- Space complexity refers to the amount of memory an algorithm uses in relation to the size of the input data.
+- Similar to time complexity, space complexity can also be expressed using Big O notation.
+- There are two main types of space complexity:
+    * Auxiliary Space:
+        > The extra space or temporary space used by an algorithm during its execution, excluding the space taken by the input data.
+    
+    * Total Space:
+        > The total space used by an algorithm, including both the input data and any auxiliary space.
+
+- Rule of thumb:
+    * mark = arr[1]
+        - just stores one value.
+        - O(1) space.
+    
+    * arr = []
+        - creates a list of size n.
+        - O(n) space.
+
+    * Creating a matrix of size n x n
+        - O(n^2) space.
+
+    * Recursive function calls
+        - Each recursive call adds a new layer to the call stack, which can lead to O(log N) or O(N) space complexity depending on the depth of recursion.
+
+                                EXAMPLES.
+                            --------------------
+# O(1) extra space
+def find_first_even(arr):
+    for x in arr:
+        if x % 2 == 0:
+            return x   # uses constant extra memory
+
+# O(n) extra space
+def copy_array(arr):
+    out = []
+    for x in arr:
+        out.append(x)  # out grows to n -> O(n) space
+    return out
+
+# O(n^2) extra space example
+def make_matrix(n):
+    matrix = [[0]*n for _ in range(n)]  # n*n numbers -> O(n^2)
+    return matrix
+        
+'''
+
 
            # O(1) - CONSTANT TIME
 '''    TIME COMPLEXITY EXPLANATION '''

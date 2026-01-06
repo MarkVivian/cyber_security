@@ -18,16 +18,36 @@
     * Finally, combine the sorted sub-arrays and the pivot to get the sorted array.
 
 '''
-def quick_sort(arr):
-    if len(arr) <= 1:
-        return arr
-    else:
-        pivot = arr[len(arr) // 2]
-        left = [x for x in arr if x < pivot]
-        middle = [x for x in arr if x == pivot]
-        right = [x for x in arr if x > pivot]
-        return quick_sort(left) + middle + quick_sort(right)
+def quick_sort(arr, lo=0, hi=None):
+    if hi is None:
+        hi = len(arr) - 1
+    
+    if lo >= hi:
+        return 
+    
+    pivot = arr[hi]
+    i = lo 
+
+    print(f"array at i {arr[i]} and array at hi {arr[hi]}")
+    print("<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>")
+    for j in range(lo, hi):
+        print(f"the value of lo: {lo}, hi: {hi}, i: {i}, j: {j}, pivot: {pivot}, arr: {arr}")
+        print("-----")
+        print(f"checking if arr[j] < pivot: {arr[j]} < {pivot}")
+        if arr[j] < pivot:
+            print(f"Swapping arr[i] {arr[i]} and arr[j] {arr[j]}")
+            arr[i], arr[j] = arr[j], arr[i]
+            i += 1
+
+    arr[i], arr[hi] = arr[hi], arr[i]
+    print(f"array at i {arr[i]} and array at hi {arr[hi]}")
+    print(f"After partitioning: {arr}")
+    print("=========")
+    quick_sort(arr, lo, i - 1)
+    print("(()()()()()()()()()()()()())")
+    quick_sort(arr, i + 1, hi) 
+    return arr   
 
 # Example usage:
-arr = [38, 27, 43, 3, 9, 82]
-print(quick_sort(arr))
+arr = [38, 43, 3, 9, 82, 27]
+print(quick_sort(arr)) 

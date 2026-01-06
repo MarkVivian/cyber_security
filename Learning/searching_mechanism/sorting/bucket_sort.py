@@ -16,3 +16,32 @@
     * Sort each bucket individually using a suitable sorting algorithm or recursively applying bucket sort.
     * Concatenate the sorted buckets to form the final sorted array.
 '''
+
+def bucket_sort(arr, bucket_size=5):
+    if len(arr) == 0:
+        return arr
+
+    # Determine minimum and maximum values
+    min_value = min(arr)
+    max_value = max(arr)
+
+    # Initialize buckets
+    bucket_count = (max_value - min_value) // bucket_size + 1
+    buckets = [[] for _ in range(bucket_count)]
+
+    # Distribute input array values into buckets
+    for num in arr:
+        index = (num - min_value) // bucket_size
+        buckets[index].append(num)
+
+    # Sort each bucket and concatenate the results
+    sorted_array = []
+    for bucket in buckets:
+        sorted_array.extend(sorted(bucket))  # You can use any sorting algorithm here
+
+    return sorted_array
+
+# Example usage:
+arr = [29, 25, 3, 49, 9, 37, 21, 43]
+sorted_arr = bucket_sort(arr)
+print(sorted_arr)
