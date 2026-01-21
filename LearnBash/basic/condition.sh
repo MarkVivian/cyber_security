@@ -63,9 +63,19 @@ else
     echo "both are numbers"
 fi
 
-# ****************** SINGLE BRACKETS AND DOUBLE BRACKETS.***********************
-# For simple checks like file existence or basic string comparisons, single brackets suffice.
-# For complex evaluations involving string operators, arithmetic comparisons, or regular expressions, double brackets provide a safer and more powerful approach.
+# ****************** BRACKETS TO USE.***********************
+# [[ ]]: Bash built-in, more versatile, supports pattern matching, logical operators (&&, ||), and doesn't require variable quoting.
+for value in 1 2 3 4 5; do
+    if [[ $value -gt 3 ]]; then
+        echo "$value is greater than 3"
+    fi
+done
+# (( )): Used for arithmetic expressions, supports standard mathematical operators, and is more intuitive for numerical calculations.
+num1=5
+num2=10
+if (( num1 + num2 > 10 )); then
+    echo "The sum of num1 and num2 is greater than 10"
+fi
 
 # ------------ COMPARISON OF STRING ----------------
 # == : checks if strings are equal.
@@ -117,16 +127,16 @@ fi
 
 # checking if file exists
 file_path="./overview.sh"
-if [ -e $file_path ]; then
+if [[ -e $file_path ]]; then
     echo "the file exists."
-    if [ -r $file_path ]; then
+    if [[ -r $file_path ]]; then
         echo "the file is readable"
-        if [ -s $file_path ]; then
+        if [[ -s $file_path ]]; then
             echo "the file is not empty"
         fi
     fi
 else
-    if [ ! -e $file_path ]; then
+    if [[ ! -e $file_path ]]; then
         echo "the file doesn't exist."
     fi
 fi

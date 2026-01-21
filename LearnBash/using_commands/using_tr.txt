@@ -1,4 +1,10 @@
-- the tr command is used to manipulate character sets within text streams.
+                                    TR COMMAND
+                            =====================
+- This command is used to manipulate character sets within text streams.
+- It can be used for tasks such as translating characters, deleting characters, and squeezing repeated characters.
+- The basic syntax is:
+        tr [options] SET1 [SET2]
+
 
                     USAGE
                 =================
@@ -6,21 +12,62 @@
     EG.
         echo "hello world" | tr 'a-z' 'A-Z'
 
+            - will output "HELLO WORLD"
+
+
+2. camel case to swap case
+    EG.
+        echo "Hello World" | tr 'a-zA-Z' 'A-Za-z'
+
+            - will output "hELLO wORLD"
+
 
 2) Delete all digits.
     EG.
-        echo "you number is 12" | tr '[:digit:]' ' '
+        echo "User1234" | tr -d '0-9'
+
+            - will output "User"
 
 
-3) Replace spaces with 
-    EG.
-        echo "abcdefg" | tr 'a-e' 'm-q'
+3) Replace spaces with:
+    i. underscores.
+        EG.
+            echo "hello world" | tr ' ' '_'
 
-            -will replace all instances of a to e with m to q such that a becomes m ,e becomes q, b becomes n so on.
+                - will output "hello_world"
 
+    ii. shifting characters.
+        EG.
+            echo "abcdefg" | tr 'a-z' 'b-za'
 
-    EG.
-        echo "Gur cnffjbeq vf WIAOOSFzMjXXBC0KoSKBbJ8puQm5lIEi" | tr 'a-zA-Z' 'n-za-mN-ZA-M'
+                - will output "bcdefgh"
+                - each character is replaced by the next character in the alphabet, with 'z' wrapping around to 'a'.
+                - The sets must be of equal length when translating characters.
+                - why not 'a-z' 'b-a'?
+                    * because 'b-a' is not a valid range, ranges must be in ascending order.
+                - Why 'b-za'? 
+                    * because it ensures that 'z' wraps around to 'a', maintaining the length of the character set.
 
-            - think of it as replacing n with a, z with m for small and capital values.
-            - its called a caesar cipher with a fixed shift of 13 positions
+    iii. ROT13 encoding.
+        EG.
+            echo "Hello World" | tr 'a-zA-Z' 'n-za-mN-ZA-M'
+
+                - will output "Uryyb Jbeyq"
+                - ROT13 is a simple letter substitution cipher that replaces a letter with the 13th letter after it in the alphabet.
+                - It is commonly used to obscure text, such as spoilers or puzzle solutions.
+                - why 'a-zA-Z'?
+                    * because it includes both lowercase and uppercase letters for the substitution.
+                - why 'n-za-mN-ZA-M'?
+                    * because it shifts each letter by 13 positions in the alphabet, wrapping around at the end.
+                - To decode ROT13, you can apply the same command again:
+                    EG.
+                        echo "Uryyb Jbeyq" | tr 'a-zA-Z' 'n-za-mN-ZA-M'
+
+                            - will output "Hello World"
+
+    iv. Squeeze repeated characters.
+        EG.
+            echo "aaabbbcccaaa" | tr -s 'a'
+
+                - will output "abbbccca"
+                - the `-s` option squeezes consecutive occurrences of the specified character into a single occurrence.

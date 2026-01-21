@@ -3,14 +3,23 @@
 - It is used to estimate the amount of disk space used by files and directories.
 - it displays the total size in blocks for the current directory and its subdirectories.
 
-    1) checking the size of each file in a human readable format.
-        EG.
-            du -h <filename> --> du -h data
-                
+    1) checking the size of each file 
+        i. in a human readable format.
+            EG.
+                du -h <filename> --> du -h data
+        
+        ii. in byte format.
+            EG.
+                du -b <filename> --> du -b data 
+
+        iii. in kilobyte format.
+            EG.
+                du -k <filename> --> du -k data
+
     2) to get the size of all the contents of a folder we use:
         EG.
-            du -sh <directory_name> --> du -sh data/
+            du -s -h <directory_name> --> du -s -h data/
 
     3) to get the size of all subdirectories we use:
         EG.
-            du -ah <directory_name> --> du -ah data/
+            du -a -h <directory_name> --> du -ah data/

@@ -70,7 +70,12 @@ fixed string search.
 
             - This option tells grep to treat the pattern as a fixed string rather than a regular expression.
             - It’s faster when you’re searching for simple strings that don’t involve regex.
-
+            - the difference between fixed string search and regular expression search is that fixed string search looks for an exact match of the specified string, while regular expression search allows for more complex patterns and variations.
+                EG.
+                    echo "hello.world" | grep -F "hello.world" # Fixed String Search
+                        vs
+                    echo "hello.world" | grep "hello.world" # Regular Expression Search (the dot is a wildcard)
+                    
 
 searching with escape characters.
     EG.

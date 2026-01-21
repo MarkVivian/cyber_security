@@ -43,6 +43,12 @@
                -> M: Denotes size in megabytes (1048576 bytes).
                -> G: Denotes size in gigabytes (1073741824 bytes). 
                -> c: denotes size in bytes.
+                    EG.
+                        find . -size +100M # files larger than 100 megabytes.
+                        find . -size -500k # files smaller than 500 kilobytes.
+                        find . -size +1G   # files larger than 1 gigabyte.
+                        find . -size -200c # files smaller than 200 bytes.
+                        find . -size 50M   # files exactly 50 megabytes.
           
                
     5) find by date

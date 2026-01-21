@@ -1,10 +1,23 @@
                 STRINGS COMMAND
              =====================
-we can use this command to print out the human readable characters in a file using:
+- we can extract readable strings from binary files using the `strings` command.
+- it is useful for analyzing binary files to find embedded text.
     EG.
         strings filename.
+
+            - it will display all the human-readable strings found in the binary file `filename`.
+            - to extract strings from a binary file and save them to a text file, you can use:
+                EG.
+                    strings binaryfile.bin > output.txt
         
+            - to convert a human readable file to binary format, you can use the `xxd` command:
+                EG.
+                    xxd -b humanreadable.txt > binaryfile.bin
+
+                        - the `-b` option tells `xxd` to create a binary dump.
+                        - If you convert a human-readable text file to binary format using `xxd` and then use the `strings` command on the resulting binary file, the `strings` command will extract and display the original human-readable text that was present in the text file. This is because the binary representation created by `xxd` still contains the original text data, and `strings` is able to identify and extract those printable characters.
         
+
                 BASE64 
               ===========
 we can encode and decode using base 64.

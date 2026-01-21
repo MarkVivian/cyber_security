@@ -1,0 +1,204 @@
+                        STANDARD STREAMS.
+                    =========================
+- Every process starts with fds 0, 1, and 2 already opened and connected to the terminal by default.
+- fds stand for file descriptors. They are unique identifiers for each open file or stream in a Unix-like operating system.
+- There are three standard streams in Unix-like operating systems:
+    i.   Standard Input (stdin) : File descriptor 0, used for input (default is keyboard).
+        * default location for stdin is the keyboard, but it can be redirected to read from a file or another command.
+
+    ii.  Standard Output (stdout) : File descriptor 1, used for output (default is terminal).
+        * default location for stdout is the terminal, but it can be redirected to write to a file or another command.
+
+    iii. Standard Error (stderr) : File descriptor 2, used for error messages (default is terminal).
+        * default location for stderr is the terminal, but it can be redirected to write to a file or another command.
+
+- Redirection is the process of changing the standard streams to read from or write to files or other commands instead of the terminal.
+    EG.
+        2>/dev/null : this opens /dev/null and redirects the stderr (fd 2) to it, effectively discarding any error messages produced by the command.
+
+
+            COMMON VARIANTS CHEATSHEET.
+        -----------------------------------
+1. cmd > out.txt : Redirects stdout to out.txt.
+    EG.
+        ls > files.txt 
+            - This command lists the files in the current directory and redirects the output to files.txt instead of displaying it on the terminal.
+
+2. cmd 2> err.txt : Redirects stderr to err.txt.
+    EG.
+        ls nonexistentfile 2> error.txt 
+            - This command attempts to list a nonexistent file, and the error message is redirected to error.txt instead of being displayed on the terminal.
+
+3. cmd >> out.txt : Appends stdout to out.txt.
+    EG.
+        echo "New line" >> log.txt 
+            - This command appends the text "New line" to the end of log.txt instead of overwriting its contents.
+
+4. cmd &> all.txt : Redirects both stdout and stderr to all.txt. 
+    * what does & mean here?
+        - It indicates that both stdout and stderr are being redirected to the same location.
+    EG.
+        ls existingfile nonexistentfile &> output.txt 
+            - This command attempts to list both an existing file and a nonexistent file, redirecting both the standard output and error messages to output.txt.
+
+5. cmd > all.txt 2>&1 : Redirects both stdout and stderr to all.txt. Similar to 4.
+    * what does & mean here?
+        - It indicates that the target is a file descriptor, not a file name.
+    EG.
+        ls existingfile nonexistentfile > output.txt 2>&1 
+            - This command attempts to list both an existing file and a nonexistent file, redirecting both the standard output and error messages to output.txt.
+
+6. cmd 2>&1 > out.txt : Redirects stderr to wherever stdout is currently going, then redirects stdout to out.txt.
+    * Note the order of redirection matters here.
+    * what is the difference 6 and 5?
+        - In this case, stderr is redirected to the original stdout (which is the terminal), and then stdout is redirected to out.txt. So stderr will still go to the terminal.
+    * isn't 2>&1 redundant since stderr goes to the terminal by default?
+        - Yes, in this specific case it is redundant because stderr goes to the terminal by default. However, it is included here to illustrate the order of operations in redirection.
+    EG.
+        ls existingfile nonexistentfile 2>&1 > output.txt 
+            - This command attempts to list both an existing file and a nonexistent file. The standard output is redirected to output.txt, while the error messages are displayed on the terminal.
+
+7. cmd < in.txt : Redirects stdin to read from in.txt.
+    * what does < mean here?
+        - It indicates that stdin is being redirected to read from a file instead of the keyboard.
+    EG.
+       sort < unsorted.txt 
+            - This command sorts the contents of unsorted.txt by redirecting stdin to read from the file.
+
+8. cmd << EOF : Here Document, redirects stdin to read from the lines until EOF is encountered.
+    * what does << mean here?
+        - It indicates that stdin is being redirected to read from the lines provided in the script until the specified delimiter (EOF in this case) is encountered.
+    * does it maintains the multiline format and leading spaces?
+        - Yes, it maintains the multiline format and leading spaces.
+        - To avoid leading spaces, you can use <<- instead of <<.
+    EG.
+         cat << EOF
+            This is line 1.
+            This is line 2.
+        EOF
+            - This command uses a Here Document to provide input to the cat command until EOF is reached.
+            - The output will be:
+                This is line 1.
+                This is line 2.
+
+        cat <<- EOF
+            This is line 1.
+            This is line 2.
+        EOF
+            - This command uses a Here Document with <<- to avoid leading spaces in the output.
+
+9. cmd <<< "string" : Here String, redirects stdin to read from the provided string.
+    * what does <<< mean here?
+        - It indicates that stdin is being redirected to read from the provided string instead of a file or keyboard.
+    * what is the difference between Here Document and Here String?
+        - Here Document is used for multiline input, while Here String is used for single-line input.
+    EG.
+        grep "pattern" <<< "This is a test string."
+            - This command uses a Here String to provide input to the grep command. to search for "pattern" in the provided string.
+
+10. cmd > &- : Closes the stdout stream.
+    * what does &- mean here?
+        - It indicates that the specified file descriptor (stdout in this case) should be closed.
+        - closing a file descriptor means that it will no longer be available for reading or writing.
+    * what happens if you try to write to a closed file descriptor?
+        - If you try to write to a closed file descriptor, you will get an error message indicating that the file descriptor is not available.
+    * can you close stdout when its in default state?
+        - Yes, you can close stdout even when it is in its default state. However, doing so will prevent any further output from being displayed on the terminal.
+    * can you open a closed stdout which was closed in default location?
+        - No, once a file descriptor is closed, it cannot be reopened. You would need to redirect stdout to a new location if you want to restore output functionality.
+        - but restarting the shell session will reset all file descriptors to their default state.
+    EG.
+        ls > &- 
+            - This command attempts to list files, but since stdout is closed, no output will be displayed on the terminal.
+
+11. cmd 2>&- : Closes the stderr stream.
+    EG.
+        ls nonexistentfile 2>&- 
+            - This command attempts to list a nonexistent file, but since stderr is closed, no error message will be displayed on the terminal.
+
+12. cmd <&- : Closes the stdin stream.
+    * what does closing stdin do to a command?
+        - Closing stdin means that the command will not be able to read any input. If the command tries to read from stdin, it will receive an end-of-file (EOF) indication immediately.
+    EG.
+        sort <&- 
+            - This command attempts to sort input, but since stdin is closed, it will not be able to read any input and will terminate immediately.
+
+13. cmd &> /dev/null : Redirects both stdout and stderr to /dev/null.
+    * what is located at /dev/null?
+        - It is a special file that discards all data written to it. Also referred to as `null device` or `bit bucket`.
+    
+14. cmd > >(command2) : Process Substitution, redirects stdout to the input of command2.
+    * what does >(...) mean here?
+        - It indicates that the output of cmd is being redirected to the input of command2 using a temporary named pipe or file.
+    * what is the difference with piping (cmd | command2)?
+        - In piping, the stdout of cmd is directly connected to the stdin of command2. In process substitution, a temporary file or named pipe is created to hold the output of cmd, which command2 then reads from.
+        - they achieve similar results, but process substitution allows for more complex redirection scenarios.
+    EG.
+        ls > >(grep "pattern") 
+            - This command lists files and redirects the output to grep to search for "pattern" in the file names.
+
+15. cmd < <(command2) : Process Substitution, redirects stdin to read from the output of command2.
+    * what does <(...) mean here?
+        - It indicates that the input of cmd is being redirected to read from the output of command2 using a temporary named pipe or file.
+    EG.
+        sort < <(cat unsorted.txt | grep "pattern") 
+            - This command sorts the output of command2, which reads from unsorted.txt and filters lines containing "pattern".
+
+16. cmd >| out.txt : Forces overwriting of out.txt even if the `noclobber` option is set.
+    * what does | mean here?
+        - It indicates that the file should be overwritten even if the `noclobber` option is set in the shell.
+    * what is `noclobber` option?
+        - It is a shell option that prevents accidental overwriting of existing files when using the `>` redirection operator.
+        - this means > will not overwrite an existing file if `noclobber` is enabled.
+        - it will raise an error instead.
+    * how to enable `noclobber` option?
+        - You can enable the `noclobber` option by using the command `set -o noclobber` in the shell.
+    * how to disable `noclobber` option?
+        - You can disable the `noclobber` option by using the command `set +o noclobber` in the shell.
+    
+    EG.
+        # lets set a file with some content first
+        echo "Old content" > existingfile.txt
+        # now let's try to overwrite it with noclobber enabled
+        set -o noclobber
+        echo "New content" >| existingfile.txt 
+            - This command writes "New content" to existingfile.txt, overwriting its contents even if the `noclobber` option is set.
+
+
+                EXAMPLES.
+            ----------------
+1) Suppressing all output.
+    - If you want to suppress all output (both stdout and stderr), you can redirect both to /dev/null.
+        EG.
+            command > /dev/null 2>&1
+                OR 
+            command &> /dev/null
+
+                command : The command you are running.
+                > /dev/null : Redirects stdout to `/dev/null` (discards standard output).
+                2>&1 : Redirects stderr to stdout (which is /dev/null).
+
+
+2) Suppressing only error messages.
+    - If you only want to suppress error messages and not standard output.
+        EG.
+            command 2 > /dev/null
+
+                - This command redirects stderr to /dev/null, discarding only the error messages.
+                * does the space between 2 and > matter?
+                    - No, the space does not matter. You can write it as `2>/dev/null` or `2 > /dev/null`.
+
+
+3) Redirecting both stdout and stderr to a file.
+    - If you want to capture both stdout and stderr in a file.
+        EG.
+            command > output.log 2>&1
+                OR 
+            command &> output.log
+
+                - This command redirects stdout and stderr to `output.log`.
+
+
+4) Redirect stdout to stderr.
+    EG.
+        echo -e >&2 "this will be taken as an error message."
