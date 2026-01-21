@@ -1,17 +1,19 @@
             TAR
         =============
 - identified by :  
-    *** the tar, tar.gz, tar.bz2 extension ******
-    *** first two bytes are "75 73 74 61 72" in hexadecimal*********
+    * the tar, tar.gz, tar.bz2 extension 
+    * first two bytes are "75 73 74 61 72" in hexadecimal
 
     - this can be found by running:
         EG.
-            xxd ./filename | head
+            xxd ./filename | grep '7573746172'
 
                 OR
 
-            xxd -l 2 ./filename | grep '425a68' # xxd -l 2 means to print only the first 2 words . 
+            xxd -s 257 -l 5 ./filename | grep '7573746172'
                 
+                 -l 5 means to print only the first 5 words . 
+                 -s 257 means to start reading from byte offset 257. 
                 -this will display the first lines of the file.
 
                 OR
@@ -20,28 +22,74 @@
                 
                 - this will display the compression algorithm used.
 
+                USAGE.
+            --------------
+1. Basic compression and decompression
+    - compresses data using the:
+        EG.
+            Create: tar -cvf archive.tar filename1 filename2
 
-- compresses data using the:
+                OR
+
+            Create with gzip: tar -czvf archive.tar.gz filename1 filename2
+
+                OR
+
+            Create with bzip2: tar -cjvf archive.tar.bz2 filename1 filename2
+
+        
+    - decompress data using:
+        EG.
+            Extract: tar -xvf archive.tar
+
+                OR
+
+            Extract with gzip: tar -xzvf archive.tar.gz
+
+                OR
+
+            Extract with bzip2: tar -xjvf archive.tar.bz2
+
+                * What is the -v option doing?
+                    - The -v option stands for "verbose." 
+                    - When you use the -v option with the tar command, it provides detailed output of the files being processed during the creation or extraction of the archive. 
+                    - This means that as tar processes each file, it will print the name of the file to the terminal, allowing you to see which files are being added to or extracted from the archive in real-time.
+
+
+2. Viewing contents of a tar file without extracting
     EG.
-        Create: tar -cvf archive.tar filename1 filename2
+        tar -tvf archive.tar
 
             OR
 
-        Create with gzip: tar -czvf archive.tar.gz filename1 filename2
+        tar -tzvf archive.tar.gz
 
             OR
 
-        Create with bzip2: tar -cjvf archive.tar.bz2 filename1 filename2
+        tar -tjvf archive.tar.bz2
 
-    
-- decompress data using:
+
+3. Extracting specific files from a tar archive
     EG.
-        Extract: tar -xvf archive.tar
+        tar -xvf archive.tar filename1 filename2
 
             OR
 
-        Extract with gzip: tar -xzvf archive.tar.gz
+        tar -xzvf archive.tar.gz filename1 filename2
 
             OR
 
-        Extract with bzip2: tar -xjvf archive.tar.bz2
+        tar -xjvf archive.tar.bz2 filename1 filename2
+
+
+4. Creating a tar archive from a directory
+    EG.
+        tar -cvf archive.tar /path/to/directory
+
+            OR
+
+        tar -czvf archive.tar.gz /path/to/directory
+
+            OR
+
+        tar -cjvf archive.tar.bz2 /path/to/directory

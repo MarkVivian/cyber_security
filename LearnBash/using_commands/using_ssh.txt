@@ -1,5 +1,12 @@
                 SSH
             ===========
+- SSH (Secure shell) is a client-server protocol that gives you an authenticated, encrypted channel to a remote machine.
+- Under the hood:
+    > A server (sshd) listens on the TCP port (default 22) for incoming connections.
+    > A client (ssh) connects, negotiates protocol version and encryption algorithms, then authenticates using password or public key methods.
+    > Authentication types: public-key, password, host-based, GSSAPI/Kerberos, etc.
+    > Once authenticated you get a secure channel - used for remote shells, remote command execution, port forwarding (tunnels), file transfer(SCP/SFTP) etc.
+    > SSH multiplexes multiple logical channels (sessions, port forwards, file transfers) over the same TCP connections.
 TTY - this is an interactive shell.
 Common comands:
     -p port: Specifies the port to connect to on the remote host. The default is 22.
@@ -8,6 +15,50 @@ Common comands:
     -tt : always allocate a TTY even if stdin isn't a terminal.
 
 
+             FUNDAMENTAL CONCEPTS AND FILES TO KNOW.
+            -----------------------------------------
+> ~/.ssh/id_rsa (or id_ed25519, id_ecdsa, etc)
+    - Your private key for public-key authentication. Keep it secret!
+
+> ~/.ssh/id_rsa.pub (or id_ed25519.pub, etc)
+    - Your public key. Can be shared freely.
+    - Generated using:
+        EG.
+            ssh-keygen -t ed25519 -C "Your@me" # for Ed25519 keys
+                OR 
+            ssh-keygen -t rsa -b 4096 -C "Your@me" # for RSA keys
+
+    - To copy public key to remote:
+        EG.
+            ssh-copy-id -i ~/.ssh/id_ed25519.pub user@remote_host 
+                
+                > appends the public key to remote user's ~/.ssh/authorized_keys for passwordless login.
+                > you can also manually append the contents of the .pub file to remote's authorized_keys.
+
+> ~/.ssh/authorized_keys 
+    - on the server: contains public keys allowed for login.
+
+> /etc/ssh/sshd_config 
+    - server configuration file.
+
+> /etc/ssh/ssh_config or ~/.ssh/config 
+    - client configuration file.
+
+> known_hosts (clients)
+    - remembers host public keys to prevent man in the middle attacks.
+
+> ssh-agent / ssh-add 
+    - tools to manage private keys and cache passphrases.
+    - They hold unlocked keys so you don't type passphrases repeatedly.
+
+NOTE : permission matters
+    > ~/.ssh directory should be 700 (drwx------)
+    > private keys (id_rsa, id_ed25519, etc) should be 600 (-rw-------)
+    > authorized_keys should be 600 (-rw-------)
+
+
+                        USAGE
+                    -----------
 1. Intractive shell.
     - When you want to login and get a prompt.
         EG.
@@ -31,7 +82,6 @@ Common comands:
             ssh -tt user@host -p 2222 sudo journalctl -f
 
                 > Allocates a TTY even in scripts or pipelines so sudo (and other TTY-aware programs) work.
-
 
 4. Specify a port.(-p)
     - When the server listens somewhere other than port 22.
@@ -159,10 +209,14 @@ Common comands:
                     > Reuses an existing TCP connection for up to 10 minutes, making new sessions nearly instant.
 
 
-17. Skipping Host‑Key Verification (-o StrictHostKeyChecking=no)
-    - When you’re scripting against brand‑new or disposable servers (use with caution).
-        EG.
-            ssh -o StrictHostKeyChecking=no user@newhost
+17. options  
+    EG.
+        ssh -o OptionName=Value user@host 
 
-                > Automatically accepts the remote’s host key so you’re not prompted.
-                > Beware: opens you to MITM attacks if used carelessly.
+        * Skipping Host‑Key Verification (-o StrictHostKeyChecking=no)
+            - When you’re scripting against brand‑new or disposable servers (use with caution).
+                EG.
+                    ssh -o StrictHostKeyChecking=no user@newhost
+
+                        > Automatically accepts the remote’s host key so you’re not prompted.
+                        > Beware: opens you to MITM attacks if used carelessly.

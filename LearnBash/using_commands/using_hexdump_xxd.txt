@@ -1,0 +1,183 @@
+                                XXD
+                            =========
+- The xxd command in Unix-like systems is used for working with binary data.
+- It can display the hex dump of a file (convert binary data to hexadecimal representation) and can also convert a hex dump format back into binary data.
+- It can be identified by :
+    * the .hexdump or .xxd file extension for hex dump files.
+    * the .bin or .dat file extension for binary files.
+- can xxd be used for files other than binary?
+    - Yes, xxd can be used to create hex dumps of any type of file, including text files, images, executables, etc.
+    - The hex dump provides a way to view the raw byte content of the file.
+- hexdump files have the extension .hexdump or .xxd.
+- binary files have the extension .bin or .dat.
+- what does the hexdump command do?
+    - The hexdump command displays the contents of a file in hexadecimal format, similar to xxd.
+
+                
+                UNDERSTANDING THE LAYOUT OF HEXDUMP OUTPUT.
+            ----------------------------------------------------
+- The output of xxd and hexdump typically consists of three main columns:
+    1. Offset Column:
+        - This column shows the byte offset from the beginning of the file, usually in hexadecimal format.
+        - It helps you locate where in the file a particular byte or sequence of bytes is located.
+    2. Hexadecimal Column:
+        - This column displays the actual byte values of the file in hexadecimal format.
+        - Each byte is represented by two hexadecimal digits (00 to FF).
+        - The bytes are usually grouped in sets of 16 for easier reading.
+    3. ASCII Column:
+        - This column shows the ASCII representation of the byte values.    
+        - Printable ASCII characters are displayed as they are, while non-printable characters are typically represented by a dot (.) or another placeholder.
+        - This column helps you quickly identify human-readable text within the binary data.
+
+- Example output of xxd:
+    00000000: 4865 6c6c 6f2c 2057 6f72 6c64 210a       Hello, World!.
+
+        - In this example:
+            > The offset column shows "00000000", indicating the start of the file.
+            > The hexadecimal column shows the byte values for "Hello, World!\n".
+            > The ASCII column displays the corresponding characters.
+                
+                
+                BASIC USAGE.
+            --------------------
+1. display a hexdump
+    EG. 
+        xxd filename
+           OR 
+        hexdump filename    # may look different due to the formatting options.
+        hexdump -C filename  # canonical format, similar to xxd output.
+
+            - This command reads the specified file and outputs its contents in a hexadecimal format alongside the ASCII representation.
+            - why does the output of hexdump look different from xxd?
+                > hexdump has different default formatting options compared to xxd, leading to variations in how the hex and ASCII data are presented.
+                > xxd typically shows offsets, hex bytes, and ASCII characters in a more compact format, while hexdump may use a more spaced-out layout.
+
+2. convert a hexdump file back to binary
+    EG.
+        xxd -r hexdump > binary_data
+
+            - The -r option tells xxd to reverse the operation, converting the hex dump back into its original binary form.
+
+3. converting a binary file to hexdump.
+    EG.
+        xxd binary_file > hexdump_file
+
+            - This command reads the binary file and writes its hex dump representation to the specified hexdump file.
+
+4. specifying number of bytes per line
+    EG.
+        xxd -c 8 filename
+
+            - The -c option allows you to specify the number of bytes to display per line in the hex dump output. In this example, 8 bytes per line are shown instead of the default 16.
+
+5. displaying only a specific number of bytes
+    EG.
+        xxd -l 32 filename
+            OR 
+        hexdump -n 64 filename
+            
+            - The -l option allows you to limit the output to a specific number of bytes. In this example, only the first 32 bytes of the file are displayed.
+            - The -n option allows you to specify the number of bytes to display. In this example, only the first 64 bytes of the file are displayed.
+
+6. displaying bytes from a specific offset
+    EG.
+        xxd -s 16 filename
+
+            - The -s option allows you to specify a starting offset for the hex dump. In this example, the output starts from byte 16 of the file.
+
+
+                IDENTIFYING FILE TYPES USING XXD OR HEXDUMP.
+            ----------------------------------------------------
+- You can use xxd or hexdump to examine the initial bytes of a file to identify its type based on known "magic numbers" or signatures.
+- Many file formats have specific byte sequences at the beginning that can help identify them.
+
+1. Identifying a PNG file
+    - PNG files start with the following byte sequence: 89 50 4E 47 0D 0A 1A 0A
+    EG.
+        xxd -l 8 filename | grep '89504e470d0a1a0a'
+
+            OR
+        hexdump -n 8 filename | grep '89504e470d0a1a0a'
+
+2. Identifying a JPEG file
+    - JPEG files start with the byte sequence: FF D8 FF
+    EG.
+        xxd -l 3 filename | grep 'ffd8ff'
+
+            OR
+        hexdump -n 3 filename | grep 'ffd8ff'
+
+3. Identifying a PDF file
+    - PDF files start with the byte sequence: 25 50 44 46 2D
+    EG.
+        xxd -l 5 filename | grep '255044462d'
+
+            OR
+        hexdump -n 5 filename | grep '255044462d'
+
+4. Identifying a ZIP file
+    - ZIP files start with the byte sequence: 50 4B 03 04
+    EG.
+        xxd -l 4 filename | grep '504b0304'
+
+            OR
+        hexdump -n 4 filename | grep '504b0304'
+
+5. Identifying a GZIP file
+    - GZIP files start with the byte sequence: 1F 8B
+    EG.
+        xxd -l 2 filename | grep '1f8b'
+
+            OR
+        hexdump -n 2 filename | grep '1f8b'
+
+6. Identifying a ELF file
+    - ELF files start with the byte sequence: 7F 45 4C 46
+    EG.
+        xxd -l 4 filename | grep '7f454c46'
+
+            OR
+        hexdump -n 4 filename | grep '7f454c46'
+
+7. Identifying a TAR file
+    - TAR files contain the string "ustar" at byte offset 257.
+    EG.
+        xxd -s 257 -l 5 filename | grep '7573746172'
+
+            OR
+        hexdump -s 257 -n 5 filename | grep '7573746172'
+
+8. Identifying a BMP file
+    - BMP files start with the byte sequence: 42 4D
+    EG.
+        xxd -l 2 filename | grep '424d'
+
+            OR
+        hexdump -n 2 filename | grep '424d'
+
+9. Identifying a WAV file
+    - WAV files start with the byte sequence: 52 49 46 46
+    EG.
+        xxd -l 4 filename | grep '52494646'
+
+            OR
+        hexdump -n 4 filename | grep '52494646'
+
+10. Identifying a MP3 file
+    - MP3 files often start with the byte sequence: FF FB
+    EG.
+        xxd -l 2 filename | grep 'fffb'
+
+            OR
+        hexdump -n 2 filename | grep 'fffb'
+
+11. Identifying a bzip2 file
+    - bzip2 files start with the byte sequence: 42 5A 68
+    EG.
+        xxd -l 3 filename | grep '425a68'
+
+            OR
+        hexdump -n 3 filename | grep '425a68'
+
+- Note:
+    - While xxd and hexdump can help identify file types based on their signatures, using the file command is often a more straightforward approach for this purpose, as it is specifically designed to identify file types.

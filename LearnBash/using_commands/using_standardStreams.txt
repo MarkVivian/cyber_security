@@ -140,9 +140,17 @@
 15. cmd < <(command2) : Process Substitution, redirects stdin to read from the output of command2.
     * what does <(...) mean here?
         - It indicates that the input of cmd is being redirected to read from the output of command2 using a temporary named pipe or file.
+    * how would this affect cmd execution?
+        - cmd will read its input from the output produced by command2 instead of the keyboard or a file.
+        - This means if cmd was a cat command, and command2 produced a file path as output, cat would read the input stream and print out the file path.
+        - This is because < < (...) creates a temporary file or named pipe that holds the output of command2, which cmd then reads from meaning cat reads this file instead of the file path being passed.
     EG.
         sort < <(cat unsorted.txt | grep "pattern") 
             - This command sorts the output of command2, which reads from unsorted.txt and filters lines containing "pattern".
+
+        cat < <(echo "file.txt")
+            - This command uses cat to read from the output of echo, which is "file.txt". So cat will print "file.txt" to the terminal.
+            - Since < <(...) creates a temporary file or named pipe that holds the output of echo, cat reads this file instead of trying to open a file named "file.txt".
 
 16. cmd >| out.txt : Forces overwriting of out.txt even if the `noclobber` option is set.
     * what does | mean here?

@@ -1,35 +1,88 @@
-            BZIP2
-        =============
-- identified by :  
-    *** the bz2 extension ******
-    *** first two bytes are "42 5a 68" in hexadecimal*********
+                            BZIP2
+                        =============
+- bzip2 is a popular data compression algorithm that is known for its high compression ratio and efficiency. It is widely used for compressing files and data streams in Unix-like operating systems.
+- bzip2 uses the Burrows-Wheeler transform and Huffman coding to achieve effective compression.
+- bzip2 is particularly effective for compressing large text files, source code, and other types of data where redundancy can be exploited.
+- bzip2 files are typically identified by the .bz2 extension and the first two bytes being "42 5A 68" in hexadecimal.
+    > identified by :  
+        * the bz2 extension 
+        * first two bytes are "42 5A 68" in hexadecimal
 
-    - this can be found by running:
+            - this can be found by running:
+                EG.
+                    xxd ./filename | head | grep '425a68' 
+
+                        OR
+
+                    xxd -l 2 ./filename | grep '425a68' # xxd -l 2 means to print only the first 2 words . 
+                        
+                        -this will display the first lines of the file.
+
+                        OR
+                    
+                    file ./filename
+                        
+                        - this will display the compression algorithm used.
+
+
+                    USAGE.
+                -----------------
+1. Basic compression and decompression
+    - compresses data using the:
         EG.
-            xxd ./filename | head
+            bzip2 ./filename
+
+
+    - decompress data using:
+        EG.
+            bunzip2 ./filename.bz2
 
                 OR
 
-            xxd -l 2 ./filename | grep '425a68' # xxd -l 2 means to print only the first 2 words . 
-                
-                -this will display the first lines of the file.
-
-                OR
-            
-            file ./filename
-                
-                - this will display the compression algorithm used.
+            bzip2 -d filename.bz2
 
 
-- compresses data using the:
+2. Viewing contents of a bzip2 file without decompressing
     EG.
-        bzip2 ./filename
+        bzcat filename.bz2
 
-    
-- decompress data using:
-    EG.
-        bunzip2 ./filename.bz2
-
-            OR
+            - This command outputs the uncompressed contents of the bzip2 file to standard output without actually decompressing the file on disk.
         
-        bzip2 -d filename.bz2
+            OR
+
+        bzip2 -c -d filename.bz2
+
+            - The -c option tells bzip2 to write the decompressed data to standard output instead of creating a file.
+            - The -d option specifies decompression.
+
+
+3. Compressing with maximum compression
+    EG.
+        bzip2 -9 filename
+
+            - The -9 option tells bzip2 to use the highest level of compression, which may take more time but results in a smaller file size.
+            - The range is from -1 (fastest, least compression) to -9 (slowest, most compression).
+
+
+4. Keeping the original file after compression
+    EG.
+        bzip2 -k filename
+
+            - The -k option tells bzip2 to keep the original file after compression, resulting in both the original and compressed files being present.
+
+
+5. Compressing multiple files into a single bzip2 file
+    EG.
+        tar -cjf archive.tar.bz2 file1 file2 file3
+
+            - The tar command is used to create an archive of multiple files.
+            - The -c option creates a new archive.
+            - The -j option compresses the archive using bzip2.
+
+
+6. Testing the integrity of a bzip2 file
+    EG.
+        bzip2 -t filename.bz2
+
+            - The -t option tells bzip2 to test the integrity of the compressed file without decompressing it.
+            - If the file is intact, there will be no output; if there are errors, they will be reported.

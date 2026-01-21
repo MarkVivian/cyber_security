@@ -2,6 +2,14 @@
                 ==============
 - The mktemp command is used to create temporary files and directories in a secure manner. 
 - This is especially useful in scripts where you need to create unique temporary files or directories to avoid name collisions or security issues.
+- How does mktemp work?
+    - When you run mktemp, it generates a unique filename or directory name based on a specified template or a default template if none is provided.
+    - The generated name typically includes random characters to ensure uniqueness.
+    - mktemp then creates the file or directory and returns its name, which can be used in your script.
+- How it helps in scripting:
+    - Avoids name collisions: Each time you run mktemp, it generates a unique name, preventing conflicts with existing files or directories.
+    - Enhances security: By creating temporary files in a secure manner, mktemp helps prevent vulnerabilities that could arise from predictable filenames.
+    - Simplifies cleanup: Temporary files and directories created with mktemp can be easily identified and removed after they are no longer needed.
 
 
 - basic usage.
@@ -29,5 +37,3 @@
         mktemp -d /tmp/filename.XXXX
 
             - the XXX will be replaced by unique combination of characters.
-
-
