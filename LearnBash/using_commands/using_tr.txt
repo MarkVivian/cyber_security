@@ -22,12 +22,16 @@
             - will output "hELLO wORLD"
 
 
-2) Delete all digits.
-    EG.
-        echo "User1234" | tr -d '0-9'
+2) Deleting.
+    i. digits
+        EG.
+            echo "User1234" | tr -d '0-9'
 
-            - will output "User"
+                - will output "User"
 
+    ii. newlines
+        EG.
+            tr -d '\n'
 
 3) Replace spaces with:
     i. underscores.

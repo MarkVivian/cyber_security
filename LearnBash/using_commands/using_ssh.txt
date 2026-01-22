@@ -10,9 +10,28 @@
 TTY - this is an interactive shell.
 Common comands:
     -p port: Specifies the port to connect to on the remote host. The default is 22.
-    -i identity_file: Selects a file from which the identity (private key) for public key authentication is read.
     -t TTY : forces a TTY even for commands.
     -tt : always allocate a TTY even if stdin isn't a terminal.
+    -i /path/to/key — use a specific private key file (e.g., ~/.ssh/id_ed25519).
+    -l USER — specify remote username (same as user@host).
+    -o KEY=VALUE — pass arbitrary ssh_config option on command line (very powerful). Example: -o ConnectTimeout=10.
+    -F configfile — use alternate ssh config file.
+    -C — enable compression (useful on slow links).
+    -v, -vv, -vvv — verbose / debug output (increasing detail).
+    -X — enable X11 forwarding (untrusted).
+    -Y — enable trusted X11 forwarding (less restricted).
+    -A — enable agent forwarding (forward your SSH agent to the remote host).
+    -N — do not execute remote command; useful for port forwarding only.
+    -T — disable pseudo-tty allocation (useful when running remote commands in scripts).
+    -q — quiet (suppress most warnings).
+    -L [bind_address:]local_port:remote_host:remote_port — local port forwarding (local -> remote).
+    -R [bind_address:]remote_port:local_host:local_port — remote port forwarding (remote -> local).
+    -D [bind_address:]local_port — dynamic application-level port forwarding (SOCKS proxy).
+    -J user@jump_host — ProxyJump (simpler jump host syntax).
+    -W host:port — forward stdin/stdout to host:port (used in ProxyCommand).
+    -o StrictHostKeyChecking=no — automatically accept host key (risky; use with caution).
+    -o BatchMode=yes — disable password prompts (useful for automation).
+    -o IdentitiesOnly=yes — only offer keys specified by -i or config (avoid offering too many keys).
 
 
              FUNDAMENTAL CONCEPTS AND FILES TO KNOW.
@@ -55,6 +74,71 @@ NOTE : permission matters
     > ~/.ssh directory should be 700 (drwx------)
     > private keys (id_rsa, id_ed25519, etc) should be 600 (-rw-------)
     > authorized_keys should be 600 (-rw-------)
+
+
+                    SETTING UP SSH WITH AUTHORIZED KEYS.
+                -----------------------------------------
+1. Each user generates a SSH key pair on their local machine.
+    EG.
+        ssh-keygen -t ed25519 -C "alice@example.com" 
+            
+            * -t ed25519 : specifies the key type (Ed25519 is modern and secure).
+                            alternative is -t rsa -b 4096 for RSA keys.
+            * -C "comment" : adds a comment (usually email) to the public key
+            
+            * The private keys are .ssh/id_ed25519 (keep secret) and the public key is .ssh/id_ed25519.pub (can share).
+            * You will be asked for an optional passphrase to protect the private key. Strongly recommended.
+            * what is the difference between using ssh-agent vs not using it?
+                - without ssh-agent, you must enter the passphrase each time you use the key.
+                - with ssh-agent, you enter the passphrase once per session, and the agent caches the unlocked key for subsequent uses.
+            * but i thought the point of the key is not to have to enter a password, so why are we using a passphrase?
+                - The passphrase protects your private key in case your local machine is compromised.
+                - It adds an extra layer of security. Even if someone steals your private key file, they can't use it without the passphrase.
+                - Steps of how to use it:
+                    1. Generate key pair with ssh-keygen.
+                    2. Start ssh-agent in the background: eval "$(ssh-agent -s)"
+                        - the -s option outputs commands to set environment variables for the agent.
+                    3. Add your private key to the agent: ssh-add ~/.ssh/id_ed25519
+                    4. Now you can SSH to remote servers without re-entering the passphrase.
+                    * does it cache per sesion or permanently?
+                        - it caches per session. When you log out or restart your machine, the agent is killed and you need to re-add the key.
+                        - This limits the window of opportunity for an attacker if your machine is compromised.
+                    * What happens if you don't use ssh-agent and just use the key directly?
+                        - You will be prompted for the passphrase each time you use the key to authenticate.
+                        - This can be inconvenient if you SSH frequently, but it is more secure in some scenarios since the passphrase is not cached.
+                - This means basically when you use ssh-agent, you can use the private key without entering the passphrase every time, making it more convenient while still being secure.
+
+
+2. share the public key (~/.ssh/id_ed25519.pub) with the remote server.
+    i. Use ssh-copy-id to copy the public key to the remote server.
+        EG.
+            ssh-copy-id -i ~/.ssh/id_ed25519.pub user@remote_host
+
+                > This will require the user's password for authentication the first time.
+                > appends the public key to remote user's ~/.ssh/authorized_keys for passwordless login.
+                > you can also manually append the contents of the .pub file to remote's authorized_keys.   
+
+    ii. Manually copy the public key.
+
+
+3. Configure the remote server to accept the public key.
+    - Ensure the ~/.ssh/authorized_keys file on the remote server has correct permissions (600).
+    - Append the public key to ~/.ssh/authorized_keys on the remote server.
+        EG.
+            cat id_ed25519.pub >> ~/.ssh/authorized_keys
+            chmod 600 ~/.ssh/authorized_keys # to ensure correct permissions.
+
+    - Ensure the ~/.ssh directory on the remote server has correct permissions (700).
+        EG.
+            chmod 700 ~/.ssh # to ensure correct permissions.
+
+    - As an admin you can also add optional settings in ~/.ssh/authorized_keys to restrict key usage.
+        EG.
+            from="10.0.0.0/8", no-agent-forwarding, no-pty, command="/usr/local/bin/sync-repo" ssh-ed25519 AAA... alice@laptop
+
+                * Only connections from a specified IP range.
+                * Cannot forward agent or allocate a pty.
+                * forces a single command to run when that key is used
 
 
                         USAGE
@@ -144,9 +228,24 @@ NOTE : permission matters
 11. Local port forwarding (-L)
     - When you need to access a remote service as if it were local.
         EG.
-            ssh -L 8080:localhost:80 user@host.
+            ssh -L 8080:localhost:80 user@host
 
-                > lets you browse http://localhost:8080 on your machine to see the remote's port 80.
+                > This forwards your local port 8080 to the remote's port 80.
+                > Meaning you can browse http://localhost:8080 on your machine to see the remote's port 80.
+
+                OR 
+    
+            ssh -L 3307:dbserver.internal:3306 user@bastion 
+
+                > This forwards your local port 3307 to dbserver.internal:3306 via the bastion host.
+                > You can connect your local MySQL client to localhost:3307 to access the remote database securely.
+
+                OR (using -N to avoid opening a shell)
+            
+            ssh -L 5901:localhost:5901 -N user@remote_host
+
+                > This sets up a tunnel for VNC access to remote_host without opening a shell.
+                > You can connect your VNC viewer to localhost:5901 to control the remote desktop.
 
 
 12. Remote port forwarding (-R)
@@ -220,3 +319,22 @@ NOTE : permission matters
 
                         > Automatically accepts the remote’s host key so you’re not prompted.
                         > Beware: opens you to MITM attacks if used carelessly.
+
+
+18. Jump host (bastion) using ProxyJump (-J)
+    - When you need to hop through an intermediate server to reach your target.
+        EG.
+            ssh -J user@bastion user@target.
+
+                > this opens a connection to target via bastion in one command.
+                > Equivalent to chained proxy.
+
+
+19. Debugging Connections problems.
+    EG.
+        ssh -vvv user@Host
+        
+            > increases verbosity to help diagnose connection issues.
+
+
+20. 

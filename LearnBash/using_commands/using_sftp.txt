@@ -1,0 +1,64 @@
+                                        SFTP (Secure File Transfer Protocol)
+                                    -----------------------------------------
+- Provides secure, interactive file transfer over SSH.
+- Unlike scp, it:
+    > lets you browse remote directories.
+    > Supports resumabble transfers.
+    > Has built-in commands (ls, cd, put, get, etc.) for file management.
+    > Is safer by design than legacy scp.
+
+- Common options:
+    -P port : specify the port.
+    -i keyfile : private key.
+    -o option=value : SSH config options.
+    -F configfile : alternative ssh config file.
+    -J user@jump : jump host.
+    -v : verbose/debug.
+    -C : Compression.
+    -r : recursive (used with put/get for directories).
+    -p : preserve times/permisions.
+    -l limit : bandwidth limit in Kbit/s.
+    -b batchfile : read commands from a file for non-interactive.
+    -B buffer_size : set buffer size for transfers.
+
+- Two modes of use:
+    1. Interactive mode (most common)
+    2. Batch/non-interactive mode (using -b with a file of commands).
+
+
+                USAGE.
+            -------------
+1. Interactive mode : 
+    EG.
+        sftp username@remote_host
+
+            > opens an interactive SFTP session.
+            > use commands like:
+                * Navigation commands.
+                    - ls : list remote files.
+                    - !ls : list local files.
+                    - !cd directory : change local directory.
+                        NOTE : adding ! before a command runs it on the local machine.
+                    - cd directory : change remote directory.
+                    - lcd directory : change local directory.
+                    - pwd : print remote working directory.
+                    - lpwd : print local working directory.
+                    - lls : list local files.
+
+                * File transfer commands.
+                    - get remote_file [local_file] : download file.
+                    - get -r remote_directory [local_directory] : download directory recursively.
+                    - mget remote_file1 remote_file2 : download multiple files.
+                    - reget remote_file : resume interrupted download.
+                    - reput local_file : resume interrupted upload.
+                    - put local_file [remote_file] : upload file.
+                    - put -r local_directory [remote_directory] : upload directory recursively.
+                    - mput local_files : upload multiple files.
+                    - rename oldname newname : rename remote file.
+                    - rm remote_file : delete remote file.
+                    - rmdir remote_directory : remove remote directory.
+                    - mkdir remote_directory : create remote directory.
+                    - stat remote_file : display remote file info.
+                    - exit or bye : close the SFTP session.
+                    - chmod 644 remote_file : change permissions of remote file to 644.
+                    - chown user:group remote_file : change owner and group of remote file.

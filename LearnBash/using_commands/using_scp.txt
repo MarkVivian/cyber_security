@@ -8,8 +8,15 @@
     -p: Preserves modification times, access times, and modes from the original file.
     -q: Disables the progress meter.
     -C: Enables compression.
-
+    -i identity_file: Selects the file from which the identity (private key) for public key authentication is read.
+    -o OPTION=VALUE : passes options to ssh in the format used in ssh_config(5).
+    -F configfile : specifies an alternative per-user configuration file for ssh.
+    -J [user@]host[:port] : Connect to the target host by first making a ssh connection to the jump host.
+    -O : force legacy SSH protocol 1.(not recommended).
+    -T : disable pseudo-tty allocation.
+    -l limit : limits the used bandwidth, sepcified in Kbit/s.
                 
+
                 USAGES.
             --------------
 1. copy a file from a local system to a remote system.
@@ -73,3 +80,32 @@
                 OR 
             rsync -avz -e "ssh -p 2222" /local/dir/ user@host:/remote/dir/
 
+
+8. use a specific ssh key   
+    EG.
+        scp -i /path/to/private_key localfile username@remotehost:/path/to/destination
+
+            > What it does:
+                * Uses the specified private key for authentication.
+                * Avoids offering every key in your ssh-agent, which can be slow or lead to authentication failures if too many keys are tried.
+
+
+9. Use a jump host (proxy) for the transfer.
+    EG.
+        scp -J user@jump_host localfile username@remotehost:/path/to/destination
+
+             > Transfers the file via the specified jump host.
+
+
+10. Limit bandwidth usage during transfer.
+    EG.
+        scp -l 5000 bigfile.iso username@remotehost:/path/to/destination
+
+            > Limits the bandwidth to 5000 Kbit/s.
+
+
+11. Debug scp uses SSH config.
+    EG.
+        scp -v localfile username@remotehost:/path/to/destination
+
+            > Enables verbose mode to help diagnose issues during transfer.
