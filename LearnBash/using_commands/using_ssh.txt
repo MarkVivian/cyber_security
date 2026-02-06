@@ -122,7 +122,7 @@ NOTE : permission matters
 
 
 3. Configure the remote server to accept the public key.
-    - Ensure the ~/.ssh/authorized_keys file on the remote server has correct permissions (600).
+    - Ensure the ~/.ssh/authorized_keys file on the remote server has correct permissions (600) meaning only READ/WRITE for the owner, nobody else.
     - Append the public key to ~/.ssh/authorized_keys on the remote server.
         EG.
             cat id_ed25519.pub >> ~/.ssh/authorized_keys
@@ -141,6 +141,161 @@ NOTE : permission matters
                 * forces a single command to run when that key is used
 
 
+                    RUNNING COMMANDS AND EXITING.
+                -------------------------------------
+ - SSH does the following:
+        > TCP connection to host.
+        > SSH handshake (crypto, keys, auth)
+        > Does NOT start an interactive shell.
+        > Requests a remote command execution.
+        > Server runs:
+            EG.
+                user's login shell -c "ls -l /var/log"
+
+        > Output is streamed back to your terminal.
+        > SSH waits for the command to finish.
+        > SSH closes the connection.
+        > SSH exits with the same exit code as the remote command.
+    - Because SSH's job in this mode is :
+        "Run this process and report back."
+    - When the process ends:
+        > stdout closes.
+        > stderr closes.
+        > exit status is returned.
+        > SSH has nothing left to do.
+    - so it exits.
+
+- common use cases:
+    a. When you just need output from a single command.
+        EG.
+            ssh user@remote.example.com "df -h /"
+
+                > Runs df -h / remotely, prints the result locally, then disconnects.
+
+
+    b. if you need to run several commands in a row, you have two options.
+        i. The semicolon (Sequential)
+            - This runs the second command regardless of whether the first one succeded.
+                EG.
+                    ssh user@host "ls -l; du -sh /var/log"
+
+        ii. The Logical AND (Conditional)
+            - This only runs the second command if the first one finishes successfully. (exit code 0).
+                EG.
+                    ssh user@host "cd /var/www/html && git pull"
+
+
+    c. the "Heredoc" for complex scripts.
+        > When you have a long block of code to run, putting it all in one line with quotes becomes a nightmare.
+        > Instead, use a Heredoc (<< 'EOF'). 
+        > This sends everything between the EOF markers to the remote shell.
+            EG.
+                ssh user@remote-host << 'EOF'
+                    echo "Starting maintenance..."
+                    sudo apt-get update
+                    sudo apt-get upgrade -y
+                    echo "Maintenance complete."
+                EOF
+
+
+    d. Running a local script remotely.
+        - You can run a script that lives on your computer on a remote server without ever uploading the file.
+            EG.
+                ssh user@remote-host 'bash -s' < my_local_script.sh
+
+
+    e. Handling sudo (The -t flag)
+        - If you try to run a command that requires sudo (like sudo systemctl restart nginx), SSH might fail because it doesn't have a "TTY" (a virtual terminal) to ask you for a passowrd.
+        - why the PTY matters:
+            * Programs detect whether they have a terminal using isatty (0)/isatty(1) and change behaviour.
+            * sudo, top, interactive editors, and programs that use terminal control require a PTY.
+        - To fix this, use the -t flag to force a pseudo-terminal allocation:
+            EG.
+                ssh -t user@host "sudo apt-get update" # sudo often requires a tty
+                ssh -T user@host "sudo systemctl status nginx" # may fail with sudo since no tty present and no askpass program specified.
+
+        - How to know which commands require a PTY.
+            * General rule : interactive, TUI or programs that prompt for passwords usually need a PTY.
+            * Common PTY-needing commands:
+                > top, htop, less (unless used in non-interactive flags)
+                > sudo (if requiretty or configured to prompt)
+                > passwd (interactive password prompts)
+                > ssh-add -t (some agent interactions)
+                > Programs that use ncurses or readline.
+
+
+    f. capturing output locally.
+        - Since the command is running via SSH but outputting to your local terminal, you can use local pipes to process remote data.
+            EG.
+                # Save remote logs to a local file
+                ssh user@host "tail -n 100 /var/log/syslog" > local_log_backup.txt
+
+                # Search a remote file using your local grep.
+                ssh user@host "cat /etc/passwd" | grep "root"
+
+                    - WARNING: be careful with commands like rm -rf or reboot via ssh.
+                                If you have a typo in your one-liner, you won't get a "Confirm?" prompt - it will just execute immediately.
+            
+
+    g. handling shell.
+        - SSH doesn't magically know Bash.
+        - It runs:
+            EG.
+                $user_shell -c "command"
+
+                - If the user's shell is:
+                    > /bin/bash
+                    > /bin/sh 
+                    > /bin/zsh 
+                    > /bin/dash 
+
+                - That affects:
+                    > Syntax.
+                    > [[ ]]
+                    > brace expansion.
+                    > arrays.
+                
+                # Example failure.
+                ssh user@host "for i in {1..5}; do echo $i; done"
+
+                    - Works in Bash, fails in /bin/sh.
+
+        - Fix:
+            EG.
+                ssh user@host "bash -c 'for i in {1..5}; do echo $i; done'"
+
+    
+    h. quoting - local vs remote 
+        - RULE : The local shell parses first, the SSH sends the results.
+            EG.
+                # mistake
+                ssh user@host "echo $HOME"
+
+                    - What happened.
+                        > $HOME expands locally.
+                        > Remote receives literal value.
+
+                # correct 
+                ssh user@host 'echo $HOME'
+
+                    - Single quotes prevent local expansion.
+                    
+
+    i. Exit codes 
+        - SSH exits with the remote command's exit code.
+            EG.
+                ssh user@host "false"
+                echo $?
+
+                * OUTPUT 
+                    1
+
+                # use this for automation.
+                ssh user@host "systemctl is-active nginx" || echo "nginx down"
+
+
+    j. 
+
                         USAGE
                     -----------
 1. Intractive shell.
@@ -152,12 +307,8 @@ NOTE : permission matters
                     Make SSH detect your local terminal, allocates a remote TTY, then gives you bandit4@... to type commands.
 
 
-2. Run one command and exit.
-    - When you just need output from a single command.
-        EG.
-            ssh user@remote.example.com df -h /
-
-                > Runs df -h / remotely, prints the result locally, then disconnects.
+2. Run commands and exit.
+   << LOOK AT THE TOPIC BEFORE USAGE >>
 
 
 3. Force a Terminal (-t / -tt)
@@ -166,6 +317,7 @@ NOTE : permission matters
             ssh -tt user@host -p 2222 sudo journalctl -f
 
                 > Allocates a TTY even in scripts or pipelines so sudo (and other TTY-aware programs) work.
+                > SUDO NEEDS A TTY.
 
 4. Specify a port.(-p)
     - When the server listens somewhere other than port 22.

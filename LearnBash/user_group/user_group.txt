@@ -24,7 +24,7 @@
 the `s` bit in permissions stands for special permissions:
 
     * Setuid (`s` for user)
-        - When set on an executable file, it allows the file to be executed with the permissions of the file owner.
+        - When you apply SetUID to an executable file, anyone who runs that file "becomes" the owner of the file for as long as the program is running.
         - EXAMPLE
             1. File with `setuid` bit set.
                 - owner: `john`
@@ -36,22 +36,55 @@ the `s` bit in permissions stands for special permissions:
                     - to add setuid to a file:        
                         EG.
                             chmod u+s filename
+                                OR 
+                            chmod 4755 filename (the 4 represent setUID )
 
-                            - if you want to set the same permission for al files in a directory:
+                            - if you want to set the same permission for all files in a directory:
                                 EG.
                                     chmod -R 777 ./directory/name
 
+
     * Setgid (`s` for group)
-        - When set on an executable file, it allows the file to be executed with the permissions of the group owner.
+        - Similar to SetUID, the person running the file temporarily gains the permissions of the file's group.
         - When set on a directory, it means that files created in the directory inherit the group ownership from the directory.
+            > Normally when you create a file, it belongs to your primary group. 
+            > If you have a shared folder for a "Marketing" team, you want every new file created there to belong to the "marketing" group automatically.
+                EG.
+                    # 1. Create a shared directory
+                    mkdir /home/marketing_shares
+
+                    # 2. Change the group to 'marketing'
+                    chgrp marketing /home/marketing_shares
+
+                    # 3. Apply SetGID
+                    chmod g+s /home/marketing_shares
+
+                        > Now, any file created inside /home/marketing_shares will automatically belong to the marketing group, regardless of who creates it.
+
+        - To set setGID to a file.
             EG.
-                chmod g+s directory.
+                chmod g+s directory_name 
+                    OR 
+                chmod 2775 directory_name (the 2 represents setGID)
+
+        - permission : `drwxr-sr-x`
+
 
     * Sticky bit (`t`)
         - When set on a directory, it means that only the owner of a file can delete or rename the file within that directory.
+        - In a directory with 777 permissions (read/write/execute for everyone), anyone can delete any file.
+        - The Sticky Bit changes this rule: only the file's owner (or root) can delete or rename a file within that directory.
+        - to add sticky bit:
             EG.
-                chmod +t directory.
+                chmod o+t directory.
+                    OR 
+                chmod 1777 directory_name (the 1 represents the sticky bit)
 
+        - permission: drwxrwxrwt 15 root root 4096 Feb 06 2026 /tmp
+
+NB: If you see a Capital S or T (e.g., rwSr-xr-x), it means the special bit is set, but the underlying execution bit(x) is not set.
+    This usually means the permissions won't actually do anything until you add +x.
+    
 
                     USER MANAGEMENT.
                 ======================
