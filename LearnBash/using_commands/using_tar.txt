@@ -1,7 +1,22 @@
             TAR
         =============
+- tar basically stands for "tape archive" and is a widely used command-line utility for creating and managing archive files in Unix-like operating systems.
+- It does zero compression:
+    * if you have a 1GB folder, a tar file of that folder will be 1GB (plus a tiny bit of metadata)
+
+- It is mostly used for archiving:
+    * multiple files and folders into one tar file.
+    * folders to be compressed since gzip, bzip2 etc can't compress folders.
+
+- what is the difference between zip and tar(tap archive):
+    * zip is a convenience format. It does the archiving and the compression in one go.
+    * however it's bad at preserving Linux-specific permissions (like the SetUID).
+    * tar was built for linux/unix systems, so it remembers exactly who own what file.
+
 - identified by :  
     * the tar, tar.gz, tar.bz2 extension 
+        > btw the file's extension is just a courtesy for humans, it doesn't matter to linux.
+        > Meaning if you rename a "file.tar.gz" to "totally_not_a_archive", the tar command will still work.
     * first two bytes are "75 73 74 61 72" in hexadecimal
 
     - this can be found by running:
@@ -21,6 +36,14 @@
             file ./filename
                 
                 - this will display the compression algorithm used.
+
+- Parameters:
+    -c : create an archive.
+    -x : Extract an archive
+    -v : Verbose (show me the files as it works).
+    -z : use gzip.
+    -f : File (the next thing i type is the name of the file)
+
 
                 USAGE.
             --------------
@@ -42,6 +65,9 @@
         EG.
             Extract: tar -xvf archive.tar
 
+                * this command will also extract compressed data like tar.gz or tar.bz2.
+                * modern tar automatically detects the compression if any was used and handles it automatically.
+
                 OR
 
             Extract with gzip: tar -xzvf archive.tar.gz
@@ -60,6 +86,8 @@
     EG.
         tar -tvf archive.tar
 
+            * this command will also allow you to view compressed tar files like tar.gz or tar.bz2 
+
             OR
 
         tar -tzvf archive.tar.gz
@@ -71,15 +99,18 @@
 
 3. Extracting specific files from a tar archive
     EG.
-        tar -xvf archive.tar filename1 filename2
+        # only get filename from the archive
+        tar -xvf archive.tar /path/to/filename
+
+            * this command will also allow you to view compressed tar files like tar.gz or tar.bz2  
 
             OR
 
-        tar -xzvf archive.tar.gz filename1 filename2
+        tar -xzvf archive.tar.gz /path/to/filename
 
             OR
 
-        tar -xjvf archive.tar.bz2 filename1 filename2
+        tar -xjvf archive.tar.bz2 /path/to/filename
 
 
 4. Creating a tar archive from a directory
@@ -93,3 +124,19 @@
             OR
 
         tar -cjvf archive.tar.bz2 /path/to/directory
+
+
+5. Adding files to an existing tar archive
+    - can be achieved using the -r (append) or -u (update) options.
+    - The -r option will add files to the end of the archive, while the -u option will only add files that are newer than the existing files in the archive.
+    - You cannot add files to a compressed tar archive (like tar.gz or tar.bz2) using the -r or -u options.
+        EG.
+            # using the -r option to add filename3 to archive.tar
+            tar -rvf archive.tar filename3
+
+                * this command will also allow you to add files to compressed tar files like tar.gz or tar.bz2 
+
+                OR
+
+            # using the -u option to add filename3 to archive.tar only if it's newer than the existing file in the archive.
+            tar -uvf archive.tar filename3

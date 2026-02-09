@@ -1,6 +1,14 @@
                             BZIP2
                         =============
-- bzip2 is a popular data compression algorithm that is known for its high compression ratio and efficiency. It is widely used for compressing files and data streams in Unix-like operating systems.
+- Compression progression:
+    |  tool | Speed     | Compression Ratio | 
+    |-------|-----------|-------------------|
+    | gzip  | Fast      | Moderate          |
+    | bzip2 | Slow      | High              |
+    | xz    | Very Slow | Very High         |
+
+- bzip2 is a popular data compression algorithm that is known for its high compression ratio and efficiency.
+- It is widely used for compressing files and data streams in Unix-like operating systems.
 - bzip2 uses the Burrows-Wheeler transform and Huffman coding to achieve effective compression.
 - bzip2 is particularly effective for compressing large text files, source code, and other types of data where redundancy can be exploited.
 - bzip2 files are typically identified by the .bz2 extension and the first two bytes being "42 5A 68" in hexadecimal.

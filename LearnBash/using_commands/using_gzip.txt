@@ -1,5 +1,12 @@
                             GZIP
                         ============
+- Compression progression:
+    |  tool | Speed     | Compression Ratio | 
+    |-------|-----------|-------------------|
+    | gzip  | Fast      | Moderate          |
+    | bzip2 | Slow      | High              |
+    | xz    | Very Slow | Very High         |
+
 - GZIP files are compressed files that use the gzip compression algorithm.
 - identified by :  
     * the .gz file extension.
@@ -134,4 +141,3 @@
                 > To automate scripts where you want to avoid manual confirmation prompts when overwriting files.
             - Caution: Using -f will overwrite files without warning, so use it carefully to avoid accidental data loss.
 
-tmp.8yRAQp6Tl6
