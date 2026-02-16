@@ -1,0 +1,241 @@
+                SECTION 3: BRANCHES, HEAD & REFERENCES
+                ========================================
+1.  What a Branch Actually Is
+    - A branch in Git is:
+        *  A movable reference (pointer) to a commit object.
+
+    - It is stored as a file in:
+        EG.
+            .git/refs/heads/<branch-name>
+
+                > The file contains a commit hash.
+
+            git branch
+
+                > Output.
+                    * main
+                      dev
+
+                    = The `*` shows current branch.
+
+            cat .git/refs/heads/main
+
+                > You will see something like:
+                    a1b2c3d4e5f6...
+
+                > That is the commit hash it points to.
+
+
+2.  What HEAD Actually Is
+    - HEAD is a special reference that points to:
+        * Either a branch reference
+        * Or directly to a commit (detached HEAD)
+
+    - Stored in:
+        EG.
+            .git/HEAD
+
+                > Example content:
+                    ref: refs/heads/main
+
+            # Check HEAD
+            cat .git/HEAD
+
+
+3. Creating Branches
+    EG.
+        # Basic Branch Creation
+        git branch feature
+
+            > What happens:
+                * Creates new ref
+                * Points it to current commit
+                * Does NOT switch to it
+
+        # Create and Switch Immediately
+        git checkout -b feature
+            
+            #OR
+
+        git switch -c feature
+
+            - What happens internally:
+                1. Create new ref
+                2. Update HEAD to point to that branch
+                3. Update working directory
+
+
+4. Switching Branches
+    EG.
+        git switch main
+
+            # OR
+
+        git checkout main
+
+            - What happens:
+                * HEAD changes to main
+                * Working directory updates to match commit
+                * Index updates
+
+
+            - Terminology
+                > Index.
+                    * The staging area.
+
+
+5. How Branches Move
+    - Branches move when you commit.
+        EG.
+            echo "hello" > file.txt
+            git add file.txt
+            git commit -m "add file"
+
+                - What happens:
+                    * New commit object created
+                    * Current branch pointer moves forward
+                    * HEAD follows branch
+
+                - Important:
+                    * Branches move.
+                    * Commits do NOT move.
+                    * Commits are immutable.
+
+
+            # Visual Example
+                # Imagine.
+                A --- B --- C   (main)
+
+                # If you create a branch:
+                git branch dev
+
+
+                # Now:
+                A --- B --- C   (main, dev)
+
+
+                # After committing on dev:
+                A --- B --- C   (main)
+                             \
+                              D   (dev) 
+
+
+6. Detached HEAD
+    -  What is Detached HEAD?
+        > You checkout a commit directly:
+            EG.
+                git checkout a1b2c3d
+
+                    * Now HEAD points to a commit, not a branch.
+
+        > HEAD file now contains:
+            EG.
+                a1b2c3d...
+
+                    * Not a branch reference.
+
+
+    - Why Dangerous?
+        > If you commit:
+            * A new commit is created
+            * No branch references it
+            * It may get garbage collected later
+
+
+7. Creating Branch from Detached HEAD
+    EG.
+        git switch -c rescue-branch
+
+            - Now that orphan commit is safe.
+
+
+8. Tracking Branches
+    - When you clone:
+        EG.
+            origin/main
+
+                > Exists.
+                    * That is a remote tracking branch.
+
+    - Terminology
+        >  Remote Tracking Branch
+            * A local reference that tracks state of a remote branch.
+            * Stored in:
+                EG.
+                    .git/refs/remotes/origin/main
+
+    - Set Upstream Manually
+        EG.
+            git branch --set-upstream-to=origin/main main
+
+                - Now Git knows:
+                    = When you pull → compare to origin/main
+                    = When you push → push to origin/main
+
+
+9. Delete Branch
+    EG.
+        # Delete local branch
+        git branch -d feature
+
+            - Safe delete.
+
+        # Force delete
+        git branch -D feature
+
+            - Deletes even if unmerged.
+
+        # Delete remote branch
+        git push origin --delete feature
+
+
+10.  Rename Branch
+    EG.
+        git branch -m oldname newname
+
+            - Rename current branch.
+
+        git branch -m oldname newname
+
+            - Rename another branch.
+
+
+11. Forcing Branch Movement
+    - Advanced.
+        > Move branch pointer manually:
+            EG.
+                git branch -f main HEAD~2
+
+    - What happens:
+        >  main now points 2 commits back
+
+
+12. Visualizing Branch Graph
+    EG.
+        git log --oneline --graph --all --decorate
+
+            - Important flags:
+
+            | Flag       | Meaning           |
+            | ---------- | ----------------- |
+            | --oneline  | compact output    |
+            | --graph    | ASCII tree        |
+            | --all      | show all branches |
+            | --decorate | show branch names |
+
+
+13. HEAD~ and HEAD^
+    HEAD~
+        - Parent commit.
+            EG.
+                HEAD~1
+                HEAD~2
+
+
+                    > Move backwards linearly.
+
+    HEAD^
+        - Used for merge parents.
+            EG.
+                HEAD^1
+                HEAD^2

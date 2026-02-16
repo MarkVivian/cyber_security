@@ -489,4 +489,9 @@ NOTE : permission matters
             > increases verbosity to help diagnose connection issues.
 
 
-20. 
+20. How to detect what shell is running on the remote server.
+    EG.
+        ssh user@host 'echo $SHELL'
+
+            > This will print the default shell for the user on the remote server.
+            > Note: this may not reflect the shell used for non-interactive commands, which is determined by the user's login shell in /etc/passwd. For interactive sessions, it will start the login shell, but for non-interactive commands, it may use /bin/sh or whatever is specified in the user's account. To ensure a specific shell, you can explicitly invoke it in your command, like ssh user@host "bash -c 'your commands here'".

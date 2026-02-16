@@ -1,0 +1,450 @@
+                        FETCH, PULL , MERGE AND REBASE.
+                    ======================================
+Before we start, quick orientation:
+
+You already understand:
+
+* Branch = pointer
+* HEAD = pointer to branch
+* Commits are immutable
+
+Now we’re going to move pointers across machines.
+
+---
+
+# 1️⃣ `git fetch`
+
+---
+
+## 🔹 Technical Definition
+
+`git fetch` downloads new commits, branches, and refs from a remote repository but does NOT modify your current branch or working directory.
+
+It updates remote tracking branches like:
+
+```
+origin/main
+```
+
+---
+
+## 🧠 Dumb Down Version
+
+Fetch is like checking the mailbox.
+
+You bring new mail inside the house.
+You do not open it.
+You do not merge it.
+You just have it available.
+
+---
+
+## Basic Example
+
+```bash
+git fetch
+```
+
+What happens:
+
+* Contacts default remote (usually origin)
+* Downloads new objects
+* Updates remote tracking branches
+* Does NOT change your branch
+
+---
+
+## Fetch Specific Remote
+
+```bash
+git fetch origin
+```
+
+Same as above but explicitly targeting origin.
+
+---
+
+## Fetch Specific Branch
+
+```bash
+git fetch origin dev
+```
+
+What happens:
+
+* Downloads commits for dev
+* Updates origin/dev
+* Your local dev branch does NOT move
+
+---
+
+## Fetch All Remotes
+
+```bash
+git fetch --all
+```
+
+Downloads updates from all configured remotes.
+
+---
+
+## Prune Deleted Remote Branches
+
+```bash
+git fetch --prune
+```
+
+Removes remote tracking branches that no longer exist on server.
+
+---
+
+### Important Terminology
+
+### 🔹 Remote Tracking Branch
+
+Technical:
+A local reference reflecting the state of a branch on a remote.
+
+Example:
+
+```
+origin/main
+```
+
+Dumb Down:
+Your local copy of what the server’s branch looks like.
+
+---
+
+# 2️⃣ `git pull`
+
+---
+
+## 🔹 Technical Definition
+
+`git pull` = `git fetch` + `git merge`
+
+It fetches remote updates and immediately integrates them into your current branch.
+
+---
+
+## 🧠 Dumb Down
+
+Pull is:
+Check mailbox + immediately dump new letters onto your desk and mix them with your papers.
+
+---
+
+## Basic Pull
+
+```bash
+git pull
+```
+
+Equivalent to:
+
+```bash
+git fetch
+git merge origin/<current-branch>
+```
+
+---
+
+## Pull Specific Branch
+
+```bash
+git pull origin dev
+```
+
+Fetches dev and merges it into your current branch.
+
+---
+
+## Pull with Rebase Instead of Merge
+
+```bash
+git pull --rebase
+```
+
+Equivalent to:
+
+```bash
+git fetch
+git rebase origin/<current-branch>
+```
+
+We’ll break rebase soon.
+
+---
+
+# 3️⃣ `git merge`
+
+---
+
+## 🔹 Technical Definition
+
+Merge creates a new commit that combines two branch histories.
+
+Unless it can fast-forward.
+
+---
+
+## 🧠 Dumb Down
+
+Merge is combining two timelines into one.
+
+Sometimes clean.
+Sometimes explosive.
+
+---
+
+## Example Setup
+
+Imagine:
+
+```
+A --- B --- C   (main)
+         \
+          D --- E   (feature)
+```
+
+You are on main.
+
+---
+
+## Basic Merge
+
+```bash
+git merge feature
+```
+
+What happens:
+
+* Git finds common ancestor
+* Combines changes
+* Creates merge commit
+
+Result:
+
+```
+A --- B --- C -------- F   (main)
+         \          /
+          D --- E   (feature)
+```
+
+F is merge commit.
+
+---
+
+# 4️⃣ Fast-Forward Merge
+
+If main has not moved:
+
+```
+A --- B --- C   (main)
+              \
+               D --- E   (feature)
+```
+
+You run:
+
+```bash
+git merge feature
+```
+
+Git just moves main pointer forward:
+
+```
+A --- B --- C --- D --- E   (main, feature)
+```
+
+No merge commit created.
+
+---
+
+## Force Non Fast Forward
+
+```bash
+git merge --no-ff feature
+```
+
+Forces merge commit even if fast-forward possible.
+
+Used in structured workflows.
+
+---
+
+# 5️⃣ Merge Conflicts
+
+Occurs when same lines changed in both branches.
+
+Conflict markers:
+
+```
+<<<<<<< HEAD
+your changes
+=======
+incoming changes
+>>>>>>> feature
+```
+
+---
+
+Resolve:
+
+1. Edit file
+2. Remove markers
+3. Add file
+4. Commit
+
+---
+
+Abort merge:
+
+```bash
+git merge --abort
+```
+
+---
+
+# 6️⃣ `git rebase`
+
+Now things get sharp.
+
+---
+
+## 🔹 Technical Definition
+
+Rebase moves a sequence of commits to a new base commit.
+
+It rewrites commit history by creating new commits.
+
+---
+
+## 🧠 Dumb Down
+
+Rebase lifts your commits off one branch and replays them on top of another.
+
+Like copying your work and pasting it onto a newer version of the timeline.
+
+---
+
+## Example
+
+Before:
+
+```
+A --- B --- C   (main)
+         \
+          D --- E   (feature)
+```
+
+On feature:
+
+```bash
+git rebase main
+```
+
+After:
+
+```
+A --- B --- C --- D' --- E'   (feature)
+```
+
+D' and E' are NEW commits.
+Different hashes.
+
+Old D and E still exist but become unreachable eventually.
+
+---
+
+# 7️⃣ Interactive Rebase
+
+```bash
+git rebase -i HEAD~3
+```
+
+Lets you:
+
+* Reorder commits
+* Squash commits
+* Edit commit messages
+* Drop commits
+
+---
+
+Options inside editor:
+
+```
+pick
+reword
+edit
+squash
+fixup
+drop
+```
+
+---
+
+# 8️⃣ Rebase Conflict Handling
+
+If conflict occurs:
+
+Resolve file.
+
+Then:
+
+```bash
+git add file.txt
+git rebase --continue
+```
+
+Abort:
+
+```bash
+git rebase --abort
+```
+
+---
+
+# 9️⃣ Force Push
+
+After rebase:
+
+```bash
+git push --force
+```
+
+Better:
+
+```bash
+git push --force-with-lease
+```
+
+---
+
+## 🔹 Technical
+
+Rebase rewrites history.
+Remote branch has old commits.
+Force push replaces remote history.
+
+---
+
+## 🧠 Dumb Down
+
+You rewrote the past locally.
+Now you're telling the server:
+“Forget your version. Mine is the new truth.”
+
+---
+
+# 🔟 Merge vs Rebase Comparison
+
+| Merge                    | Rebase                       |
+| ------------------------ | ---------------------------- |
+| Preserves history        | Rewrites history             |
+| Creates merge commit     | Linear history               |
+| Safe for shared branches | Dangerous on shared branches |
+| Non-destructive          | Destructive if pushed        |
+

@@ -1,5 +1,6 @@
                     MANAGING CRONTAB FILES.
                 =============================
+- The cron tasks are mostly located in the /etc/cron.d directory, but they can also be found in /etc/crontab and in the /etc/cron.hourly, /etc/cron.daily, /etc/cron.weekly, and /etc/cron.monthly directories.
 - To edit the crontab file for the current user, use:
     EG.
         crontab -e

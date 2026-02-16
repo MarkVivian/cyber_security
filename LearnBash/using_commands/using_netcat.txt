@@ -97,6 +97,17 @@ Flag |   Name      | Usage
         # Sender 
         tar -czf - directory | nc <receiver_ip> 1234
 
+            * (-) typically means stdin (when used as an input filename) or stdout (when used as an output filename).
+                EG.
+                    tar -czf - dir_to_send | nc host port
+
+                        * tar -czf - dir_to_send tells tar: create (-c) a gzip-compressed (-z) archive, write the archive to file - (i.e., stdout), of the directory dir_to_send.
+                        * The archive bytes stream to stdout and are piped into nc.
+
+                    nc -l 1234 | tar -xzf -
+
+                        * nc -l 1234 listens and sends the incoming bytes to stdout; | tar -xzf - reads from stdin (-) and extracts (-x) a gzipped (-z) archive whose data comes from the pipe.
+
 
 - UDP mode.
     - use -u for UDP.

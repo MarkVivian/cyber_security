@@ -1,6 +1,20 @@
-                            SHELL COMMANDS
-                        ====================
+                            SHELL COMMANDS (NORMAL MODE)
+                        =================================
+- 
 - The :! command allows you to execute external commands from within vim.
+- The : and ! mean different things:
+    : > is used to execute vim commands.
+        EG.
+            :w > saves the current file.
+
+    :! > is used to execute shell commands.
+        EG.
+            :!ls > lists the files in the current directory.
+
+                - It prints output, then says:
+                    # Press ENTER or type command to continue 
+
+                - Then you press Enter and you're back in vi.
 
 
 1. executing a command:
@@ -31,4 +45,71 @@
             - the & allows the task to run in the background.
 
 
-5. 
+5. Open an interactive shell.
+    EG.
+        :sh 
+            - Now you are in a real shell prompt.
+            - You should see a shell prompt (like sh-4.4$ or $).
+            - You can type:
+                EG.
+                    ls 
+                    cat file
+                    id 
+            
+            - When finished 
+                EG.
+                    exit 
+
+        #OR 
+    
+        :!bash -i 
+
+            - runs bash with -i (interactive) via :!.
+            - This often gives you an interactive shell too.
+            - useful when the /bin/sh is too minimal.
+            - Use incase :sh doesn't work.
+
+        #OR 
+
+        :set shell=/bin/bash 
+
+            - vim has an option shell that determines which shell is used to execute external commands.
+            - Makes vim use /bin/bash for :! and :sh and related operations
+                * if you want :! and :sh to use bash instead of sh, set :set shell=/bin/bash.
+
+
+6. edit/open a file (and :e! to discard changes)
+    :e filename opens (edits) filename in the buffer.
+        * Says "open this file"
+
+    :e! reloads the current file from disk and discards unsaved changes (useful to abandon edits).
+        * says "forget my edits and reload the disk copy"
+
+
+7. insert command output into the buffer.
+    :r !cmd runs cmd and inserts its stdout into the current buffer at the cursor location.
+        * says "run this command and read its output into my file"
+        
+    EG.
+        :r !date  
+
+
+8. saving files, writing via sudo.
+    :w writes (saves) buffer to its current filename.
+    :w newname writes to newname.
+    :w !sudo tee % is a trick to write the file using sudo privileges by piping buffer to sudo tee which writes to % (current filename).
+        * useful when you opened a system file read-only and need to save with elevated rights.
+
+
+9. filter buffer/lines through external command.
+    :%!cmd pipes the entire buffer through cmd, replacing the buffer with cmd's stdout.
+        * use to run the entire file through a program (e.g., sort, tr, sed) and replace it with the result.
+    
+    :10,20!sort pipes lines 10-20 through sort and replaces that block's contents with sorted output.
+        EG.
+            # Uppercase entire file 
+            :%!tr '[:lower:]' '[:upper:]'
+            
+            # Sort whole file.
+            :%!sort 
+

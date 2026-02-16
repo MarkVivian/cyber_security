@@ -1,0 +1,222 @@
+                        CLONING AND REPOSITORY ACCESS.
+                    =====================================
+- What git clone Actually Does:
+    * git clone creates a full copy of a remote repository including:
+        > All commits
+        > All branches
+        > All tags
+        > All history
+        > The entire object database
+        > Remote tracking configuration
+
+    * It also automatically:
+        > Creates a remote named origin
+        > Sets up tracking for the default branch
+        > Checks out the default branch into your working directory
+
+
+- Basic Clone
+    EG.
+        git clone https://github.com/user/repo.git
+
+            > What happens:
+                * Connects over HTTPS
+                * Downloads objects
+                * Creates .git directory
+                * Creates working directory
+                * Creates remote named origin
+                * Checks out default branch (usually main)
+
+        git clone https://github.com/user/repo.git myfolder
+           
+            > What happens:
+                * Clones repository into folder named myfolder instead of repo.
+
+
+- SSH vs HTTPS vs Git Protocol
+    EG.
+        # HTTPS Clone
+        git clone https://github.com/user/private-repo.git
+
+            > Authentication:
+                * Username/password
+                * Or Personal Access Token (PAT)
+
+        # SSH Clone
+        git clone git@github.com:user/private-repo.git
+
+            > Authentication:
+                * Uses SSH key
+                * No password typing each time
+                * More secure for automation
+
+            > What happens technically:
+                * SSH handshake
+                * Public key verification
+                * Encrypted channel established
+                * Git transfers packfiles
+
+
+- Git Protocol (Port 9418)
+    EG.
+        git clone git://github.com/user/repo.git
+
+            > No authentication
+            > No encryption
+            > Rarely used today
+
+
+- What Happens During Clone (Internals)
+    > When you clone:
+        * Git negotiates objects
+        * Server compresses them into a packfile
+        * Client receives packfile
+        * Objects are unpacked into .git/objects
+        * Refs are created
+        * Default branch is checked out
+
+    > Important Terminology
+        * Packfile
+            - Technical:
+                = A compressed file containing multiple Git objects.
+        
+        *  Ref (Reference)
+            - Technical:
+                = A pointer to a commit.
+                EG.
+                    refs/heads/main
+
+
+        * Clone Specific Branch
+            EG.
+                git clone -b dev https://github.com/user/repo.git
+
+                    - What happens:
+                        = Clones entire repository
+                        = Checks out dev instead of default branch
+
+                    - Important:
+                     History is still fully downloaded.
+
+
+- Shallow Clone (Very Important)
+    EG.
+        git clone --depth 1 https://github.com/user/repo.git
+
+            > What happens:
+                * Downloads only latest commit
+                * No full history
+                * Faster
+                * Smaller
+
+        git clone --depth 5 https://github.com/user/repo.git
+
+            > Gets last 5 commits only.
+
+        git clone --branch dev --depth 1 https://github.com/user/repo.git
+
+            > Only latest commit of dev.
+
+    - Security Note:
+        * Shallow clones limit forensic visibility.
+        * If you're investigating a repo, avoid shallow clone.
+
+
+- Partial Clone (Advanced)
+    EG.
+        git clone --filter=blob:none https://github.com/user/repo.git
+
+            > What happens:
+                * Clones metadata
+                * Delays file content download
+                * Fetches file contents only when needed
+
+
+- Bare Clone
+    EG.
+        git clone --bare https://github.com/user/repo.git
+
+            > What happens:
+                * No working directory
+                * Only .git data
+                * Used for servers
+
+- Mirror Clone
+    EG.
+        git clone --mirror https://github.com/user/repo.git
+
+            > What happens:
+                * Copies ALL refs
+                * Includes remote tracking branches
+                * Meant for replication
+
+            > Difference:
+              | Option	 | Purpose                                   |
+              |----------|-------------------------------------------|
+              |  --bare	 | Server repo                               |
+              | --mirror |	Full exact copy including hidden refs    |
+              |----------|-------------------------------------------|
+
+
+- Submodules & Recursive Clone
+    > Submodule
+        - A repository inside another repository.
+            EG.
+                # Clone with submodules:
+                git clone --recurse-submodules https://github.com/user/repo.git
+
+                    * Without that, submodules remain uninitialized.
+                    * Security Concern:
+                        = Submodules can point to malicious repos.
+                        = Always inspect .gitmodules.
+
+
+- Remote Tracking
+    EG.
+        # After clone:
+        git remote -v
+
+        # Output.
+        origin https://github.com/user/repo.git (fetch)
+        origin https://github.com/user/repo.git (push)
+
+
+- Changing Remote URL
+    EG.
+        git remote set-url origin git@github.com:user/repo.git
+
+            > Switch HTTPS to SSH.
+
+
+- Clone Single Branch Only (No Other Branches)
+    EG.
+        git clone --single-branch --branch dev https://github.com/user/repo.git
+
+            > This avoids fetching all remote branches.
+
+
+- Authentication Deep Dive (SSH)
+    EG.
+        # Generate key:
+        ssh-keygen -t ed25519 -C "your_email@example.com"
+
+        # Add to agent:
+        eval "$(ssh-agent -s)"
+        ssh-add ~/.ssh/id_ed25519
+
+        # Test:
+        ssh -T git@github.com
+
+
+    - What’s Happening:
+        > Public/private key pair created
+        > Public key added to GitHub
+        > Server verifies your private key cryptographically
+
+
+- Deploy Keys
+    > Deploy key:
+        * An SSH key tied to a single repo.
+
+    > Dumb Down:
+        * A limited access key for automation.

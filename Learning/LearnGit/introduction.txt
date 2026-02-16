@@ -1,0 +1,256 @@
+                    INTRODUCTION.
+                ===================
+     Quick setup (one-time, safe test repo)
+    -----------------------------------------
+- Run this in a terminal to make an isolated lab repo we’ll use for examples:
+    EG.
+        mkdir ~/git_lab && cd ~/git_lab
+        rm -rf .git      # ensure clean workspace
+        git init         # start a new Git repo
+        echo "hello" > a.txt
+        git add a.txt
+        git commit -m "initial commit"
+
+            -  `git init` creates `.git` (the repo). We add a file and commit so you have a real history to explore.
+
+
+
+     Section map (what we’ll cover, short)
+    ---------------------------------------
+1. What Git stores (snapshots vs diffs)
+2. The three trees: Working Directory, Index (staging area), Repository (.git)
+3. Commits: structure and parent pointers
+4. Branches: pointers/labels, HEAD, detached HEAD
+5. SHA IDs (what they are and how to inspect them)
+6. Quick commands to inspect these structures (many concrete examples)
+
+
+    1) What Git actually stores: snapshots, not diffs
+    -----------------------------------------------------
+- Git stores **snapshots** of the entire project tree at each commit.
+- Internally it stores **blobs** (file contents), **trees** (directories + names → blobs/trees), and **commits** (metadata that points to a top-level tree and parent commit(s)).
+- Although Git is efficient (it de-duplicates identical blobs), conceptually each commit is a snapshot of the project at that moment.
+    EG. 
+        # inspect blob / tree for the commit we made
+        # Show the latest commit id (SHA)
+        git rev-parse HEAD
+
+        # Show the commit's top-level tree object
+        git show --pretty=format:%T HEAD
+        
+        # Pretty-print the commit and the tree
+        git cat-file -p HEAD        # shows commit info and points to tree: <tree sha>
+        git cat-file -p <tree_sha>  # replace <tree_sha> with the tree id printed above(in the git rev-parse HEAD)
+
+            - What happens:
+                * `git rev-parse HEAD` prints the commit sha (long hex).
+                * `git cat-file -p HEAD` displays commit metadata and the tree id.
+                * `git cat-file -p <tree_sha>` lists filenames and blob IDs in that tree.
+
+            * If you run those, you’ll see the mapping: commit → tree → blob (for `a.txt`).
+
+
+     2) The three working areas (Working Directory, Index/staging, Repository)
+    -----------------------------------------------------------------------------
+- **Working Directory**
+    > the checked out files you see and edit.
+    > your desk (files you edit).
+
+- **Index / Staging area**
+    > the place where you prepare what will go into the next commit (`git add` writes file content and metadata to the index).
+
+- **Repository (.git)**
+    > where Git stores committed objects (blobs, trees, commits, refs).
+        EG.
+
+            # Show status:
+            git status # shows files changed vs staged.
+
+            # Make a change, observe index vs working dir:
+            echo "line2" >> a.txt
+            git status
+            git diff         # shows unstaged changes (working dir vs index)
+            git add a.txt
+            git diff --staged   # shows staged changes (index vs HEAD)
+            git commit -m "add line2"
+
+                - What happens:
+                    * After editing, `git diff` shows differences between working dir and index (unstaged).
+                    * After `git add`, `git diff --staged` shows differences between index and HEAD (what will be committed).
+
+                - Options explanation
+                    * `git diff` (no options) compares working directory to index.
+                    * `git diff --staged` compares index to last commit (HEAD).
+
+
+     3) Commits: structure and parent pointers
+    ----------------------------------------------
+- A commit object stores: tree SHA, zero-or-more parent SHAs, author/committer, timestamp, commit message.
+- A commit can have multiple parents (a merge).
+- The parent pointer(s) let Git build a linked history (commit graph).
+
+    EG
+        # create a commit and inspect
+        # create two commits
+        echo "line3" >> a.txt
+        git add a.txt
+        git commit -m "add line3"
+
+        echo "x" > b.txt
+        git add b.txt
+        git commit -m "add b.txt"
+
+        # view last 3 commits
+        git log --oneline --decorate -n 3
+        # inspect one commit contents
+        git show --name-only HEAD
+        # raw commit view
+        git cat-file -p HEAD
+
+            - What happens:
+                * You create commits; `git log --oneline` shows short SHAs and messages.
+                * `git show` prints commit metadata and diff.
+                * `git cat-file -p` prints the raw commit object (tree, parent, author).
+
+            - Option explanation
+                * `git log --oneline`: condensed one-line-per-commit view.
+                * `git show --name-only`: prints commit info plus files changed.
+
+
+     4) Branches as pointers and HEAD
+    --------------------------------------
+- A branch is a movable pointer (a ref) that points to a commit (the tip).
+    * Branch = bookmark pointing to a commit. 
+
+- HEAD is a special pointer that indicates the currently checked-out commit. Normally `HEAD` points to a branch name (symbolic ref), e.g., `refs/heads/main`.
+- When you make a commit, Git updates the branch that `HEAD` points to to the new commit.
+    * HEAD = the bookmark you’re currently following.
+
+- Detached HEAD: when `HEAD` points directly to a commit SHA (not a branch). Commits made in detached HEAD are not reachable by any branch unless you attach them (create a branch), risking garbage collection.
+    * Detached HEAD = you’re looking at a past commit directly, not on any branch — if you write, the new notes can get lost unless you create a new bookmark.
+
+    EG.
+        # create branches, move HEAD, detached HEAD
+
+        # show current branch
+        git branch --show-current
+
+        # create a new branch and switch
+        git branch feature1
+        git checkout feature1
+        # or: git switch -c feature1
+
+        # create a commit on feature1
+        echo "feature" > feat.txt
+        git add feat.txt
+        git commit -m "feature1 start"
+
+        # go back to main branch
+        git checkout main
+        # look at log graph
+        git log --graph --oneline --all
+
+        # detach HEAD: checkout specific commit
+        SHA=$(git rev-parse HEAD~1)   # parent commit of HEAD
+        git checkout $SHA
+        git status   # shows 'HEAD detached at <sha>'
+        # make a commit in detached HEAD
+        echo "temp" > temp.txt
+        git add temp.txt
+        git commit -m "temp commit"
+        # recover: create a branch pointing to this temp commit
+        git branch save-temp
+        # now git checkout main to return to safety
+        git checkout main
+
+            - What happens:
+                * You create a branch and commit to it; that branch moves forward.
+                * Checking out a SHA leads to detached HEAD; commits there are not on a branch until you create one.
+
+            - Option explanation
+                * `git switch -c <name>` is newer alias to create and switch.
+                * `git rev-parse HEAD~1` resolves the parent commit SHA.
+                * `git log --graph --all` draws the commit graph across all refs.
+
+
+     5) SHA IDs (commit hashes) — what they are and how to use them
+    ----------------------------------------------------------------
+- Each object (blob/tree/commit/tag) has a SHA hash (historically SHA-1, Git now supports SHA-256 optionally).
+- SHAs are content-addressed: the ID depends on the object’s contents and metadata. That makes tampering detectable: changing content changes the SHA.
+- You can refer to commits by full SHA, short SHA, or symbolic names (HEAD, HEAD~2, branch name).
+    EG.
+        # show and use SHAs
+
+        # full sha of HEAD
+        git rev-parse HEAD
+
+        # short sha in logs
+        git log --oneline -n 5
+
+        # refer to older commit by relative syntax
+        git show HEAD~2    # shows the commit 2 ancestors back
+
+        # show object type
+        git cat-file -t HEAD
+        git cat-file -t $(git rev-parse HEAD^{tree})  # shows 'tree'
+
+            - What happens:
+                * `git rev-parse` prints SHA.
+                * `HEAD~2` is shorthand to move back in history.
+                * `git cat-file -t` prints object type.
+
+            - Option explanation
+                * `{}` and `^{tree}` are revision syntax for dereferencing to tree objects.
+
+
+     6) Commands to inspect the three trees & history — many concrete examples
+    ---------------------------------------------------------------------------
+1. Show status of working tree vs index
+    EG.
+        git status -s
+
+            - Explanation
+                * short status (unstaged vs staged) — outputs lines like ` M file` (modified but not staged) or `A  file` (staged for add).
+
+
+2. Show what exactly is in the index (staged files)
+    EG.
+        git ls-files --stage
+
+            - Explanation:
+                * prints entries in index with blob ID and mode; useful for understanding what `git add` stored.
+
+
+3. See contents of a blob by SHA (look at file stored in object db)
+    EG.
+        BLOB=$(git ls-files -s | awk '{print $2; exit}')
+        git cat-file -p $BLOB
+
+            - Explanation: 
+                * `git ls-files -s` prints staged entries (mode, sha, stage, name).
+                * We extract a blob SHA and `cat-file -p` prints its contents.
+
+
+4. Show commit history nicely
+    EG.
+        git log --pretty=fuller --stat -n 5
+
+            - Explanation:
+                * shows full author/committer info and stats for the last 5 commits.
+
+
+5. Show a single commit raw
+    EG.
+        git cat-file -p <commit_sha>
+
+            - Explanation:
+                * prints raw commit object with tree and parent.
+
+
+6. Show how branches point to commits
+    EG.
+        git show-ref --heads
+        git branch -v
+
+            - Explanation:
+                * `show-ref --heads` lists ref names and SHAs; `git branch -v` shows branch tips and last message.
