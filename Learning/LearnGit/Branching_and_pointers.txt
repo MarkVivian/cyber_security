@@ -17,6 +17,13 @@
                       dev
 
                     = The `*` shows current branch.
+                    = It only shows local branches.
+                    = If you want to see both remote and local branches:
+                        git branch -a 
+
+                    = If you want just remote branches 
+                        git branch -r 
+
 
             cat .git/refs/heads/main
 
@@ -67,6 +74,10 @@
 
 4. Switching Branches
     EG.
+        # how branches may look like:
+        remote/origin/main -> Remote branch
+        *master -> local branch
+
         git switch main
 
             # OR

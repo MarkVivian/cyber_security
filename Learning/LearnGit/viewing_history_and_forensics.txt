@@ -1,0 +1,334 @@
+                    SECTION 5: Viewing History & Forensics
+                  ------------------------------------------
+1. `git log` — how to read history (formats, filters)
+2. `git show` & `git diff` — inspect commits and changes
+3. `git blame` & `git annotate` — who changed a line and when
+4. Searching history (`-S`, `--grep`, `git grep`, `git rev-list | xargs git grep`)
+5. `git bisect` — find the commit that introduced a bug or change (automated test)
+6. `git reflog` — local reference history (recover lost commits)
+7. `git fsck`, `git gc`, `git fsck --unreachable` and `git lost-found` — find dangling objects and recover
+8. Recovering deleted files/commits/branches — step-by-step examples
+9. Inspecting raw objects (`git cat-file`, `git rev-parse`, `git verify-pack`)
+10. Verifying signatures (`git show --show-signature`, `git verify-commit`)
+11. Practical forensic workflows (finding secrets, timeline building, evidence preservation)
+
+1. `git log` — reading the history
+    - `git log` walks commit history. It has many options to format and filter. Core flags:
+        > `--oneline` 
+            — condensed single-line per commit (short SHA + message)
+        > `--graph` 
+            — ASCII graph of branching
+        > `--decorate`
+             — show refs (branch/tag names)
+        > `-n N`
+             — show N commits
+        > `--pretty=format:"..."` 
+            — custom output
+        > `--since`, `--until`, `--author`, `--committer`
+             — filters
+        > `--stat`
+             — stats of changed files
+        > `-p` 
+            — full diff for each commit
+        > `--name-only` / `--name-status`
+             — filenames touched
+
+        EG.
+            # compact graph
+            git log --oneline --graph --decorate --all
+
+                * shows all reachable refs' history as a graph, compacted.
+            
+            # pretty and time window
+            git log --pretty=format:'%h %ad %an %s' --date=iso --since="2 days ago"
+
+                * prints short SHA (`%h`), ISO date, author, and subject for commits in the last 2 days.
+                * `--date=iso` changes date format; `--pretty=format:` gives custom placeholders.
+
+            # see changes and file stats
+            git log -p --stat -n 2
+                
+                * What happens: show diffs (`-p`) and per-commit file stats for the last 2 commits.
+
+
+2. `git show` & `git diff` — inspect a commit or changes
+    i. `git show`
+        - Shows metadata + patch for a commit or object.
+            EG.
+                git show HEAD
+                git show <commit-sha>
+                git show --name-only HEAD~1
+
+                    * What happens: `git show` prints commit header, author, date, and diff; `--name-only` prints changed filenames only.
+
+        - Difference between git show and git cat-file:
+            > Git show shows:
+                * Commit metadata (author, date, message)
+                * The patch (diff of changes)
+                * if it's a tag -> tag message.
+                * if it's a blob -> file content 
+
+            > Git cat-file shows:
+                * tree pointer 
+                * parent pointer 
+                * author 
+                * Committer
+                * message.
+                * but no diff.
+
+
+    ii. `git diff`
+        - Compares trees:
+            * Working dir vs index: `git diff`
+            * Index vs HEAD: `git diff --staged` (or `--cached`)
+            * Two commits: `git diff A B` or `git diff A..B`
+                EG.
+                    git diff        # unstaged changes
+                    git diff --staged
+                    git diff HEAD~1 HEAD
+
+                        * What happens: diffs show changed lines context. `A..B` shows what changed from A to B.
+
+
+3. `git blame` — who changed each line
+    - git blame <file>` annotates each line with the commit, author, and time that last changed that line.
+    - Useful flags:
+        * `-L <start>,<end>` — limit to line range
+        * `--porcelain` — machine-readable output
+            EG.
+                git blame file.txt
+                git blame -L 1,20 file.txt
+                git blame --line-porcelain file.txt | sed -n '1,6p'
+
+                    * What happens: each line shows commit SHA and author. `-L` scopes the blame.
+
+
+4. Searching history — `-S`, `--grep`, `git grep`, `git log --all -p`
+    - `git log -S'string' --all` searches for commits that added or removed a string (binary search on content changes).
+    - `git log --grep='regexp' --all` searches commit messages.
+    - `git grep 'pattern' $(git rev-list --all)` searches content across all commits (older approach).
+    - Modern `git grep` supports `--cached` and `--no-index` but not a direct all-commits search unless used with `git rev-list`.
+    - `git log -G'regex'` searches patch text changes by regex.
+        EG.
+            #F ind commits that introduced "password":
+            git log -S'password' --all --pretty=format:'%h %ad %an %s' --date=short
+
+                * lists commits where the byte sequence "password" was added or removed.
+
+            # Search commit messages for "secret":
+            git log --grep='secret' --all --oneline
+
+                * Search across all historical snapshots for a secret (slower):
+
+            git rev-list --all | xargs -n1 git grep -I --line-number 'PASSWORD' 2>/dev/null
+
+                *  `git rev-list --all` lists all commits; `git grep` searches each commit snapshot. This can be slow.
+
+
+5. `git bisect` — find the commit that introduced a behavior
+    - Binary search over commits.
+    - You mark a “good” commit and a “bad” commit and bisect will checkout a midpoint; you test and tell it good/bad until it isolates the offending commit.
+    - Can be automated with a test script.
+        EG.
+            git bisect start
+            git bisect bad           # current commit is bad
+            git bisect good v1.0     # commit/tag known good
+            # Git checks out midpoint
+            # Run your test (manual)
+            # If test fails:
+            git bisect bad
+            # If test passes:
+            git bisect good
+            # Repeat until done. Then:
+            git bisect reset
+
+                * What happens: isolates the exact commit that changed behavior.
+
+    - Automated example
+        EG.
+            # Create a `test.sh` that returns 0 for good, non-zero for bad, then:
+            git bisect start
+            git bisect bad
+            git bisect good v1.0
+            git bisect run ./test.sh
+
+                * What happens: Git runs the test at each midpoint automatically and narrows down.
+
+
+6. `git reflog` — local reference history, your safety net
+    - `reflog` records where HEAD and refs pointed over time on your local clone, even across resets.
+    - Useful for retrieving “lost” commits after `git reset --hard` or branch deletion — but reflog is local only (not transferred to remote).
+        EG.
+            # Show HEAD history:
+            git reflog
+
+                # output line:
+                 abc1234 HEAD@{2}: commit: add something
+
+
+            # Recover a commit lost after reset:
+                # find SHA in reflog, then:
+                git checkout -b recovered abc1234
+                # or restore file from that commit:
+                git checkout abc1234 -- path/to/file
+                    OR 
+                git switch --detach <commit>
+
+                    * What happens: reflog shows recent ref movements. You can create a branch pointing at a reflog commit to make it reachable again.
+                    * reflog entries age and can be expired, and are local.
+
+
+7. `git fsck` & unreachable objects — find dangling commits
+    - `git fsck --unreachable --no-reflogs` will list unreachable objects (dangling blobs/commits) that are not referenced by any commit or reflog.
+    - `git fsck --lost-found` places objects into `.git/lost-found`.
+        EG.
+            git fsck --unreachable --no-reflogs
+            # to inspect one dangling commit
+            git show <dangling-sha>
+            # to recover:
+            git branch recovered <dangling-sha>
+
+                * What happens: lists objects that are still in object DB but unreachable — you can view and reattach them.
+                **Note:** If `git gc` has run with pruning, these may be purged after expiry period.
+
+
+8. Recovering deleted files and commits — scenarios & examples
+    A) Recover a deleted file from last commit
+        - If someone deleted `secret.txt` and you want the version in previous commit:
+            EG.
+                git checkout HEAD~2 -- secret.txt    # copy file from commit into working tree
+                # or
+                git restore --source HEAD~2 -- secret.txt
+
+                    * What happens: copies file from the specified commit into your working directory; file is unstaged.
+
+     B) Recover a file from any commit by searching
+        - Find commit with file:
+            EG.
+                git log --all --pretty=format:'%h %ad %an %s' --date=short -- file.txt
+                # then git checkout <sha> -- file.txt
+
+                    * What happens: shows commits that touched `file.txt`, then checkout the desired version.
+
+     C) Recover a commit after `git reset --hard` (use reflog)
+        EG.
+            git reflog
+            # find SHA where HEAD pointed before reset
+            git branch recover <sha>
+            git checkout recover
+
+                * What happens: reflog shows old HEAD, you create a branch to preserve it.
+
+     D) Recover after branch deletion (local)
+        EG.
+            git reflog show --all
+            # find commit SHA that was the branch tip
+            git branch branch-recover <sha>
+
+
+     E) Recover after force-push overwrite (remote)
+        - If remote was forced and you had no local copy → harder. Options:
+            * Check other clones (CI, teammates) for objects.
+            * If you had the commit locally before push, reflog may help.
+            * Ask hosting provider (sometimes they have backups), or look at `refs/original/` if `git filter-branch` was used.
+
+
+     9) Inspecting raw objects: `git cat-file`, `git rev-parse`, `git verify-pack`
+        EG.
+            # `git cat-file`
+
+            git rev-parse HEAD^{tree}          # tree SHA
+            git cat-file -p <object>          # pretty print object
+            git cat-file -p <commit-sha>      # commit content
+            git cat-file -p <blob-sha>        # file content
+
+                * What happens: view raw contents of objects and metadata.
+
+            # `git verify-pack` (advanced)
+            #List packfile objects and sizes:
+            git gc --aggressive --quiet        # optional; careful
+            git verify-pack -v .git/objects/pack/pack-*.idx | sort -k3 -n
+
+                * What happens: inspects packfile index to find large objects; useful for finding big blobs (leaked secrets, large files).
+
+10. Verifying commit/tag signatures
+    - Git supports signed commits and tags via GPG:
+        * `git show --show-signature <sha>` shows GPG signature
+        * `git verify-commit <sha>` verifies the signature
+        * `git verify-tag <tag>` verifies a tag
+            EG.
+                git show --show-signature HEAD
+                git verify-commit <sha>
+
+                    * What happens: checks cryptographic signature validity if present.
+
+
+11. Forensic workflows / hunting secrets & evidence
+    EG.
+        # Make a safe copy of the `.git` directory (evidence preservation):
+            cp -a repo/.git /tmp/repo_git_copy
+    
+        # Build a timeline:
+            git log --pretty=format:'%h %cd %an %s' --date=iso --all --reverse
+    
+        # Search for sensitive strings (secrets, keys):
+            # search commits that introduced/removed a string
+            git log -S'API_KEY' --all --pretty=format:'%h %ad %an %s' --date=short
+        
+            # or brute-force across all objects (slow)
+            git rev-list --all | xargs -n1 git grep -I --line-number 'PASSWORD' 2>/dev/null
+                
+                * `-S` finds commits that added or removed the exact string. The rev-list+xargs method inspects every commit snapshot.
+
+        #  If you find a leak, extract commit SHA and use `git show <sha>:path` or `git cat-file -p` to capture exact contents for evidence.
+
+        # Recover the object and create an isolated branch for analysis:
+        git branch forensics-<date> <sha>
+    
+        # If you need history from other clones, ask teammates or check CI/CD artifacts; `git bundle` can transport repos.
+
+
+12. Practical examples — short, precise, copy-paste then explanation
+    EG.
+        # find when a function `do_crypt()` was added
+        git log -S'do_crypt(' --source --all --pretty=format:'%h %ad %an %s' --date=short
+    
+            * lists commits where the exact byte sequence `do_crypt(` was added or removed.
+
+        # recover a file deleted 5 commits ago
+            # find commit that contained it
+            git log --all -- file.txt
+            # pick a commit sha (ABC123)
+            git checkout ABC123 -- file.txt
+            # verify file contents, then commit or save
+
+                * What happens: checkout copies file from historical commit into working dir.
+
+        # find large files stored in history
+        git rev-list --objects --all \
+        | sed -n '1,200000p' \
+        | git cat-file --batch-check='%(objectname) %(objecttype) %(objectsize) %(rest)' \
+        | awk '$3 >= 1048576 {print $0}' \
+        | sort -k3 -n -r
+
+            * What happens: lists objects >=1MB with sizes — helps find big blobs (possible exfiltration).
+
+        # inspect dangling commits and recover
+        git fsck --unreachable --no-reflogs
+        # suppose it prints: unreachable commit <sha>
+        git show <sha>
+        git branch recovered <sha>
+        
+            *What happens: detects unreachable items and you inspect & branch them.
+
+    # automated bisect with a test script
+        #Create a `fails.sh` that exits 0 for good, 1 for bad:
+        git bisect start
+        git bisect bad          # current commit is bad
+        git bisect good v1.0    # known good
+        git bisect run ./fails.sh
+        # after bisect finishes:
+        git bisect reset
+            
+            * What happens: bisect runs script to automatically label commits good/bad until it finds the guilty commit.
+

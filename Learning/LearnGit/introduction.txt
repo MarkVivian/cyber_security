@@ -49,6 +49,11 @@
 
             * If you run those, you’ll see the mapping: commit → tree → blob (for `a.txt`).
 
+        git cat-file -t <sha>   # type
+        git cat-file -s <sha>   # size
+        git cat-file -p <sha>   # pretty print raw object
+
+
 
      2) The three working areas (Working Directory, Index/staging, Repository)
     -----------------------------------------------------------------------------
@@ -151,26 +156,50 @@
         git log --graph --oneline --all
 
         # detach HEAD: checkout specific commit
-        SHA=$(git rev-parse HEAD~1)   # parent commit of HEAD
-        git checkout $SHA
-        git status   # shows 'HEAD detached at <sha>'
-        # make a commit in detached HEAD
-        echo "temp" > temp.txt
-        git add temp.txt
-        git commit -m "temp commit"
-        # recover: create a branch pointing to this temp commit
-        git branch save-temp
-        # now git checkout main to return to safety
-        git checkout main
+            SHA=$(git rev-parse HEAD~1)   # parent commit of HEAD
+            git checkout $SHA
+            git status   # shows 'HEAD detached at <sha>'
+            # make a commit in detached HEAD
+            echo "temp" > temp.txt
+            git add temp.txt
+            git commit -m "temp commit"
+            # recover: create a branch pointing to this temp commit
+            git branch save-temp
+            # now git checkout main to return to safety
+            git checkout main
 
-            - What happens:
-                * You create a branch and commit to it; that branch moves forward.
-                * Checking out a SHA leads to detached HEAD; commits there are not on a branch until you create one.
+                - What happens:
+                    * You create a branch and commit to it; that branch moves forward.
+                    * Checking out a SHA leads to detached HEAD; commits there are not on a branch until you create one.
 
-            - Option explanation
-                * `git switch -c <name>` is newer alias to create and switch.
-                * `git rev-parse HEAD~1` resolves the parent commit SHA.
-                * `git log --graph --all` draws the commit graph across all refs.
+                - Option explanation
+                    * `git switch -c <name>` is newer alias to create and switch.
+                    * `git rev-parse HEAD~1` resolves the parent commit SHA.
+                    * `git log --graph --all` draws the commit graph across all refs.
+
+        # stage all tracked modified files automatically before comitting:
+        git add -u 
+        git commit 
+            OR 
+        git commit -a 
+
+            * does not stage untracked files.
+
+
+        # modify last commit.
+        git add forgotten.txt 
+        git commit --amend
+
+            - Rewrites history.
+
+        # updating tracked files only.
+        git add -u 
+
+        # stage modified, new , deleted data (everything)
+        git add -A 
+
+        # create empty commit 
+        git commit --allow-empty 
 
 
      5) SHA IDs (commit hashes) — what they are and how to use them
