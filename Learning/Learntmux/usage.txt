@@ -220,6 +220,26 @@
 							AND
 						press ]
 
+	- If you want to check history:
+		EG.
+			press CTRL + B 
+				AND 
+			PRESS =
+
+				- Use your Arrow Keys to scroll through everything you've ever copied in this session.
+				- This list shows the beginning of the text so you can identify it.
+				- Press Enter on the one you want, and it will immediately paste it into your active pane.
+
+				OR 
+			tmux list-buffers
+
+				# OUTPUT.
+				buffer0: 15 bytes : "sudo systemctl"
+				buffer1: 22 bytes: "80:12:45:00:9D:02"
+
+				- Pase a specific one:
+					tmux paste-buffer -b 1
+
 						
 		Steps to Merge Two tmux Windows into One with Panes:
 	--------------------------------------------------------------

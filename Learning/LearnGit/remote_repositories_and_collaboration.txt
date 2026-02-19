@@ -1,0 +1,214 @@
+                # SECTION 6 — REWRITING HISTORY, REBASING, SQUASHING, CHERRY-PICK & TAGS
+                =========================================================================
+1. `git commit --amend`
+    - This modifies the **last commit**.
+        EG.
+            # forgot a file
+            git add missing.txt
+            git commit --amend
+
+                * Git replaces the previous commit.
+                * New commit gets a new SHA.
+                * Old commit becomes unreachable (unless reflog).
+
+            # Change only the message
+            git commit --amend -m "Better message"
+
+                * Same commit content, new message, new SHA.
+                * Never amend commits that were already pushed to shared repos unless you know what you’re doing.
+
+
+2. `git rebase`
+    - Rebase moves commits onto a different base.
+    - Imagine:        
+        main:    A---B---C
+        feature:        D---E
+
+    - If main gets new commits:
+        main:    A---B---C---F---G
+        feature:        D---E
+
+    - Now:
+        EG.
+            git checkout feature
+            git rebase main
+
+            > Result:
+                main:    A---B---C---F---G
+                feature:                    D'---E'
+
+                    * D and E are replayed on top of G.
+                    * They get new SHAs.
+
+    - Rebase vs Merge
+        > Merge creates a merge commit:
+                   D-----E
+                  /       \
+            A---B---C------M
+    
+        > Rebase rewrites history to look linear.
+            * Rebase = clean history.
+            * Merge = preserves actual branch structure.
+
+
+3. Interactive Rebase (`-i`) — the real power
+    EG.
+        git rebase -i HEAD~3
+
+            - This means:
+                “Rewrite the last 3 commits.”
+            
+            - You’ll see:
+                pick a1b2c3 first commit
+                pick d4e5f6 second commit
+                pick g7h8i9 third commit
+
+            - You can change:
+                * `pick` → keep
+                * `reword` → change message
+                * `edit` → modify commit
+                * `squash` → combine with previous
+                * `drop` → delete commit
+
+
+4. Squashing Commits
+    - If you made 3 messy commits and want 1 clean one:
+        EG.
+            pick a1b2c3
+            squash d4e5f6
+            squash g7h8i9
+
+                > Result:
+                    * All three become one commit.
+
+
+5. Dropping a Commit
+    - Change:
+        EG.
+            pick a1b2c3
+            drop d4e5f6
+            pick g7h8i9
+
+                * That middle commit disappears from history.
+                * Rewritten. Gone.
+                * Unless reflog rescues it.
+
+
+6. `git cherry-pick`
+    - This copies a commit from somewhere else.
+        EG.
+            # You are on main.
+            # You want one commit from feature.
+            git cherry-pick <commit-sha>
+
+                * Git applies that commit’s changes onto your current branch.
+                * New commit.
+                * New SHA.
+
+
+7. `git tag` 🔖
+    - Tags mark specific commits.
+    - They do NOT move.
+    - They are not branches.
+    - They are bookmarks.
+        * A permanent label to a specific comment.
+        * Example 
+            v1.0 -> C 
+
+            # even if you commit more:
+            A -- B -- C -- D -- E -- F -- G 
+                      ^         ^
+                    v1.0       main
+
+    - They are mostly used for:
+        * Software releases.
+        * Milestones
+        * Versioning.
+        * Marking important states.
+            EG.
+                v1.0
+                v1.1
+                v2.0
+                beta
+                production-ready
+
+                    > when someone says:
+                        " Download version 1.0"
+                    > They mean:
+                        "checkout the commit tagged v1.0"
+                        
+        EG.
+            # Lightweight Tag
+            git tag v1.0
+
+                * Just a name pointing to current commit.
+
+            # Annotated Tag (recommended)
+            git tag -a v1.0 -m "Release version 1.0"
+
+                > Stores:
+                    * Tagger
+                    * Date
+                    * Message
+
+                > Better for releases.
+
+            # Tag a specific commit
+            git tag -a v1.0 <commit-sha> -m "Release 1.0"
+
+            # List tags
+            git tag
+
+            # Show tag details
+            git show v1.0
+
+            # Push tags
+                # Tags are NOT pushed automatically.
+                git push origin v1.0
+
+                # Push all tags:
+                git push --tags
+
+            # Delete tag
+                # Local:
+                git tag -d v1.0
+                
+                # Remote:
+                git push origin --delete v1.0
+
+            # checkout a tag.
+            git checkout v1.0 
+
+                - This puts you in detached Head state.
+                - Because tags are not branches.
+                - They don't move.
+                - If you want to develop from a tag.
+                    git checkout -b new-branch v1.0 
+
+                        * Now you have a branch starting from that tagged commit.
+            
+            # Lightweight vs Annotated
+
+            | Lightweight  | Annotated           |
+            | ------------ | ------------------- |
+            | Just pointer | Full object         |
+            | No metadata  | Has message, author |
+            | No signature | Can be signed       |
+
+                
+                * Always use annotated for real releases.
+
+
+8. The Danger Rule
+    - Rewriting history (rebase, amend, drop, squash) is safe **only if commits are not pushed**.
+    - If already pushed:
+    - You must force push:
+        EG.
+            git push --force
+
+    - Better:
+        EG.
+            git push --force-with-lease
+
+                * This prevents overwriting someone else's new commits.
+

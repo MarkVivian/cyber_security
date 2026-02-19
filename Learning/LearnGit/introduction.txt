@@ -177,6 +177,45 @@
                     * `git rev-parse HEAD~1` resolves the parent commit SHA.
                     * `git log --graph --all` draws the commit graph across all refs.
 
+        # see what files are tracked.
+        # untracked means file that exist in the directory but git has never seen it.
+        # staged happens when 
+        git status 
+
+            - It shows:
+                * Untracked files.
+                * Modified tracked files.
+                * staged files.
+
+            - To list only tracked files:
+                git ls-files.
+
+                    * It shows everything git is currently tracking.
+                    * if a file appears here -> it is tracked.
+                    * if it doesn't -> it is untracked. 
+
+        # .gitignore exception.
+            - Let' say .gitignore contains:
+                *.log 
+               
+            - So all .log files are ignored.
+            - But you want:
+                important.log 
+
+            - To be tracked.
+            - In .gitignore, add:
+                *.log
+                !important.log
+
+                    * The ! negates the rule.
+                    * If the file was never tracked before, you may need:           
+                    git add -f important.log 
+
+                        -f means force add even if ignored.
+
+        # Stage that specific file only.
+        git add <file> 
+
         # stage all tracked modified files automatically before comitting:
         git add -u 
         git commit 
@@ -194,6 +233,13 @@
 
         # updating tracked files only.
         git add -u 
+
+            > Stages
+                * Modified tracked files.
+                * Deleted tracked fiels.
+            > But deosn't stage
+                * New untracked files.
+            -u means update what Git already knows about.
 
         # stage modified, new , deleted data (everything)
         git add -A 
