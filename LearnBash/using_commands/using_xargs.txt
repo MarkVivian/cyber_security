@@ -2,36 +2,51 @@
                     ===========
 - xargs reads items (words or lines) from standard input and builds one or more commands by appending those items as arguments.
 - It’s most often used to safely and efficiently feed lists (from find, grep, etc.) into other commands.
+- Even though xargs appears at the beginning of its section in the pipeline, its job is to act as a constructor.
+- It takes everything it receives from the pipe and glues it onto the tail/end of the command you've told to run.
 
 
             COMMON OPTIONS.
         -----------------------
-
-1. Basic : Turn lines into arguments.
-    - Use when you have one item per line and want to pass them all at once.
+1. Basic :
+    > Take input from a pipe and appends it to the end of the specified command:
         EG.
-            # List three names, one per line, and pass them to grep
-            printf "alice\nbob\ncarol\n" | xargs echo Hello
-
-                > What runs.
-                    echo Hello alice bob carol
+            ls *.txt | xargs rm 
                 
-                > Why 
-                    xargs replaces its standard input (the three lines) with arguments to echo.
+                - This takes all .txt files listed by ls and passes them as arguments to rm.
+                - It results in : 
+                    rm file1.txt file2.txt ...
+    
+    >  Turn lines into arguments.
+        - Use when you have one item per line and want to pass them all at once.
+            EG.
+                # List three names, one per line, and pass them to grep
+                printf "alice\nbob\ncarol\n" | xargs echo Hello
+
+                    > What runs.
+                        echo Hello alice bob carol
+                    
+                    > Why 
+                        xargs replaces its standard input (the three lines) with arguments to echo.
 
 
 2. Limit arguments per command (-n)
     - Use when a command can only handle N arguments at a time (or you want to batch)
-         echo -e "alice bob\nwanja" | xargs -n 1 echo Hello
+        EG. 
+            echo -e "alice bob\nwanja" | xargs -n 1 echo Hello
 
-            > What runs 
-                echo Hello alice
-                echo Hello bob
-                echo Hello wanja
+                > OUTPUT. 
+                    echo Hello alice
+                    echo Hello bob
+                    echo Hello wanja
 
-            > why 
                 -n tells xargs "use at most 1 items per invocation."
 
+            echo "1 2 3 4" | xargs -n 2 echo 
+
+                > OUTPUT.
+                    echo 1 2
+                    echo 3 4    
 
 3. Group by input lines(-L)
     - Use when you want to treat each input line (not word) as one batch.
@@ -57,13 +72,16 @@
                     ls -l "./some file.txt" etc., one or more at a time.
                 
                 > why:
+                    -print0 : used with find to seperate results with a "null" character instead of a space.
+                    -0 : Tells xargs to expect "null" characters as seperators, making it safe for files with spaces.
                     -print0/-0 use NULL (\0) separators- no chance of splitting inside a name.
 
 
 5. Placeholder (-I {})
     - Use when the item must go in the middle of the command or multiple times.
+    - NOTE : -I option automatically implies -n 1.
         EG.
-            echo report1 report2 | xargs -n1 -I {} cp {} /backup/{}
+            echo report1 report2 | xargs -I {} cp {} /backup/{}
 
                 > What runs:
                     cp report1 /backup/report1
