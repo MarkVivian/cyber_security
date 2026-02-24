@@ -1,4 +1,4 @@
-                            SHELL COMMANDS (NORMAL MODE)
+                            SHELL COMMANDS (COMMAND MODE)
                         =================================
 - 
 - The :! command allows you to execute external commands from within vim.
@@ -17,6 +17,8 @@
                 - Then you press Enter and you're back in vi.
 
 
+                        USAGE.
+                    --------------
 1. executing a command:
     EG.
         :!chmod +x %
@@ -113,3 +115,63 @@
             # Sort whole file.
             :%!sort 
 
+
+10. The "Sidebar" 
+    - Vim comes with a built-in file explorer called Netrw.
+        EG.
+            :Lexplore # opens the file explorer in a vertical split on the left side of the window.
+                OR 
+            :Vexplore # opens the file explorer in a vertical split on the right side of the window.
+                OR
+            :Texplore # opens the file explorer in a horizontal split at the bottom of the window
+
+                > To move between the file explorer and the main editing area, you can use the Ctrl-w w command, which cycles through the open windows in Vim.
+                    EG.
+                        press Ctrl + w
+                             THEN
+                        press w again to switch between the file explorer and the main editing area.
+
+                > To close the file explorer, you can use the :q command while the file explorer window is active.
+                    EG.
+                        press :q while in the file explorer to close it.
+
+
+11. Handing multiple tabs and windows.
+    > To create a new window in vim:
+        EG.
+            press :new to open a new window with an empty buffer
+                    OR
+            press :new filename to open a new window with the specified file
+    
+            > If we have multiple vim windows open and want to accurately travel between them:
+                EG.
+                    press Ctrl + w
+                            THEN
+                    press h to move to the left window
+                            OR
+                    press j to move to the window below
+                            OR
+                    press k to move to the window above
+                            OR
+                    press l to move to the right window
+
+            > To close the current window, you can use the :q command.
+                EG.
+                    press :q while in the window you want to close.
+
+
+    > To create a new tab in vim:
+        EG.
+            press :tabnew to open a new tab with an empty buffer
+                    OR
+            press :tabnew filename to open a new tab with the specified file
+
+            > If vim creates an entirely new tab and we want to switch between tabs:
+                EG.
+                    press gt to go to the next tab
+                            OR
+                    press gT to go to the previous tab
+
+            > To close the current tab, you can use the :tabclose command.
+                EG.
+                    press :tabclose while in the tab you want to close.

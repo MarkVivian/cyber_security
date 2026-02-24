@@ -1,5 +1,7 @@
                         MOVEMENT COMMANDS
                     =======================
+        MOVING WITHIN A FILE
+    ---------------------------
 h :
     - move left.
 
@@ -41,3 +43,258 @@ gg:
 
 G:
     - move to the bottom of the file.
+    - You can specify a line number before G to move to that specific line.
+        EG.
+            press 10G to move to the 10th line of the file.
+
+
+            EDITING WITHIN A FILE.
+        -------------------------------
+1. To select a word in visual mode:
+    EG.
+        press v to enter visual mode
+                THEN
+        press w to select the next word
+                OR
+        press b to select the previous word
+                OR
+        press e to select to the end of the current word
+                OR
+        press 0 to select to the beginning of the line
+                OR
+        press $ to select to the end of the line
+                OR
+        press gg to select from the current position to the top of the file
+                OR
+        press G to select from the current position to the bottom of the file   
+
+            > To exit visual mode, you can press the ESC key.
+                 EG.
+                    press ESC while in visual mode to exit back to normal mode.
+
+
+2. To select a block of text in visual mode:
+    EG.
+        press Ctrl + v to enter visual block mode
+                THEN
+        use the arrow keys to select a block of text across multiple lines and columns.
+
+
+3. To select an entire line in visual mode:
+    EG.
+        press V to enter visual line mode
+                THEN
+        use the arrow keys to select multiple lines of text.
+
+
+4. To copy and paste text:
+    > In visual mode:
+        EG.
+            # copy
+            press y while the text is selected to copy it to the clipboard.
+                    OR
+            press d while the text is selected to cut it (copy and delete) to the clipboard.
+
+            # paste
+            press p to paste the copied text after the cursor
+                    OR
+            press P to paste the copied text before the cursor.      
+            
+    > In normal mode:
+        EG.
+            # copy
+            press yy to copy the current line
+                    OR
+            press yw to copy from the cursor to the end of the current word
+                    OR
+            press yb to copy from the cursor to the beginning of the previous word
+                    OR
+            press y$ to copy from the cursor to the end of the line
+                    OR
+            press y0 to copy from the cursor to the beginning of the line
+                    OR
+            press ygg to copy from the cursor to the top of the file
+                    OR
+            press yG to copy from the cursor to the bottom of the file
+                    OR
+            press 2yy to copy two lines (or any number of lines by changing the number).
+                    OR
+            press y^ to copy from the cursor to the beginning of the line
+                    OR
+            press y} to copy from the cursor to the end of the paragraph
+
+            # paste
+            press p to paste the copied text after the cursor
+                    OR
+            press P to paste the copied text before the cursor.
+
+
+5. To delete text:
+    i. in visual mode:
+        EG.
+            press d while the text is selected to delete it.
+
+    ii. in normal mode:
+        EG.
+            press dd to delete the current line
+                    OR
+            press dw to delete from the cursor to the end of the current word
+                    OR
+            press db to delete from the cursor to the beginning of the previous word
+                    OR
+            press d$ to delete from the cursor to the end of the line
+                    OR
+            press d0 to delete from the cursor to the beginning of the line        
+                    OR 
+            press dgg to delete from the cursor to the top of the file
+                    OR
+            press dG to delete from the cursor to the bottom of the file
+                    OR 
+            press 2dd to delete two lines (or any number of lines by changing the number).
+                    OR 
+            press x to delete the character under the cursor. 
+                    OR
+            press X to delete the character before the cursor.
+
+
+6. To undo and redo changes:
+    EG.
+        press u to undo the last change
+                OR
+        press Ctrl + r to redo the last undone change.
+
+
+            MOVEMENT BETWEEN FILES, WINDOWS AND TABS 
+        --------------------------------------------
+1. Navigating with a sidebar:
+    EG.
+        press :Lexplore to open the file explorer in a vertical split on the left side of the window
+                OR
+        press :Vexplore to open the file explorer in a vertical split on the right side of the window
+                OR
+        press :Texplore to open the file explorer in a horizontal split at the bottom of the window
+
+            > To move between the file explorer and the main editing area, you can use the Ctrl-w w command, which cycles through the open windows in Vim.
+                EG.
+                    press Ctrl + w
+                         THEN
+                    press w again to switch between the file explorer and the main editing area.
+
+            > To close the file explorer, you can use the :q command while the file explorer window is active.
+                EG.
+                    press :q while in the file explorer to close it.
+
+
+2. To switch between open files (buffers):
+    EG.
+        press :bnext to switch to the next buffer
+                OR
+        press :bprev to switch to the previous buffer
+                OR
+        press :buffer filename to switch to a specific buffer by name
+                OR
+        press :ls to list all open buffers and their numbers, then press :buffer # to switch to a buffer by its number.
+
+
+3. To create and switch between windows (splits):
+    EG.
+        press :new to open a new window with an empty buffer
+                OR
+        press :new filename to open a new window with the specified file
+                OR
+        press :vnew to open a new vertical split window with an empty buffer
+                OR
+        press :vnew filename to open a new vertical split window with the specified file
+                OR
+        press :split to open a new horizontal split window with an empty buffer
+                OR
+        press :split filename to open a new horizontal split window with the specified file
+
+        > To switch between open windows (splits):
+            EG.
+                press Ctrl + w followed by h to move to the left window
+                        OR
+                press Ctrl + w followed by j to move to the window below
+                        OR  
+                press Ctrl + w followed by k to move to the window above
+                        OR
+                press Ctrl + w followed by l to move to the right window
+
+        > To close the current window, you can use the :q command.
+            EG.
+                press :q while in the window you want to close.
+
+
+4. To create and switch between tabs:
+    EG.
+        press :tabnew to open a new tab with an empty buffer
+                OR
+        press :tabnew filename to open a new tab with the specified file
+
+        > To switch between open tabs:
+            EG.
+                press gt to go to the next tab
+                        OR
+                press gT to go to the previous tab
+                        OR
+                press :tabn to go to the next tab
+                        OR
+                press :tabp to go to the previous tab
+                        OR
+                press :tabfirst to go to the first tab
+                        OR
+                press :tablast to go to the last tab
+
+        > To close the current tab, you can use the :tabclose command.
+            EG.
+                press :tabclose while in the tab you want to close.
+
+
+            SEARCHING AND REPLACE TEXT.
+        --------------------------------
+1. To search for text:
+    EG.
+        press / followed by the search term to search forward in the file
+            * Note: search forward means searching from the current cursor position towards the end of the file.
+                OR
+        press ? followed by the search term to search backward in the file
+            * Note: search backward means searching from the current cursor position towards the beginning of the file.
+                OR
+        press * to search for the word under the cursor forward
+                OR
+        press # to search for the word under the cursor backward    
+                OR
+        press g* to search for the word under the cursor forward as a substring
+                OR
+        press g# to search for the word under the cursor backward as a substring
+
+                > After searching, pressing n will go to the next occurrence of the search term in the same direction as the original search.
+                    EG.
+                        press n after searching forward to go to the next occurrence forward
+                                OR
+                        press n after searching backward to go to the next occurrence backward
+
+
+2. To replace text:
+    EG.
+        press :s/old/new to replace the first occurrence of "old" with "new" in the current line
+                OR
+        press :s/old/new/g to replace all occurrences of "old" with "new" in the current line
+                OR
+        press :%s/old/new/g to replace all occurrences of "old" with "new" in the entire file
+                OR
+        press :%s/old/new/gc to replace all occurrences of "old" with "new" in the entire file with confirmation before each replacement
+                OR
+        press :s/old/new/gc to replace all occurrences of "old" with "new" in the current line with confirmation before each replacement
+                OR
+        press :%s/old/new/gi to replace all occurrences of "old" with "new" in the entire file, ignoring case
+                OR
+        press :s/old/new/gi to replace all occurrences of "old" with "new" in the current line, ignoring case
+                OR
+        press :%s/\<old\>/new/g to replace only whole word occurrences of "old" with "new" in the entire file
+                OR
+        press :s/\<old\>/new/g to replace only whole word occurrences of "old" with "new" in the current line
+                OR
+        press :%s/old/new/gc to replace all occurrences of "old" with "new" in the entire file with confirmation before each replacement, ignoring case
+                OR
+        press :s/old/new/gc to replace all occurrences of "old" with "new" in the current line with confirmation before each replacement, ignoring case
