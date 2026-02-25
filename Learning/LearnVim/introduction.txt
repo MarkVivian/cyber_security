@@ -24,4 +24,9 @@
 		:q!
 
 
+- To close all the windows and exit vim:
+	EG.
+		:qa!
+
+			
 

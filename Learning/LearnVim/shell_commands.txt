@@ -1,6 +1,5 @@
                             SHELL COMMANDS (COMMAND MODE)
                         =================================
-- 
 - The :! command allows you to execute external commands from within vim.
 - The : and ! mean different things:
     : > is used to execute vim commands.
@@ -143,6 +142,10 @@
                     OR
             press :new filename to open a new window with the specified file
     
+            > If you want to replace the content in a window with a different file
+                EG.
+                    press :e filename while in the window you want to change.
+
             > If we have multiple vim windows open and want to accurately travel between them:
                 EG.
                     press Ctrl + w
@@ -166,6 +169,11 @@
                     OR
             press :tabnew filename to open a new tab with the specified file
 
+            > To move tabs to different positions
+                EG.
+                     :tabmove +1 # Move the current tab one position to the right.
+                     :tabmove 0 # move current tab to the very first position.
+
             > If vim creates an entirely new tab and we want to switch between tabs:
                 EG.
                     press gt to go to the next tab
@@ -175,3 +183,164 @@
             > To close the current tab, you can use the :tabclose command.
                 EG.
                     press :tabclose while in the tab you want to close.
+
+
+12. Saving sessions.
+    - Vim allows you to save your current editing session, including open files, window layouts, and other settings, so that you can easily restore it later.
+        EG.
+            :mksession filename.vim saves the current session to a file named filename.vim.
+            :mksession! filename.vim saves the session and overwrites the file if it already exists.
+
+                * the ! allows you to overwrite an existing session file without prompting for confirmation.
+                * This can be useful if you want to quickly update your session file with the latest changes without having to confirm each time.
+
+            > To restore a saved session, you can use the :source command followed by the session file name.
+                EG.
+                    :source filename.vim restores the session saved in filename.vim, reopening all files and windows as they were when you saved the session.
+
+            > To open vim with the saved session:
+                EG.
+                    vim -S filename.vim starts vim and automatically sources the session file, restoring your previous editing environment right away.
+
+                        * -S is a shortcut for --session, which tells vim to load the specified session file on startup.
+
+
+13. seeing the last changes done to a file.
+    - Vim has a feature called the "change list" that keeps track of the locations of recent changes made to a file.
+        EG.
+            press g; to jump to the location of the last change made in the file.
+                    OR
+            press g, to jump to the location of the previous change before that.
+
+                * This can be helpful for quickly navigating back to recent edits, especially if you've made multiple changes and want to review them or continue editing from those points.
+
+    - To see the list of all changes, you can use the :changes command, which displays a list of recent changes along with their line numbers and timestamps.
+        EG.
+            :changes shows a list of recent changes in the file, allowing you to see where and when each change was made.
+
+                * This can be useful for tracking your editing history and quickly jumping to specific changes using g; and g, commands.
+
+
+14. seeing if the original file has been modified by another program.
+    - Vim has a feature that detects if the file you're editing has been modified by another program since you opened it.
+        EG.
+            If you try to save changes to a file that has been modified externally, vim will display a warning message like "E37: No write since last change (add ! to override)" and prevent you from overwriting the changes made by the other program.
+
+                * This is a safety feature to prevent accidental data loss by overwriting changes made by other programs without your knowledge.
+
+            > To override this warning and force vim to save your changes, you can add an exclamation mark (!) to the write command.
+                EG.
+                    :w! forces vim to save your changes even if the file has been modified externally, allowing you to overwrite the changes made by the other program.
+
+                        * Use this with caution, as it can lead to data loss if you're not aware of the external modifications.
+
+
+15. Configuration of vim.
+    - The :set command allows you to configure various options in vim.
+    - To set the same configuration to all the:
+        EG.
+            # Windows
+              :windo set <command>
+              
+            # Tabs
+              :tabdo set <command> 
+
+            # Every file(buffer) you have loaded.
+              :bufdo set <command>
+
+    - You can use it to enable or disable features, change the behavior of vim, and customize your editing experience.
+        EG.
+            # makes tab look like 4 spaces. Difference between this and expandtab is that this only changes the visual representation of tabs, while expandtab actually converts tabs to spaces in the file.
+            :set tabstop=4
+
+            # convert tab key into actual spaces. This can be helpful for maintaining consistent indentation, especially in programming languages where indentation is significant.
+            :set expandtab 
+
+            # disable the conversion of tabs to spaces, allowing you to use actual tab characters for indentation. This can be helpful if you prefer using tabs for indentation or if you're working on a project that requires the use of tabs.
+            :set noexpandtab
+
+            # enabling syntax highlighting.
+            :syntax on
+
+            # disabling syntax highlighting.
+            :syntax off
+            
+            # enabling line numbers.
+            :set number
+
+            # disabling line numbers.
+            :set nonumber
+
+            # enabling relative line numbers. This allows you to see the line numbers relative to the current line, which can be helpful for navigation and editing.
+            :set relativenumber
+                
+                * You can use relative line numbers to move a specific number of lines up or down.
+                  EG.
+                    press 5j to move down 5 lines
+                            OR
+                    press 3k to move up 3 lines
+            
+            # disabling relative line numbers.
+            :set norelativenumber
+
+            # enabling auto-indentation. This makes vim automatically indent new lines to match the indentation of the previous line, which can be helpful for writing code.
+            :set autoindent
+
+            # disabling auto-indentation.
+            :set noautoindent
+
+            # enabling syntax-based indentation. This allows vim to automatically indent lines based on the syntax of the file, which can be helpful for writing code in languages with complex indentation rules.
+            :set smartindent
+
+            # disabling syntax-based indentation.
+            :set nosmartindent
+
+            # enabling line wrapping. This allows long lines to wrap onto the next line, which can be helpful for readability.
+            :set wrap
+
+            # disabling line wrapping. This keeps long lines on a single line, which can be helpful for editing code or working with files that have long lines.
+            :set nowrap
+
+            # enabling search highlighting. This highlights all occurrences of the search pattern in the file, which can be helpful for finding and editing specific text.
+            :set hlsearch
+
+            # disabling search highlighting. This turns off the highlighting of search matches, which can be helpful if you find it distracting.
+            :set nohlsearch
+
+            # enabling incremental search. This allows you to see search matches as you type the search pattern, which can be helpful for finding the right match quickly.
+            :set incsearch
+
+            # disabling incremental search. This turns off the incremental search feature, which can be helpful if you find it distracting.
+            :set noincsearch
+
+            # enabling case-insensitive search. This allows you to search for text without worrying about case, which can be helpful for finding matches regardless of capitalization.
+            :set ignorecase
+
+            # disabling case-insensitive search. This makes searches case-sensitive, which can be helpful if you want to find matches that exactly match the case of your search pattern.
+            :set noignorecase
+
+            # enabling smart case search. This makes searches case-sensitive only if the search pattern contains uppercase letters, which can be helpful for finding matches that are more specific.
+            :set smartcase  
+
+            # disabling smart case search. This makes searches case-sensitive regardless of the presence of uppercase letters in the search pattern, which can be helpful if you want to enforce case sensitivity in all searches.
+            :set nosmartcase
+
+            # enabling mouse support. This allows you to use the mouse for various actions in vim, such as clicking to move the cursor, selecting text, and resizing windows, which can be helpful for users who prefer using the mouse for certain tasks.
+            :set mouse=a
+
+            # disabling mouse support. This turns off mouse support in vim, which can be helpful for users who prefer to use the keyboard for all interactions. 
+            :set mouse=
+
+            # enabling line highlighting. This highlights the current line, which can be helpful for keeping track of your position in the file.
+            :set cursorline
+
+            # disabling line highlighting. This turns off the highlighting of the current line, which can be helpful if you find it distracting.
+            :set nocursorline   
+
+            # enabling column highlighting. This highlights the current column, which can be helpful for keeping track of your position in the file, especially when working with wide files or code.
+            :set cursorcolumn
+
+            # disabling column highlighting. This turns off the highlighting of the current column, which can be helpful if you find it distracting.
+            :set nocursorcolumn
+
+            

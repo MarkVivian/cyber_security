@@ -41,6 +41,7 @@ $ :
 gg:
     - move to the top of the file.
 
+
 G:
     - move to the bottom of the file.
     - You can specify a line number before G to move to that specific line.
@@ -48,6 +49,17 @@ G:
             press 10G to move to the 10th line of the file.
 
 
+o:
+    - Opens a new line below the current line and puts you in insert mode.
+ 
+
+O
+    - Opens a new line above the current line and puts you in insert mode.
+
+kk:
+        - Pressing k twice quickly will move the cursor up two lines.
+
+        
             EDITING WITHIN A FILE.
         -------------------------------
 1. To select a word in visual mode:
@@ -164,6 +176,41 @@ G:
         press Ctrl + r to redo the last undone change.
 
 
+7. To tab/indent lines:
+        i. in visual mode:
+           EG.
+                press > to indent the selected lines to the right
+                        OR
+                press < to indent the selected lines to the left
+
+        ii. in normal mode:
+            EG.
+                press >> to indent the current line to the right
+                        OR
+                press << to indent the current line to the left
+                        OR
+                press 3>> to indent the current line and the next 2 lines to the right
+                        OR
+                press 3<< to indent the current line and the next 2 lines to the left
+
+        iii. in insert mode:
+            EG.                
+                press Tab to insert a tab character or spaces (depending on your settings) to indent the current line to the right
+                    OR
+                press Shift + Tab to unindent the current line to the left
+
+                    > To change the number of spaces inserted when you press Tab, you can set the 'tabstop' option.
+                        EG.
+                            :set tabstop=4 to insert 4 spaces when you press Tab.
+                            :set tabstop=8 to insert 8 spaces when you press Tab (default).
+                            :set tabstop=0 to insert a real tab character when you press Tab.
+                            :set expandtab to insert spaces instead of a real tab character when you press Tab.
+                            :set noexpandtab to insert a real tab character when you press Tab.
+                            :set shiftwidth=4 to use 4 spaces for each step of indentation when you press > or < in visual mode or normal mode.
+                            :set shiftwidth=8 to use 8 spaces for each step of indentation when you press > or < in visual mode or normal mode (default).
+                            :set shiftwidth=0 to use the same number of spaces as 'tabstop' for each step of indentation when you press > or < in visual mode or normal mode.
+
+
             MOVEMENT BETWEEN FILES, WINDOWS AND TABS 
         --------------------------------------------
 1. Navigating with a sidebar:
@@ -210,6 +257,14 @@ G:
                 OR
         press :split filename to open a new horizontal split window with the specified file
 
+        > To move the position of the window.
+          EG.
+               ctrl + w then r : Rotate windows (swaps positions)
+                    OR
+               ctrl + w then H/J/K/L : Move the current window to the Far Left/Bottom/Top/Far Right. (use capital letters)
+                    OR
+               ctrl + w then = : make all windows equal size. 
+                    
         > To switch between open windows (splits):
             EG.
                 press Ctrl + w followed by h to move to the left window
@@ -230,6 +285,12 @@ G:
         press :tabnew to open a new tab with an empty buffer
                 OR
         press :tabnew filename to open a new tab with the specified file
+
+            > To move tabs to different positions
+                EG.
+                     :tabmove +1 # Move the current tab one position to the right.
+                     :tabmove 0 # move current tab to the very first position.
+
 
         > To switch between open tabs:
             EG.
