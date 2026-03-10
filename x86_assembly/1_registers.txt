@@ -1,0 +1,48 @@
+                        REGISTRERS
+                    =====================
+- Modern (i.e 386 and later) x86 processors have 8 general purpose registers, each of which is 32 bits wide.
+- These registers are named EAX, EBX, ECX, EDX, ESI, EDI, EBP, and ESP.
+- The register names are mostly historical
+    EG.
+        * EAX used to be called the acuumulator since it was used by a number of arithmetic operations
+        * ECX was known as the counter since it was used to hold a loop index.
+
+- Whereas most of the registers have lost their special purposes in the modern instruction set, by convention, two are reserved for special purposes 
+    * the stack pointer (ESP)
+    * the base pointer (EBP)
+
+                                         <--------- 16 bits -------->
+                                            8 bits        8 bits 
+        |-------------------------------|-------------|-------------|   <---|
+     EAX|                             AX|      AH     |     AL      |       |
+        |-------------------------------|-------------|-------------|       |
+     EBX|                             BX|      BH     |     BL      |       |
+        |-------------------------------|-------------|-------------|       |
+     ECX|                             CX|      CH     |     CL      |       |-- General-purpose Registers.
+        |-------------------------------|-------------|-------------|       |
+     EDX|                             DX|      DH     |     DL      |       |
+        |-------------------------------|-------------|-------------|       |
+     ESI|                                                           |       |
+        |-----------------------------------------------------------|       |
+     EDI|                                                           |       |
+        |-----------------------------------------------------------|   <---|
+     ESP|                                                           |   (Stack Pointer)
+        |-----------------------------------------------------------|   
+     EBP|                                                           |   (Base pointer)
+        |-----------------------------------------------------------|
+        <----------------------- 32 bits --------------------------->
+
+- For the EAX, EBX, ECX and EDX registers, subsections may be used.
+    EG.
+        the least significant 2 bytes of EAX can be treated as a 16-bit register called AX 
+            the least significant byte of AX can be treated as a 8-bit register called AL.
+            the most significant byte of AX can be treated as a 8-bit register called AH.
+        
+        * This names refer to the same physical register.
+        * When a two-byte quantity is placed into DX, the update affects the value of DH, DL and EDX.
+        * These sub-registers are mainly hold-overs from older, 16-bit versions of the instruction set.
+        * Howerver, they are sometimes convenient when dealing with data that are smaller than 32-bits (e.g. 1-byte ASCII characters)
+
+- When referring to registers in assembly language, the names are not case-sensitive.
+    EG.
+        the names EAX and eax refer to the same register.

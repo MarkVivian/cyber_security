@@ -1,0 +1,120 @@
+                                    MEMORY AND ADDRESSING MODES.
+                                ==================================
+        I. DECLARING STATIC DATA REGIONS.
+    --------------------------------------
+- You can declare global variables (similar to static data regions) in x86 assembly using special assembler directives.
+- Data declarations should be preceded by the `.DATA` directive.
+- All the variables are mutable by default, but you can use the `CONST` directive to declare a variable as a constant (i.e. immutable).
+- Following this directive, the directives:
+    * `DB` (Define Byte) - declares a byte (8 bits) of data.
+                         -a byte can store
+                            * values from 0 to 255.
+                            * a single ASCII character e.g. 'A' (which has the ASCII value of 65) or 'B' (which has the ASCII value of 66).
+                                > Note: when declaring a byte with a character, the assembler will automatically convert the character to its corresponding ASCII value and store that value in the byte.
+                                
+    * `DW` (Define Word) - declares a (2 byte) word (16 bits) of data.
+                         - 2 bytes can store
+                            * values from 0 to 65535.
+                            * two ASCII characters e.g. 'AB' (which has the ASCII value of 65 for 'A' and 66 for 'B', so the word would store the combined value of 65 and 66).
+
+    * `DD` (Define Doubleword) - declares a (4 byte) doubleword (32 bits) of data.
+                            - 4 bytes can store
+                                * values from 0 to 4294967295.
+                                * four ASCII characters e.g. 'ABCD' (which has the ASCII value of 65 for 'A', 66 for 'B', 67 for 'C', and 68 for 'D', so the doubleword would store the combined value of 65, 66, 67, and 68).
+
+- Declared locations can be labbeled with names for later reference - This is similar to declaring variables by name, but abides by some lower level rules.
+    EG.
+        # locations declared in sequence will be located in memory next to one another.
+        .DATA 
+        var1 DB 64 : Declare a byte with the value 64 and label it var1. 
+        
+        var2 DB 'A' : Declare a byte with the value of the ASCII character 'A' (which is 65) and label it var2.
+                    : the quotations ('') are mandatory when declaring a byte with a ASCII character.
+
+        var3 DW BD : Declare a word with the value of the ASCII characters 'B' and 'D' (which are 66 and 68 respectively) and label it var3.
+        var4 DD ABCD : Declare a doubleword with the value of the ASCII characters 'A', 'B', 'C', and 'D' (which are 65, 66, 67, and 68 respectively) and label it var4.
+
+            DB 10 : Declare a byte with the value 10, but do not label it. This is useful for declaring data that does not need to be referenced later in the program.
+                  : Its location is var4 + 1 since its in sequence after var4, but it cannot be referenced by name since it does not have a label.
+                  : why would you want to declare data that does not need to be referenced later in the program? 
+                        * This can be useful for declaring constants or for reserving space in memory for future use.
+                        * so the space can be used later in the program to store data that is generated during runtime.
+         
+        var5 DB ? : Declare a byte with an unknown value and label it var5. This is useful for reserving space in memory for future use, but the value will be determined at runtime.
+
+        var6 DB 1, 2, 3 : Declare three bytes with the values 1, 2, and 3 respectively and label the first byte var6. The second and third bytes do not have labels, but they are located in memory immediately after var6.
+                        : Even though the location of 2 and 3 can be calculated as var6 + 1 and var6 + 2 respectively, they cannot be referenced by name since they do not have labels.
+
+        var 7 DD ct,cl,ad : Declare three doublewords with the values of the ASCII characters 'c', 't', 'c', 'l', 'a', and 'd' (which are 99, 116, 99, 108, 97, and 100 respectively) and label the first doubleword var7.
+                          : The second and third doubleword do not have labels, but they are located in memory at var7 + 4 and var7 + 8 respectively since each doubleword is 4 bytes in size.
+                          : if you wanted to access the second and third doublewords of var7, how would you do that since they do not have labels?
+                                * You can access the second and third doublewords of var7 using pointer arithmetic. For example, you can use the following code to access the second doubleword:
+                                    MOV EAX, [var7 + 4] : This will move the value of the second doubleword (which is 'cl' or 99,108) into the EAX register.
+                                * Similarly, you can access the third doubleword using:
+                                    MOV EAX, [var7 + 8] : This will move the value of the third doubleword (which is 'ad' or 97,100) into the EAX register.
+                         : if you want to access the first doubleword of var7, how would you do that since it is labeled as var7?
+                                * You can access the first doubleword of var7 using:
+                                    MOV EAX, [var7] : This will move the value of the first doubleword (which is 'ct' or 99,116) into the EAX register. Since var7 is a label that points to the location of the first doubleword, you can simply use [var7] to access it.
+                        : Why are we using the EAX register to access the values of the doublewords in var7? 
+                            * The EAX register is a general-purpose register that is commonly used for storing temporary values and for performing arithmetic operations. It is often used to hold the results of calculations or to store values that need to be accessed frequently. In this case, we are using EAX to access the values of the doublewords in var7 because it is a convenient register for holding those values while we work with them in our program.
+                        : Could i use EBX or any other general-purpose register to access the values of the doublewords in var7 instead of EAX?
+                            * Yes, you could use EBX or any other general-purpose register to access the values of the doublewords in var7 instead of EAX. The choice of register is often a matter of convention and convenience, but as long as you are consistent in your use of registers and do not overwrite values that you need to keep, you can use any general-purpose register to access the values in var7.
+                        : Could i also use the least significant byte of EAX (AL) to access the values of the doublewords in var7 instead of EAX?
+                            * No, you cannot use the least significant byte of EAX (AL) to access the values of the doublewords in var7 because AL is only 8 bits wide, while each doubleword in var7 is 32 bits wide. To access the full 32-bit value of each doubleword, you need to use a register that is at least 32 bits wide, such as EAX, EBX, ECX, or EDX.
+                            * If var7 was a single byte DB variable instead of a doubleword DD variable, then you could use AL to access its value since AL is 8 bits wide and can hold the value of a single byte. However, since var7 is declared as a doubleword, you need to use a 32-bit register to access its full value.
+                                EG.
+                                    var7 DB ct,cl,ad : Declare three bytes with the values of the ASCII characters 'c', 't', 'c', 'l', 'a', and 'd' (which are 99, 116, 99, 108, 97, and 100 respectively) and label the first byte var7.
+                                                     : Since DB only stores single byte, it will store the values ct,cl and ad into 6 separate bytes in memory. 
+                                                     : it is similar to writing 
+                                                        EG.
+                                                            var7 DB ctclad 
+                                                                > This is because the assembler knows that DB is meant to store single bytes, so it will automatically split the string "ctclad" into individual characters and store each character in a separate byte in memory. The first byte will be labeled var7 and will contain the value of 'c' (99), the second byte will contain the value of 't' (116), the third byte will contain the value of 'c' (99), the fourth byte will contain the value of 'l' (108), the fifth byte will contain the value of 'a' (97), and the sixth byte will contain the value of 'd' (100).
+                                                     : To access the value of the first byte (which is 'c' or 99), you can use:
+                                                        MOV AL, [var7] : This will move the value of the first byte (which is 'c' or 99) into the AL register.
+
+        mark DD 1,2,3 : Declare three doublewords with the values 1, 2, and 3 respectively and label the first doubleword mark. The second and third doubleword do not have labels, but they are located in memory immediately after mark.
+                        : isn't it wasting memory to use the 4 byte directive (DD) to declare values that could fit in a byte (DB)? 
+                            * Yes, it is wasting memory to use the DD directive to declare values that could fit in a byte (DB). However, it can be useful for consistency and readability to use the same directive for all declarations, especially if you are declaring a large number of variables. Additionally, using DD allows for future expansion if you later decide to store larger values in those variables.
+                        
+        spair DB 10 DUP(0) : Declare an array of 10 bytes, all initialized to 0, and label it spair. The DUP operator is used to repeat the declaration of a byte with the value 0 ten times.
+                            : Does this mean the next variable i create will be located at spair + 10 since spair takes up 10 bytes of space in memory?
+                                * Yes, the next variable you create will be located at spair + 10 since spair takes up 10 bytes of space in memory. The first byte of spair is at spair, the second byte is at spair + 1, and so on, until the tenth byte which is at spair + 9. Therefore, the next variable would be located at spair + 10.
+
+        make DB 10 DUP (?) : Declare an array of 10 bytes which are not initialized and label it as make.
+
+        var10 DP 10 DUP('A') : Declare an array of 10 bytes which are initialized to A and labelled as var10.
+
+        var11 DB 10 DUP('AB') : since 'AB' is 2 bytes and your are asking for it 10 times the assembler will allocate 20 bytes of total space.
+                              : in most modern assemblers, there is no difference between 'AB' and "AB". Both are treated as strings of ASCII characters.
+
+- if we had two single byte variables which were declared e.g var1 DB 64 and var2 DB 'A', could i access the value of var2 by calculating its location as var1 + 1 since it is located in memory immediately after var1?
+    * Yes, you could access the value of var2 by calculating its location as var1 + 1 since it is located in memory immediately after var1. However, it is generally better practice to use labels to access variables rather than relying on pointer arithmetic, as it can make the code more readable and less error-prone.
+
+- what happens if i store a big word in a DW like elephant?
+    * In most modern assemblers (like NASM), this will trigger an Error or Warning (e.g., "character constant too long"). The assembler will not silently discard the letters "e-p-h-a-n-t".
+        + DW tells the assembler to reserve 2-byte "chunks." If you provide a string longer than 2 characters, you are giving it more data than the specific "Word" container is meant to hold at once. Unlike a high-level language, Assembly requires the data size to match the directive.
+    * Why won't it just separate the remaining characters and store them sequentially?
+        + Actually, if you use the DB (Define Byte) directive, it will do exactly that! If you use DW, the assembler expects you to be defining 16-bit integers or pairs of characters.
+
+- why is DW called a word if it only stores 2 bytes?
+    * The term "word" is a historical term that originated from older computer architectures where a word was typically 16 bits (2 bytes) in size. In modern x86 architecture, a word is still defined as 16 bits, even though the architecture itself is 32-bit or 64-bit. Therefore, the DW directive is used to declare a word (16 bits) of data, and it is called a word for historical reasons, even though it may not align with the current architecture's word size.
+
+    
+        II. ADDRESSING MEMORY.
+        -----------------------
+- In the examples above, where we used labels to refer to memory regions , these labels are actually replaced by the assembler with 32-bit quantities that specify addresses in memory.
+- In addition to supporting referring to memory regions by labels (i.e. constant values), the x86 provides a flexible scheme for computing and referring to memory addresses: up to two of the 32-bit registers and a 32-bit signed constant can be added together to compute a memory address. One of the registers can be optionally pre-multiplied by 2, 4, or 8.
+- he addressing modes can be used with many x86 instructions.
+- Here we illustrate some examples using the mov instruction that moves data between registers and memory. This instruction has two operands: the first is the destination and the second specifies the source. 
+    EG.
+        move EAX, [EBX] : Move the 4 bytes (32 bits) in memory at the address contained in EBX into EAX.
+        move [var], ecx : move the 4 bytes in ECX into the memory at the address specified by var.
+        move EAX, [EBX + 4] : Move the 4 bytes in memory at the address computed by adding 4 to the value in EBX into EAX.
+        move EAX, [EBX + ECX] : Move the 4 bytes in memory at the address computed by adding the values in EBX and ECX into EAX.
+        move EAX, [EBX + ECX*4] : Move the 4 bytes in memory at the address computed by adding the value in EBX to 4 times the value in ECX into EAX.
+        move EAX, [EBX + ECX*4 + 8] : Move the 4 bytes in memory at the address computed by adding the value in EBX to 4 times the value in ECX and then adding 8 into EAX.
+    
+    EG OF INVALID ADDRESS CALCULATIONS
+        move EAX, [EBX + ECX*3] : This is invalid because the x86 architecture only allows for scaling factors of 1, 2, 4, or 8 when using index registers in memory addressing. A scaling factor of 3 is not supported and would result in an error during assembly.
+        move eax, [ebx - ecx] : This is invalid because the x86 architecture does not support using subtraction in memory address calculations. Memory addresses must be calculated using addition of registers and constants, not subtraction.
+        move eax, [ebx + ecx + edx] : This is invalid because the x86 architecture only allows for up to two registers to be used in memory address calculations. Using three registers (EBX, ECX, and EDX) in the calculation exceeds this limit and would result in an error during assembly.
