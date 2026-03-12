@@ -1,5 +1,53 @@
                                     MEMORY AND ADDRESSING MODES.
                                 ==================================
+         THE FUNDAMENTALS OF MEMORY AND ADDRESSING MODES IN X86 ASSEMBLY.
+    -------------------------------------------------------------------------
+- The cpu is the only part of the computer that can actually do things(add, subtract, compare, etc).
+- It can only operate on data that is stored in its registers.
+- But the cpu only has a few registers (8 general purpose registers in x86), so it needs a way to access data that is stored in memory.
+
+- RAM (your .DATA variables) is much larger than the register file, but it is also much slower to access.
+- But the RAM is "dump" in the sense that it doesn't know how to do anything with the data it stores, it just holds it there until the cpu needs it.
+    RULE : If you want to do something with data that is stored in memory, you have to first load it into a register, then you can operate on it with the cpu's instructions.
+
+- Why move data from memory to registers?
+    * Imagine you have a variable in your .DATA section that holds a number you want to add to another number. You can't directly add the value in memory to another value; you have to first load it into a register, perform the addition, and then if you want to store the result back in memory, you have to move it back from the register to memory.
+        EG.
+            section .DATA
+            num1 DD 5
+            num2 DD 10
+            result DD 0
+
+            section .TEXT
+            global _start
+
+            _start:
+                mov EAX, [num1] ; Load the value of num1 (5) into EAX
+                add EAX, [num2] ; Add the value of num2 (10) to EAX, now EAX = 15
+                mov [result], EAX ; Store the result (15) back into memory at result
+
+    * What is the difference between mov <mem>, <reg> and mov <reg>, <reg> like is the outcome the same?
+        mov <mem>, <reg>
+            mov [EBX], EAX 
+                * Your telling the CPU " look at the number inside EBX, go to that memory address(location in RAM) and write the value of EAX to that memory address".
+                * If EBX contains 0x00000000 and EAX contains 0x00000001, then after this instruction is executed, the value at memory address(location in RAM) 0x00000000 will be 0x00000001.
+                * This actually saves the value of EAX to the memory address(location in RAM) of EBX, so that it can be accessed later on in the program.
+        
+            mov [var], EAX 
+                * Your telling the CPU "look at the number inside EAX and copy that number into the memory address(location in RAM) of var".
+                * If EAX contains 0x00000001, then after this instruction is executed, the value at memory address(location in RAM) of var will be 0x00000001.
+                * This actually saves the value of EAX to the variable var in memory(RAM), so that it can be accessed later on in the program.
+        
+        mov <reg>, <reg>
+            mov EAX, EBX 
+                * Your telling the CPU "look at the number inside EBX and copy that number into EAX".
+                * If EBX contains 0x00000001 and EAX contains 0x00000000, then after this instruction is executed, EAX will also contain 0x00000001.
+                * No RAM is being accessed in this instruction, we are just copying the value of EBX into EAX. This is a much faster operation than accessing RAM since registers are much faster than RAM.
+
+- Why move data from registers to memory?
+    * After performing operations on data in registers, you may want to save the results back to memory for later use or to share with other parts of the program. For example, if you calculate a value that you want to print to the console or write to a file, you would need to move it from a register back to memory before you can use it for those purposes.
+
+
         I. DECLARING STATIC DATA REGIONS.
     --------------------------------------
 - You can declare global variables (similar to static data regions) in x86 assembly using special assembler directives.
@@ -24,7 +72,7 @@
 
 - Declared locations can be labbeled with names for later reference - This is similar to declaring variables by name, but abides by some lower level rules.
     EG.
-        # locations declared in sequence will be located in memory next to one another.
+        # locations declared in sequence will be located in memory(RAM) next to one another.
         .DATA 
         var1 DB 64 : Declare a byte with the value 64 and label it var1. 
         
@@ -87,6 +135,21 @@
         var11 DB 10 DUP('AB') : since 'AB' is 2 bytes and your are asking for it 10 times the assembler will allocate 20 bytes of total space.
                               : in most modern assemblers, there is no difference between 'AB' and "AB". Both are treated as strings of ASCII characters.
 
+
+            NB : STORING CAN BE DONE IN EITHER VALUES(base10/decimal), ASCII CHARACTERS OR HEXADECIMAL VALUES:
+                EG.
+                    var1 DB 65  : Stores decimal 65 (which is the letter 'A')
+                    var1 DB A : stores the letter A (assembler converts to 65 for you)
+                    var1 DB 0x41 : Stores hex 41 (also decimal 65, also 'A')
+                    var2 DB 0x6D, 0x6B : Stores hex 41 and 6D (ASCII value of m and k) similar to var2 DB 'mk' or var2 db 'm', 'k'
+
+                        > All 3 store the exact same byte.
+                        > Use whichever makes sense to you.
+                        
+                    1 byte  = 8 bits  = 2 hex digits    like 0xFF or 0x41
+                    2 bytes = 16 bits = 4 hex digits    like 0xFFAB
+                    4 bytes = 32 bits = 8 hex digits    like 0xAABBCCDD   
+
 - if we had two single byte variables which were declared e.g var1 DB 64 and var2 DB 'A', could i access the value of var2 by calculating its location as var1 + 1 since it is located in memory immediately after var1?
     * Yes, you could access the value of var2 by calculating its location as var1 + 1 since it is located in memory immediately after var1. However, it is generally better practice to use labels to access variables rather than relying on pointer arithmetic, as it can make the code more readable and less error-prone.
 
@@ -99,7 +162,77 @@
 - why is DW called a word if it only stores 2 bytes?
     * The term "word" is a historical term that originated from older computer architectures where a word was typically 16 bits (2 bytes) in size. In modern x86 architecture, a word is still defined as 16 bits, even though the architecture itself is 32-bit or 64-bit. Therefore, the DW directive is used to declare a word (16 bits) of data, and it is called a word for historical reasons, even though it may not align with the current architecture's word size.
 
-    
+- what is the difference between using square brackets and without?
+    EG.
+        mov AL, [EBX] # AL = *EBX
+            - [EBX] is taken as memory instead of register. Register <-> Memory
+            - This allows the assembler to take 1 byte from EBX and put it into AL.
+
+        mov AL, EBX # AL = EBX which is invalid due to size difference.
+            - this is taken as register. Register <-> Register.
+            - This mean the assembler will copy all the data from EBX and try to move it to AL and fail since AL takes 1 byte/8 bits.
+
+    > Register <-> Memory (with brackets) : Size is set by the register, always works cleanly.
+    > Register <-> Register (without brackets) : size must match exactly, use movzx/movsx if not.
+        EG.
+             mov EAX, AL : THIS IS INVALID SINCE WE ARE MOVING 8 BIT DATA TO A 32 BIT REGISTER.
+             # CORRECT WAY.
+             movzx EAX, AL : zero-extend : EAX = 0x000000xx
+                            : zero-extend always fills with 0's.
+                            : so if AL held "01000001" the value of EAX would be "00000000 00000000 00000000 01000001"
+                            : use when your value is unsigned (like a plain count, or ASCII code or just a positive number)
+
+             movsx EAX, AL : Sign-extend : fills upper bits based on AL's sign bit.
+                            : fills with copies of the left most bit.
+                            : so if AL held "01000001" the left most bit is "0" thus the value of EAX would be "00000000 00000000 00000000 01000001"
+                            : if AL held "11001000" the leftmost bit is "1" thus making EAX be "11111111 11111111 11111111 11001000"
+                            : use when your value is signed (can be negative)
+
+                > Use when moving from small to big.
+
+- Visual representation of storage:
+    EG.
+        section .DATA 
+        myvar DD 0xAABBCCDD : 4 bytes in memory : DD CC BB AA 
+        
+        section .text 
+        mov EAX, [myVar] : EAX = 0xAABBCCDD (all 32 bits)
+            NB : NASM variables have to be passed with square brackets unlike MASM
+                if you use " mov EAX, myVar" in NASM it will load the actual memory address of myVar instead of the data.
+                in MASM you don't need to use square brackets ... this is just incase its not stated in future notes since we are using notes that reference the MASM method.
+
+            inside EAX 
+            _____________________________________________
+            |  AA   |    BB     |     CC    |   DD      |
+            |       |           |           |           |
+            |       |           |           |           |
+            |-------|-----------|-----------|-----------|
+                                    AH          AL 
+                 NO NAME                    AX 
+            Now when we write EAX to memory, little-endian flips the byte order:
+            _____________________________________________
+            |  DD   |    CC     |     BB    |   AA      |
+            |       |           |           |           |
+            |       |           |           |           |
+            |-------|-----------|-----------|-----------|
+                                    AH          AL 
+                 NO NAME                    AX 
+            When we read it back into EAX, it flips again and you get AABBCCDD back. 
+            The reversal cancels itself out, which is why usually don't notice it.
+
+            Why does the 2 byte part before AX have no name:
+                > Its simply because it was never given one. 
+                    * When Intel originally built the 8086 processor, the main register was AX (16 bits). Later when they expanded to 32 bits they added the upper 16 bits and called the full thing EAX (the E stands for Extended). But they never gave that upper portion its own name because there was no clean way to access it directly anyway
+                    * You cannot say "give me just the upper 16 bits of EAX" with a single instruction. If you need them you have to shift the bits down:
+                        EG.
+                            mov EBX, EAX    ; copy EAX into EBX
+                            shr EBX, 16     ; shift right by 16 positions, upper bits drop into lower half
+                                            ; now BX contains what was the upper 16 bits of EAX
+                            ```
+
+                            In 64-bit mode this gets extended again — the full register becomes RAX (64 bits), and the upper 32 bits of RAX also have no name.
+
+
         II. ADDRESSING MEMORY.
         -----------------------
 - In the examples above, where we used labels to refer to memory regions , these labels are actually replaced by the assembler with 32-bit quantities that specify addresses in memory.
@@ -107,14 +240,59 @@
 - he addressing modes can be used with many x86 instructions.
 - Here we illustrate some examples using the mov instruction that moves data between registers and memory. This instruction has two operands: the first is the destination and the second specifies the source. 
     EG.
-        move EAX, [EBX] : Move the 4 bytes (32 bits) in memory at the address contained in EBX into EAX.
-        move [var], ecx : move the 4 bytes in ECX into the memory at the address specified by var.
-        move EAX, [EBX + 4] : Move the 4 bytes in memory at the address computed by adding 4 to the value in EBX into EAX.
-        move EAX, [EBX + ECX] : Move the 4 bytes in memory at the address computed by adding the values in EBX and ECX into EAX.
-        move EAX, [EBX + ECX*4] : Move the 4 bytes in memory at the address computed by adding the value in EBX to 4 times the value in ECX into EAX.
-        move EAX, [EBX + ECX*4 + 8] : Move the 4 bytes in memory at the address computed by adding the value in EBX to 4 times the value in ECX and then adding 8 into EAX.
+        mov EAX, [EBX] : Move the 4 bytes (32 bits) in memory at the address contained in EBX into EAX.
+        
+        mov [var], ecx : move the 4 bytes in ECX into the memory at the address specified by var.
+        
+        mov EAX, [EBX + 4] : Move the 4 bytes in memory at the address computed by adding 4 to the value in EBX into EAX.
+        
+        mov EAX, [EBX + ECX] : Move the 4 bytes in memory at the address computed by adding the values in EBX and ECX into EAX.
+        
+        mov EAX, [EBX + ECX*4] : Move the 4 bytes in memory at the address computed by adding the value in EBX to 4 times the value in ECX into EAX.
+        
+        mov EAX, [EBX + ECX*4 + 8] : Move the 4 bytes in memory at the address computed by adding the value in EBX to 4 times the value in ECX and then adding 8 into EAX.
     
     EG OF INVALID ADDRESS CALCULATIONS
-        move EAX, [EBX + ECX*3] : This is invalid because the x86 architecture only allows for scaling factors of 1, 2, 4, or 8 when using index registers in memory addressing. A scaling factor of 3 is not supported and would result in an error during assembly.
-        move eax, [ebx - ecx] : This is invalid because the x86 architecture does not support using subtraction in memory address calculations. Memory addresses must be calculated using addition of registers and constants, not subtraction.
-        move eax, [ebx + ecx + edx] : This is invalid because the x86 architecture only allows for up to two registers to be used in memory address calculations. Using three registers (EBX, ECX, and EDX) in the calculation exceeds this limit and would result in an error during assembly.
+        mov EAX, [EBX + ECX*3] : This is invalid because the x86 architecture only allows for scaling factors of 1, 2, 4, or 8 when using index registers in memory addressing. A scaling factor of 3 is not supported and would result in an error during assembly.
+        
+        mov eax, [ebx - ecx] : This is invalid because the x86 architecture does not support using subtraction in memory address calculations. Memory addresses must be calculated using addition of registers and constants, not subtraction.
+        
+        mov eax, [ebx + ecx + edx] : This is invalid because the x86 architecture only allows for up to two registers to be used in memory address calculations. Using three registers (EBX, ECX, and EDX) in the calculation exceeds this limit and would result in an error during assembly.
+
+
+        III. SIZE DIRECTIVES.
+        -------------------------
+- In general, the intended size of the data item at a given memory address can be inferred from the assembly code instruction in which it is referenced.
+    EG.
+        * In all of the above instructions, the size of the memory regions could be inferred from the size of the register operand.
+        * When we are loading a 32-bit register, the assembler could infer that the region of memory wee were referred to was 4 bytes wide.
+        * when we are loading a value stored in a single byte register to memory, the assembler could infer thatwe wanted the address to refer to a single byte in memory.
+
+- However, in some cases the size of a referred-to memory region is ambiguous. 
+    EG.
+        * Consider the instruciton mov [ebx], 2. 
+            > Should the instruction move the value 2 into the single byte at address EBX 
+            > should it move the 32-bit interger representation of 2 into the 4 byte starting at address EBX.
+
+        * Since either is a valid possible interpratation, the assembler must be explicitly directed as to which is correct.
+        * The size directives 
+            > BYTE PTR 
+            > WORD PTR 
+            > DWORD PTR 
+
+                - Serves this purpose, indicating sizes of 1,2 and 4 bytes respectively.
+            
+            EG.
+                mov BYTE PTR [ebx], 2 : Move 2 into the single byte at the address stored in EBX.
+                mov WORD PTR [ebx], 2 : Move the 16-bit integer representation of 2 into the 2 bytes starting at the address in EBX.
+                mov DWORD PTR [ebx], 2 : move the 32-bit interger representation of 2 into the 4 byte starting at the address in EBX.
+
+- size mismatches (EAX vs AL)
+    EG.
+        mov EAX, [EBX] : This is valid because the assembler can infer that we want to move a 32-bit value from memory into the 32-bit register EAX.
+
+        mov AL, [EBX] : This is valid because the assembler can infer that we want to move a single byte from memory into the 8-bit register AL.
+
+        mov EAX, BYTE PTR [EBX] : This is valid because the size directive BYTE PTR explicitly indicates that we want to move a single byte from memory into the 32-bit register EAX. The assembler will zero-extend the byte value to fill the entire 32 bits of EAX.
+
+        mov AL, DWORD PTR [EBX] : This is valid because the size directive DWORD PTR explicitly indicates that we want to move a 32-bit value from memory into the 8-bit register AL. The assembler will truncate the 32-bit value to fit into the 8 bits of AL, which may result in data loss if the original value exceeds 255.

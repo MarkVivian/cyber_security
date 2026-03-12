@@ -1,0 +1,189 @@
+                            INSTRUCTIONS.
+                        ==================
+         "mov EAX, [myVar];
+            NB : In NASM, variables have to be passed with square brackets unlike MASM 
+                if you use " mov EAX, myVar" in NASM it will load the actual memory address of myVar instead of the data.
+                in MASM you don't need to use square brackets ... this is just incase its not stated in future notes since we are using notes that reference the MASM method.
+
+- We use the following notation:
+    <reg32> 
+        > Any 32-bit register (EAX, EBX, ECX, EDX, ESI, EDI, ESP and EBP)
+
+    <reg16>
+        > Any 16-bit register (AX, EX, CX and DX)
+
+    <reg8>
+        > Any 8-bit register (AH, BH, CH, DH, AL, BL, cl and DL)
+
+    <reg>
+        > Any register 
+    
+    <mem>
+        > A memory address (e.g., [eax], [var + 4], or dword ptr [eax + ebx])
+
+    <con32>
+        > Any 32-bit constant 
+    
+    <con16>
+        > Any 16-bit constant 
+
+    <con8>
+        > Any 8-bit constant 
+
+    <con>
+        > Any 8-, 16- or 32-bit constant.
+
+    
+        I. DATA MOVEMENT INSTRUCTION.
+        ------------------------------
+- mov 
+    * Move 
+        mov <destination>, <source>
+                ^               ^
+                |               |
+            first operand      second operand
+    * The move instruction copies the data item referred to by its second operand (i.e. register contents, memory contents or a constant value) into the location referred to by its first operand (i.e. a register or memory).
+    * While register to register moves are possible, direct memory to memory moves are not.
+    * In cases where memory transfers are desired, the source memory contents must first be loaded into a register, then can be stored to the destination memory address.
+        EG.
+            mov <reg>, <reg>
+                mov EAX, EBX : Move the contents of EBX into EAX.
+            mov <reg>, <mem>
+                mov EAX, [EBX] : Move the 32-bit value at the memory address in EBX into EAX.
+            mov <mem>, <reg>
+                mov [EBX], EAX : Move the 32-bit value in EAX into the memory address in EBX.
+            mov <reg>, <con>
+                mov EAX, 2 : Move the 32-bit integer representation of 2 into EAX.
+            mov <mem>, <con>
+                mov [EBX], 2 : Move the 32-bit integer representation of 2 into the memory address in EBX.
+
+    * What is the difference between mov <mem>, <reg> and mov <reg>, <reg> like is the outcome the same?
+        mov <mem>, <reg>
+            mov [EBX], EAX 
+                * Your telling the CPU " look at the number inside EBX, go to that memory address(location in RAM) and write the value of EAX to that memory address".
+                * If EBX contains 0x00000000 and EAX contains 0x00000001, then after this instruction is executed, the value at memory address(location in RAM) 0x00000000 will be 0x00000001.
+                * This actually saves the value of EAX to the memory address(location in RAM) of EBX, so that it can be accessed later on in the program.
+        
+            mov [var], EAX 
+                * Your telling the CPU "look at the number inside EAX and copy that number into the memory address(location in RAM) of var".
+                * If EAX contains 0x00000001, then after this instruction is executed, the value at memory address(location in RAM) of var will be 0x00000001.
+                * This actually saves the value of EAX to the variable var in memory(RAM), so that it can be accessed later on in the program.
+        
+        mov <reg>, <reg>
+            mov EAX, EBX 
+                * Your telling the CPU "look at the number inside EBX and copy that number into EAX".
+                * If EBX contains 0x00000001 and EAX contains 0x00000000, then after this instruction is executed, EAX will also contain 0x00000001.
+                * No RAM is being accessed in this instruction, we are just copying the value of EBX into EAX. This is a much faster operation than accessing RAM since registers are much faster than RAM.
+
+NB  : the stack pointer (ESP) is a register that always points to the top of the stack, so when we push something onto the stack, we are actually writing to the memory address that ESP points to and then decrementing ESP by 4 to point to the new top of the stack.
+        > When a program starts, the cpu gives the program a certain amount of memory for the stack to use.
+        > In modern systems its about 1 to 8 megabytes of memory for the stack, but this can vary depending on the operating system and the specific program being run.
+        > The stack is not truly empty but it contains garbage data leftover bits and bytes from previous programs that have used the stack.
+        > When we say it's empty, its because the ESP is at the very beginning(the high address).
+        > The cpu doesn't care what's in the RAM; it only considers something "on the stack" if it is at or below where the ESP is currently pointing.
+        > When you POP, you aren't deleting data; you are just moving the ESP "above" that data. That data is now "outside" the stack boundaries. The next time you PUSH, the cpu moves the ESP back down and overwrites that old garbage with your new data.
+        > If you push two values back to back, they don't overwrite each other. 
+            1. Initial : ESP is at 1000
+            2. PUSH A : the cpu subtracts 4 from ESP (its now 996) and writes A into address 996
+            3. PUSH B : the cpu subtracts 4 from ESP again (its now 992) and writes B into address 992.
+            4. The results : A is at 996 and B is at 992. They are neighbors.
+            5. Popping: You must pop B first(Last-in, First-out). Once you POP B, the ESP moves back to 996 and you can then POP A. 
+
+    : The Base pointer (EBP) is used as a fixed reference point (an anchor) to access data without disturbing the stack.
+        > setting the anchor : when a function starts, we "lock" the EBP to the current stack position.
+            PUSH EBP : We save the old address where EBP was pointing (from the previous function)
+            MOV EBP, ESP : we tell EBP to point exactly where ESP is right now.
+        > accessing data without popping
+            * Once EBP is set, it stays still. Even if you push 100 items, EBP remains at the "top" of that function's workspace.
+            * Because each push is 4 bytes, you can "peek" at any data using simple math.
+                EG. (pushing 3 numbers and accessing the 1st one)
+                    Initial state : EBP and ESP are both at 1000
+                    PUSH 10 : ESP moves to 996 (Address 996 holds 10)
+                    PUSH 20 : ESP moves to 992 (Address 992 holds 20)
+                    PUSH 30 : ESP moves to 988 (Address 988 holds 30)
+
+                # To read the first number (10) without popping 
+                    MOV EAX, [EBP - 4] -> EAX is now 10
+                    MOV EBX, [EBP - 12] -> EBX is now 30
+
+                    Key Rule: Subtracting from EBP lets you look "down" into the stack. Adding to EBP (e.g., [EBP + 8]) is how functions look "up" to find the arguments passed to them by the main program.
+
+
+- push 
+    * Push Stack 
+        push <reg32>
+        push <mem>
+        push <con32>
+    * The push instruction places its operand/argument onto the top of the stack and decrements the stack pointer (ESP) by 4 to point to the new top of the stack.
+    * The push instruction can only take 32-bit register, memory or constant operands.
+    * x86 stacks grow downwards meaning they are arranged in memory from higher addresses to lower addresses. 
+    *this means that when we push something onto the stack, we are actually writing to a lower memory address than the previous top of the stack. That is why the stack pointer (ESP) is decremented by 4 to point to the new top of the stack.
+    * why 4 and not 1 or 2? 
+        > Because we are working with 32-bit values, which are 4 bytes (8 bits per byte) in size. So when we push a 32-bit value onto the stack, we need to decrement the stack pointer (ESP) by 4 to make room for the new value on the stack. If we were working with 16-bit(2 bytes) values, we would decrement ESP by 2, and if we were working with 8-bit(1 byte) values, we would decrement ESP by 1.
+    * What is the point of pushing something onto the stack?
+        > The stack is a special region of memory that is used for storing temporary data, such as function parameters, return addresses, and local variables. By pushing data onto the stack, we can save it for later use and access it when needed. For example, when we call a function, we often push the function's parameters onto the stack so that they can be accessed by the called function. When the called function is done executing, it can pop the parameters off the stack to clean up and return control back to the caller.
+        > This means instead of saving the value of a register to a variable in memory(RAM) using mov <mem>, <reg>, we can push the value of the register onto the stack using push <reg32>. This is often more efficient than saving the value to memory since accessing the stack is faster than accessing RAM. Additionally, using the stack allows us to easily manage temporary data and function parameters without having to worry about naming variables in memory.
+            EG.
+                push EAX 
+                    * Your telling the CPU "look at the number inside EAX and push that number onto the stack".
+                    * If EAX contains 0x00000001, then after this instruction is executed, the value 0x00000001 will be on top of the stack and ESP will be decremented by 4 to point to the new top of the stack.
+                    * This actually saves the value of EAX to the stack in memory(RAM), so that it can be accessed later on in the program.
+                
+                # IF YOU WANT TO ACCESS THE DATA THAT HAS BEEN PUSHED ONTO THE STACK, YOU CAN USE THE POP INSTRUCTION TO POP IT OFF THE STACK AND INTO A REGISTER OR MEMORY LOCATION.
+                    EG.
+                        pop EAX 
+                            * Your telling the CPU "pop the value on top of the stack and copy it into EAX".
+                            * If the value on top of the stack is 0x00000001 and ESP points to that value, then after this instruction is executed, EAX will contain 0x00000001 and ESP will be incremented by 4 to point to the new top of the stack.
+                            * This actually retrieves the value from the stack in memory(RAM) and stores it in EAX, so that it can be accessed later on in the program.
+                
+                push [var]
+                    * Your telling the CPU "look at the value at the memory address(location in RAM) of var and push that value onto the stack".
+                    * If the value at the memory address(location in RAM) of var is 0x00000001, then after this instruction is executed, the value 0x00000001 will be on top of the stack and ESP will be decremented by 4 to point to the new top of the stack.
+                    * This actually saves the value of var to the stack in memory(RAM), so that it can be accessed later on in the program.
+
+                # BUT IF WE ARE STILL ACCESSING/STORING INTO RAM, WHY NOT JUST STORE IT DIRECTLY ISN'T THE SPEED THE SAME?
+                    > While it is true that both pushing onto the stack and storing directly to memory involve accessing RAM, using the stack can be more efficient in certain situations. This is because the stack is a special region of memory that is optimized for temporary data storage and retrieval. When we push data onto the stack, we are essentially using a last-in-first-out (LIFO) structure that allows us to easily manage temporary data without having to worry about naming variables in memory. Additionally, using the stack can help reduce the number of memory accesses needed to store and retrieve data, which can improve performance in certain cases. For example, when calling a function, it is often more efficient to push the function's parameters onto the stack rather than storing them in memory, since the called function can access the parameters directly from the stack without having to perform additional memory accesses.
+                    > So instead of having to search through memory to find the variable that we stored the value in, we can simply access the value on top of the stack using ESP, which is much faster. 
+
+
+- Pop
+    * Pop stack
+        pop <reg32>
+        pop <mem>
+    * The pop instruction removes the value on top of the stack and copies it into the location specified by its operand/argument (i.e. a register or memory address). After the value is popped off the stack, the stack pointer (ESP) is incremented by 4 to point to the new top of the stack.
+        EG.
+            pop edi - pop the top element of the stack into EDI.
+            pop [ebx] - pop the top element of the stack into memory at the 4 bytes starting at location EBX.
+  
+
+- lea 
+    * Load Effective Address
+        lea <reg32>, <mem>
+    * The lea instruction places the address of the memory location specified by its second operand (i.e. a memory address) into the register specified by its first operand (i.e. a 32-bit register).
+    * This means that instead of loading the value at the memory address into the register, we are loading the actual memory address itself into the register.
+        EG.
+            lea EAX, [EBX] - load the memory address in EBX into EAX.
+            lea EAX, [var] - load the memory address of var into EAX.
+            lea EAX, [EBX + 4] - load the memory address that is 4 bytes past the address in EBX into EAX.
+
+
+        II. ARITHMETIC AND LOGIC INSTRUCTIONS.
+    -   ------------------------------------------
+-add 
+    * interger addition
+        add <reg32>, <reg32>
+        add <reg32>, <mem>
+        add <reg32>, <con32>
+        add <mem>, <reg32>
+        add <mem>, <con32>
+    * The add instruction adds the value of its second operand (i.e. a register, memory contents or a constant) to the value of its first operand (i.e. a register or memory) and stores the result in the location specified by its first operand.
+    * The add instruction can only take 32-bit register, memory or constant operands.
+        EG.
+            add EAX, EBX - add the value of EBX to EAX and store the result in EAX.
+            add EAX, [EBX] - add the value at the memory address in EBX to EAX and store the result in EAX.
+            add EAX, 2 - add the constant value 2 to EAX and store the result in EAX.
+            add [EBX], EAX - add the value of EAX to the value at the memory address in EBX and store the result at that memory address.
+            add [EBX], 2 - add the constant value 2 to the value at the memory address in EBX and store the result at that memory address.
+
+    * question.. if we use add [EBX], EAX, does EBX contain the memory address with the value or the value itself?
+        > EBX contains the memory address. When we use add [EBX], EAX, we are telling the CPU to look at the memory address that EBX points to, retrieve the value at that memory address, add it to EAX, and then store the result back at that same memory address. So EBX is not directly involved in the addition operation; it is just providing the location in memory where the value is stored.
