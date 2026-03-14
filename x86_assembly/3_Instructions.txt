@@ -187,3 +187,200 @@ NB  : the stack pointer (ESP) is a register that always points to the top of the
 
     * question.. if we use add [EBX], EAX, does EBX contain the memory address with the value or the value itself?
         > EBX contains the memory address. When we use add [EBX], EAX, we are telling the CPU to look at the memory address that EBX points to, retrieve the value at that memory address, add it to EAX, and then store the result back at that same memory address. So EBX is not directly involved in the addition operation; it is just providing the location in memory where the value is stored.
+
+
+-sub 
+    * interger subtraction
+        sub <reg32> , <reg32>
+        sub <reg>, <mem>
+        sub <mem>, <reg>
+    * The sub instruction stores in the value of its first operand/argument the result of subtracting the value of its second operand from the value of its first operand.
+    * Similar to add.
+        EG.
+            sub EAX, EBX - subtract the value of EBX from EAX and store the result in EAX.
+            sub EAX, [EBX] - subtract the value at the memory address in EBX from EAX and store the result in EAX.
+            sub [EBX], EAX - subtract the value of EAX from the value at the memory address in EBX and store the result at that memory address.
+
+
+-inc, dec 
+    * Increment, Decrement
+        inc <reg32>
+        inc <mem>
+        dec <reg32>
+        dec <mem>
+    * The inc instruction adds 1 to the value of its operand (i.e. a register or memory), while the dec instruction subtracts 1 from the value of its operand and stores the result back in the same location.
+        EG.
+            inc EAX - add 1 to EAX and store the result in EAX.
+            inc [EBX] - add 1 to the value at the memory address in EBX and store the result at that memory address.
+            dec EAX - subtract 1 from EAX and store the result in EAX.
+            dec [EBX] - subtract 1 from the value at the memory address in EBX and store the result at that memory address.
+
+
+-imul 
+    * Interger Multiplication
+        imul <reg32>, <reg32>
+        imul <reg32>, <mem>
+        imul <reg32>, <con32>
+    * The imul instruction has two basic formats
+        > Two-operand format: imul <reg32>, <reg32/mem/con32>
+            * This format multiplies the value of the second operand (which can be a register, memory contents or a constant) by the value of the first operand (which must be a register) and stores the result in the first operand register.
+            EG.
+                imul EAX, EBX - multiply the value of EBX by EAX and store the result in EAX.
+                imul EAX, [EBX] - multiply the value at the memory address in EBX by EAX and store the result in EAX.
+                imul EAX, 2 - multiply the constant value 2 by EAX and store the result in EAX.
+
+        > Three-operand format: imul <reg32>, <reg32/mem>, <reg32/mem/con32>
+            * This format multiplies the value of the second operand (which can be a register or memory contents) by the value of the third operand (which must be a constant) and stores the result in the first operand register.
+            EG.
+                imul EAX, EBX, 3 - multiply the value of EBX by the constant value 3 and store the result in EAX.
+                imul EAX, [EBX], 4 - multiply the value at the memory address in EBX by the constant value 4 and store the result in EAX.
+                imul EAX, EBX, 2 - multiply the value of EBX by the constant value 2 and store the result in EAX.
+
+
+-idiv
+    * Interger Division
+        idiv <reg32>
+        idiv <mem>
+    * The idiv instruction divides the value in the EDX:EAX register pair by the value of its operand (which can be a register or memory contents) and stores the quotient/result in EAX and the remainder in EDX.
+        EG.
+            idiv EBX - divide the value in EDX:EAX by the value of EBX, store the quotient in EAX and the remainder in EDX.
+            idiv [EBX] - divide the value in EDX:EAX by the value at the memory address in EBX, store the quotient in EAX and the remainder in EDX.
+
+
+- and, or, xor, not
+    * Bitwise AND, OR, XOR, NOT
+        and <reg32>, <reg32>
+        and <reg>, <mem>
+        and <mem>, <reg>
+        or <reg32>, <reg32>
+        or <reg>, <mem>
+        or <mem>, <reg>
+        xor <reg32>, <reg32>
+        xor <reg>, <mem>
+        xor <mem>, <reg>
+        not <reg32>
+        not <mem>
+    * The and instruction performs a bitwise AND operation between the value of its first operand (which can be a register or memory) and the value of its second operand (which can be a register, memory contents or a constant) and stores the result in the location specified by its first operand.
+        > A bitwise AND operation compares each bit of the first operand with the corresponding bit of the second operand and returns a new value where each bit is set to 1 only if both corresponding bits in the operands are 1; otherwise, the bit is set to 0.
+    * The or instruction performs a bitwise OR operation, the xor instruction performs a bitwise exclusive OR operation, 
+        > A bitwise OR operation compares each bit of the first operand with the corresponding bit of the second operand and returns a new value where each bit is set to 1 if at least one of the corresponding bits in the operands is 1; otherwise, the bit is set to 0.
+        > A bitwise exclusive OR (XOR) operation compares each bit of the first operand with the corresponding bit of the second operand and returns a new value where each bit is set to 1 only if the corresponding bits in the operands are different (i.e., one is 1 and the other is 0); otherwise, the bit is set to 0.
+    * not instruction performs a bitwise NOT operation on its operand.
+        > A bitwise NOT operation takes each bit of the operand and inverts it, meaning that each bit that is 0 becomes 1 and each bit that is 1 becomes 0.
+        EG.
+            and EAX, EBX - perform a bitwise AND operation between EAX and EBX and store the result in EAX.
+            and EAX, [EBX] - perform a bitwise AND operation between EAX and the value at the memory address in EBX and store the result in EAX.
+            or EAX, EBX - perform a bitwise OR operation between EAX and EBX and store the result in EAX.
+            xor EAX, EBX - perform a bitwise XOR operation between EAX and EBX and store the result in EAX.
+            not EAX - perform a bitwise NOT operation on EAX and store the result in EAX.
+
+
+- neg
+    * Negate
+        neg <reg32>
+        neg <mem>
+    * The neg instruction takes the two's complement of its operand (which can be a register or memory) and stores the result back in the same location. This effectively negates the value, changing its sign from positive to negative or vice versa.
+        > The two's complement of a number is calculated by inverting all the bits of the number and then adding 1 to the result. For example, if we have a 32-bit value of 5 (which is 0x00000005 in hexadecimal), the two's complement would be calculated as follows:
+            1. Invert all the bits: 0xFFFFFFFA
+            2. Add 1: 0xFFFFFFFA + 1 = 0xFFFFFFFB
+        EG.
+            neg EAX - take the two's complement of EAX and store the result in EAX.
+            neg [EBX] - take the two's complement of the value at the memory address in EBX and store the result at that memory address.
+
+
+- shl, shr, sar
+    * Shift Left, Shift Right Logical, Shift Right Arithmetic
+        shl <reg32>, <reg32>
+        shl <reg>, <mem>
+        shr <reg32>, <reg32>
+        shr <reg>, <mem>
+        sar <reg32>, <reg32>
+        sar <reg>, <mem>
+    * The shl instruction shifts the bits of its first operand (which can be a register or memory) to the left by the number of positions specified by its second operand (which can either be an 8-bit constant or the register CL) and fills the vacated rightmost bits with zeros.
+    * The shr instruction shifts the bits of its first operand to the right by the number of positions specified by its second operand and fills the vacated leftmost bits with zeros.
+    * The sar instruction shifts the bits of its first operand to the right by the number of positions specified by its second operand and fills the vacated leftmost bits with the sign bit (the most significant bit) of the original value. This is used for signed numbers to preserve their sign during the shift operation.
+        EG.
+            shl EAX, 1 - shift the bits of EAX to the left by 1 position and fill the vacated rightmost bit with 0.
+            shr EAX, 2 - shift the bits of EAX to the right by 2 positions and fill the vacated leftmost bits with 0.
+            sar EAX, 3 - shift the bits of EAX to the right by 3 positions and fill the vacated leftmost bits with the sign bit of EAX.
+
+
+                CONTROL FLOW INSTRUCTIONS.
+            -------------------------------
+- The x86 processor maintains an instruction pointer (IP) register that is a 32-bit value indicating the location in memory where the current instruction starts.
+- Normally it increments by the size of the instruction after each instruction is executed, so that it points to the next instruction in memory. However, control flow instructions can modify the instruction pointer to change the flow of execution in a program.
+- We use the notation <label> to represent a location in the code that can be jumped to. A label is simply a name followed by a colon (e.g., start:).
+    EG.
+        move esi, 0 - move the value 0 into ESI
+        begin: xor esi, 1 - perform a bitwise XOR operation between ESI and 1 and store the result in ESI
+        move eax, [esi] - move the value at the memory address in ESI into EAX
+
+            * In this example, we have a label called "begin" that marks the location of the second instruction. The first instruction initializes ESI to 0, and then the second instruction performs a bitwise XOR operation between ESI and 1, which will toggle the least significant bit of ESI. The third instruction then moves the value at the memory address in ESI into EAX. By using the label "begin", we can easily jump back to that point in the code if needed, allowing us to create loops or conditional statements based on the value of ESI.
+
+            OR
+        
+        start: 
+            mov EAX, 0 - move the value 0 into EAX
+            jmp end - jump to the label "end"   
+        end:
+            mov EBX, 1 - move the value 1 into EBX  
+
+            * In this example, we have a label called "start" that marks the beginning of the code and a label called "end" that marks the end of the code. The first instruction initializes EAX to 0, and then the second instruction uses the jmp (jump) instruction to jump to the label "end", skipping over any instructions that may be in between. The third instruction then initializes EBX to 1 at the location marked by the "end" label. By using labels and jump instructions, we can control the flow of execution in our program and create more complex logic based on certain conditions or loops.
+
+
+-jmp
+    * Unconditional Jump
+        jmp <label>
+    * The jmp instruction causes an unconditional jump to the specified label, which is a location in the code that can be jumped to. When the jmp instruction is executed, the instruction pointer (IP) is set to the address of the instruction at the specified label, and execution continues from there.
+        EG.
+            jmp start - jump to the label "start" and continue execution from there.
+
+
+-jcondition
+    * Conditional Jump
+        jz <label> - Jump when last result is Zero (also known as je, Jump if Equal)
+        jnz <label> - Jump if Not Zero (also known as jne, Jump if Not Equal)
+        jg <label> - Jump if Greater
+        jge <label> - Jump if Greater or Equal
+        jl <label> - Jump if Less
+        jle <label> - Jump if Less or Equal
+    * Conditional jump instructions cause a jump to the specified label only if a certain condition is met based on the values of the flags in the EFLAGS register. These flags are typically set by previous arithmetic or comparison instructions.
+        EG.
+            cmp EAX, EBX - compare the values of EAX and EBX and set the flags accordingly
+            jz equal - jump to the label "equal" if EAX is equal to EBX (i.e., the zero flag is set)
+            jg greater - jump to the label "greater" if EAX is greater than EBX (i.e., the sign flag is clear and the zero flag is clear)
+            jl less - jump to the label "less" if EAX is less than EBX (i.e., the sign flag is set and the zero flag is clear)
+
+
+-cmp
+    * Compare
+        cmp <reg32>, <reg32>
+        cmp <reg>, <mem>
+        cmp <mem>, <reg>
+        cmp <reg>, <con>
+        cmp <mem>, <con>
+    * The cmp instruction compares the value of its first operand (which can be a register or memory) with the value of its second operand (which can be a register, memory contents or a constant) and sets the flags in the EFLAGS register based on the result of the comparison. The cmp instruction does not store any result; it only affects the flags, which can then be used by subsequent conditional jump instructions to determine the flow of execution in the program.
+        EG.
+            cmp EAX, EBX - compare the values of EAX and EBX and set the flags accordingly.
+            cmp EAX, [EBX] - compare the value of EAX with the value at the memory address in EBX and set the flags accordingly.
+            cmp EAX, 2 - compare the value of EAX with the constant value 2 and set the flags accordingly.
+
+            # USAGE EXAMPLE
+                cmp EAX, EBX - compare the values of EAX and EBX and set the flags accordingly.
+                jz equal - jump to the label "equal" if EAX is equal to EBX (i.e., the zero flag is set)
+                jg greater - jump to the label "greater" if EAX is greater than EBX (i.e., the sign flag is clear and the zero flag is clear)
+                jl less - jump to the label "less" if EAX is less than EBX (i.e., the sign flag is set and the zero flag is clear)
+
+
+- call, ret
+    * Call, Return
+        call <label>
+        ret
+    * The call instruction is used to call a function or procedure in the code. When the call instruction is executed, it pushes the return address (the address of the instruction immediately following the call) onto the stack and then jumps to the specified label, which is the entry point of the function being called. The called function can then perform its operations and eventually use the ret instruction to return control back to the caller.
+    * The ret instruction is used to return from a function or procedure. When the ret instruction is executed, it pops the return address from the top of the stack and jumps back to that address, effectively returning control to the caller of the function.
+        EG.
+            call myFunction - call the function at the label "myFunction".
+            ...
+            myFunction:
+                ; function code here
+                ret - return control back to the caller after executing the function code.
