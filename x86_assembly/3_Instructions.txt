@@ -246,6 +246,29 @@ NB  : the stack pointer (ESP) is a register that always points to the top of the
             idiv EBX - divide the value in EDX:EAX by the value of EBX, store the quotient in EAX and the remainder in EDX.
             idiv [EBX] - divide the value in EDX:EAX by the value at the memory address in EBX, store the quotient in EAX and the remainder in EDX.
 
+        # USAGE
+        # Unsigned division
+            mov EAX, 10 - move the value 10 into EAX
+            mov EDX, 0 - move the value 0 into EDX (since we are doing unsigned division, we need to clear EDX)
+            mov EBX, 2 - move the value 2 into EBX (the divisor)
+            idiv EBX - divide the value in EDX:EAX (which is 0:10) by the value of EBX (2), store the quotient (5) in EAX and the remainder (0) in EDX.
+
+                > Signed division is used when we are working with negative numbers like -5 / 2, while unsigned division is used when we are working with only positive numbers like 5 / 2.
+                
+        # signed division
+            mov EAX, -10 - move the value -10 into EAX
+            cdq - convert double to quadword (sign-extend EAX into EDX)
+            mov EBX, 2 - move the value 2 into EBX (the divisor)
+            idiv EBX - divide the value in EDX:EAX (which is the sign-extended value of EAX) by the value of EBX (2), store the quotient (-5) in EAX and the remainder (0) in EDX.
+
+                > The difference between using CDQ and manually clearing EDX is that CDQ is used for signed division, while manually clearing EDX is typically used for unsigned division. When performing signed division, we need to ensure that the value in EDX is properly sign-extended to match the value in EAX, which is what CDQ does. For unsigned division, we can simply clear EDX to ensure that it does not affect the result of the division.
+
+        # Note: The idiv instruction can only be used for integer division. If you need to perform floating-point division, you would need to use the appropriate floating-point instructions instead.
+
+        # Results of division:
+            > Quotient: The result of the division operation, which is stored in EAX after the idiv instruction is executed.
+            > Remainder: The value left over after the division operation, which is stored in EDX after the idiv instruction is executed. The remainder is calculated as the original value in EDX:EAX minus the product of the quotient and the divisor.
+
 
 - and, or, xor, not
     * Bitwise AND, OR, XOR, NOT
@@ -300,9 +323,15 @@ NB  : the stack pointer (ESP) is a register that always points to the top of the
     * The shr instruction shifts the bits of its first operand to the right by the number of positions specified by its second operand and fills the vacated leftmost bits with zeros.
     * The sar instruction shifts the bits of its first operand to the right by the number of positions specified by its second operand and fills the vacated leftmost bits with the sign bit (the most significant bit) of the original value. This is used for signed numbers to preserve their sign during the shift operation.
         EG.
-            shl EAX, 1 - shift the bits of EAX to the left by 1 position and fill the vacated rightmost bit with 0.
-            shr EAX, 2 - shift the bits of EAX to the right by 2 positions and fill the vacated leftmost bits with 0.
-            sar EAX, 3 - shift the bits of EAX to the right by 3 positions and fill the vacated leftmost bits with the sign bit of EAX.
+            mov EAX, 00001010 - move the value 10 (which is 00001010 in binary) into EAX
+            shl EAX, 1 - shift the bits of EAX to the left by 1 position and fill the vacated rightmost bit with 0. After this instruction, EAX will contain 00010100 (which is 20 in decimal).
+            # EAX new value : 00010100
+            shr EAX, 2 - shift the bits of EAX to the right by 2 positions and fill the vacated leftmost bits with 0. After this instruction, EAX will contain 00000101 (which is 5 in decimal).
+            # EAX new value : 00000101
+            sar EAX, 3 - shift the bits of EAX to the right by 3 positions and fill the vacated leftmost bits with the sign bit of EAX. After this instruction, EAX will contain 00000000 (which is 0 in decimal) since the sign bit of EAX is 0.
+                OR
+            # EAX new value : 11111010 (which is -6 in decimal) since the sign bit of EAX is 1.
+            sar EAX, 3 - shift the bits of EAX to the right by 3 positions and fill the vacated leftmost bits with the sign bit of EAX. After this instruction, EAX will contain 11111111 (which is -1 in decimal) since the sign bit of EAX is 1.
 
 
                 CONTROL FLOW INSTRUCTIONS.
@@ -371,7 +400,7 @@ NB  : the stack pointer (ESP) is a register that always points to the top of the
                 jg greater - jump to the label "greater" if EAX is greater than EBX (i.e., the sign flag is clear and the zero flag is clear)
                 jl less - jump to the label "less" if EAX is less than EBX (i.e., the sign flag is set and the zero flag is clear)
 
-
+     
 - call, ret
     * Call, Return
         call <label>
@@ -379,8 +408,41 @@ NB  : the stack pointer (ESP) is a register that always points to the top of the
     * The call instruction is used to call a function or procedure in the code. When the call instruction is executed, it pushes the return address (the address of the instruction immediately following the call) onto the stack and then jumps to the specified label, which is the entry point of the function being called. The called function can then perform its operations and eventually use the ret instruction to return control back to the caller.
     * The ret instruction is used to return from a function or procedure. When the ret instruction is executed, it pops the return address from the top of the stack and jumps back to that address, effectively returning control to the caller of the function.
         EG.
-            call myFunction - call the function at the label "myFunction".
-            ...
-            myFunction:
-                ; function code here
-                ret - return control back to the caller after executing the function code.
+        # code snippet 
+            SECTION .text
+            main:
+                MOV EAX, 5         ; First number
+                MOV EBX, 10        ; Second number
+                
+                CALL add_numbers   ; <--- STEP 1: The 'Bookmark' happens here
+                
+                ; The program returns HERE after the function is done
+                MOV ECX, EAX       ; ECX now has the result (15)
+                ...
+
+            add_numbers:
+                ; --- PROLOGUE ---
+                PUSH EBP           ; Save the old anchor
+                MOV EBP, ESP       ; Set the new anchor
+                
+                ADD EAX, EBX       ; Do the actual work (5 + 10 = 15)
+                
+                ; --- EPILOGUE ---
+                MOV ESP, EBP       ; Reset the worker to the anchor
+                POP EBP            ; Restore the old anchor
+                
+                RET                ; <--- STEP 2: Find the 'Bookmark' and jump back
+            
+                > In this example, we have a main function that initializes EAX and EBX with the values 5 and 10, respectively. It then calls the add_numbers function using the call instruction. When the call instruction is executed, it pushes the return address onto the stack and jumps to the add_numbers function. The add_numbers function performs its operations (in this case, adding EAX and EBX) and then uses the ret instruction to return control back to the main function. When the ret instruction is executed, it pops the return address from the stack and jumps back to that address in the main function, allowing execution to continue from where it left off after the call.
+
+                > When the CPU hits Call add_numbbers, it does two things automatically:
+                    - PUSH EIP : It saves the address of the next instruction (MOV ECX, EAX) onto the stack. This is like bookmarking where we are in the main function so we can come back to it later.
+                    - JMP add_numbers : It jumps to the address of the add_numbers function and starts executing from there.
+                
+                > At this point the ESP points to the return address (the bookmark)
+
+                > When the CPU hits RET in the add_numbers function, it does two things automatically:
+                    - POP EIP : It pops the return address (the bookmark) from the stack and loads it into the instruction pointer (EIP), which tells the CPU where to jump back to.
+                    - JMP EIP : It jumps back to the address stored in EIP, which is the instruction immediately following the original call in the main function (MOV ECX, EAX). This allows the program to continue executing from where it left off in the main function after the call to add_numbers.
+                
+                > the prologue with the push and mov EBP, ESP is a common pattern used in functions to set up a new stack frame. The push EBP instruction saves the old base pointer (the anchor) onto the stack, and the mov EBP, ESP instruction sets the new base pointer to the current stack pointer. This allows the function to use EBP as a stable reference point for accessing local variables and function parameters without worrying about changes to the stack pointer (ESP) during the function's execution. The epilogue with mov ESP, EBP and pop EBP is used to clean up the stack frame before returning from the function, restoring the previous base pointer and ensuring that the stack is in the correct state when control returns to the caller.
