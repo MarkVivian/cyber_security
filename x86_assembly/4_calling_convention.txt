@@ -1,3 +1,150 @@
                             CALLING CONVENTION.
                         =======================
-- 
+- The calling convention is a protocol about how to call and return from routines. 
+    EG.
+        * given a set of calling convention rules, a programmer need not examine the definition of a subroutine to determine how parameters should be passed to that subroutine.
+        * Furthermore, given a set of calling convention rules, high-level language compilers can be made to follow the rules, thus allowing hand-coded assembly language routines and high-level language routines to call one another.
+
+- The calling convention is broken into 2 sets of rules:
+    i. the first set of rules is employed by the caller of the subroutine.
+    ii. the second set of rules is observed by the writer of the subroutine (the calee).
+
+- It should be emphasized that mistakes in the observance of these rules quickly result in fatal program errors since the stack will be left in an inconsistent state; thus meticulous care should be used when implementing the call convention in your own subroutines. 
+
+                        _________________________
+                ^       |       Saved ESI       |   ----------------> ESP 
+                |       |-----------------------|
+                |       |       Saved EDI       |
+                |       |-----------------------|
+                |       |   Local variable 3    |
+        Stack growth    |-----------------------|
+                        |   Local variable 2    |
+                        |-----------------------|
+                        |   Local variable 1    |   ebp -4
+   Higher addresses     |-----------------------|
+          |             |       Saved EBP       |   ----------------> EBP
+          |             |-----------------------|
+          |             |     Return address    |
+          |             |-----------------------|
+         \|/            |       Parameter 1     |   ebp +8
+                        |-----------------------|   
+                        |      Parameter 2      |   ebp +12
+                        |-----------------------|
+                        |       Parameter 3     |   ebp +16
+                        |-----------------------|
+
+- The cells depicted in the stack are 32-bit wide memory locations, thus the memory addresses of the cells are 4 bytes apart.
+- The first parameter resides at an offset of 8 bytes from the base pointer.
+- Above the parameters on the stack (and below the base pointer), the call instruction placed the return address, thus leading to an extra 4 bytes of offset from the base pointer to the first parameter.
+- When the ret instruction is used to return from the subroutine, it will jump to the return address stored on the stack. 
+
+
+            CALLER RULES
+          ------------------
+- To make a subrouting call, the caller should:
+    1. Before calling a subroutine, the caller should save the contents of certain registers that are designated caller-saved. The caller-saved registers are EAX, ECX, EDX. Since the called subroutine is allowed to modify these registers, if the caller relies on their values after the subroutine returns, the caller must push the values in these registers onto the stack (so they can be restore after the subroutine returns. 
+    2. The caller-saved registers are EAX, ECX, EDX. Since the called subroutine is allowed to modify these registers, if the caller relies on their values after the subroutine returns, the caller must push the values in these registers onto the stack (so they can be restore after the subroutine returns. 
+    3. To call the subroutine, use the call instruction. This instruction places the return address on top of the parameters on the stack, and branches to the subroutine code. This invokes the subroutine, which should follow the callee rules below. 
+
+- After the subroutine returns (immediately following the call instruction), the caller can expect to find the return value of the subroutine in the register EAX.
+- To restore the machine state, the caller should:
+    1. Remove the parameters from stack. This restores the stack to its state before the call was performed.
+    2. Restore the contents of caller-saved registers (EAX, ECX, EDX) by popping them off of the stack. The caller can assume that no other registers were modified by the suroutine.
+
+- Basically:
+    1. If I am the Caller: I only save EAX, ECX, and EDX if I still need them, because the function is allowed to break them.
+    2. If I am the Function (Callee): I must save and restore EBX, ESI, and EDI if I use them, because I am NOT allowed to break them.
+    3. The Goal: After the call is totally finished (including the ADD ESP part), the registers (except EAX which has the answer) should look exactly like they did before the PUSH of the parameters.
+       
+- Removing parameters from stack:
+    - When you call a function in a high-level language like add(5, 10), the assembly version usually looks like this:
+        EG.
+            PUSH 10            ; Push parameter 2
+            PUSH 5             ; Push parameter 1
+            CALL add_numbers   ; Call the function
+            ADD ESP, 8         ; <--- THIS IS "REMOVING PARAMETERS" by 8 because (2 pushes * 4 bytes each)
+       
+                * Why ADD ESP, 8?
+                    - Every time you PUSH a parameter, the ESP moves down by 4 bytes (e.g. 1000 to 996 in the stack and so on).
+                    - If you pushed two numbers (8 bytes total so to 992) and you don't move the ESP back up, your stack will slowly "leak" memory until it overflows.
+                    - By adding 8 to ESP, you are effectively "deleting" those two paramters you pushed for the function.
+
+            
+            push [var]      ; push last parameter first.
+            push 216        ; push the second paramter.
+            push eax        ; push first parameter last.
+
+            call _myFunc    ; Call the function (assume C naming)
+
+            add esp, 12     ; (3 parameters * 4 bytes each) 12 bytes .
+
+                * The result produced by _myFunc is now available for use in the register EAX.
+
+
+            CALLEE RULES.
+        --------------------
+- The definition of the subroutine should adhere to the following rules at the beginning of the subroutine:
+    1. Push the value of EBP onto the stack, and then copy the value of ESP into EBP using the following instructions:
+        EG.
+            push ebp
+            mov  ebp, esp
+
+                * This initial action maintains the base pointer, EBP. The base pointer is used by convention as a point of reference for finding parameters and local variables on the stack. When a subroutine is executing, the base pointer holds a copy of the stack pointer value from when the subroutine started executing. Parameters and local variables will always be located at known, constant offsets away from the base pointer value. We push the old base pointer value at the beginning of the subroutine so that we can later restore the appropriate base pointer value for the caller when the subroutine returns. Remember, the caller is not expecting the subroutine to change the value of the base pointer. We then move the stack pointer into EBP to obtain our point of reference for accessing parameters and local variables.
+    
+    2. Next, allocate local variables by making space on the stack. Recall, the stack grows down, so to make space on the top of the stack, the stack pointer should be decremented. The amount by which the stack pointer is decremented depends on the number and size of local variables needed. For example, if 3 local integers (4 bytes each) were required, the stack pointer would need to be decremented by 12 to make space for these local variables (i.e., sub esp, 12). As with parameters, local variables will be located at known offsets from the base pointer.
+
+    3. Next, save the values of the callee-saved registers that will be used by the function. To save registers, push them onto the stack. The callee-saved registers are EBX, EDI, and ESI (ESP and EBP will also be preserved by the calling convention, but need not be pushed on the stack during this step). 
+
+
+- After these three actions are performed, the body of the subroutine may proceed. When the subroutine is returns, it must follow these steps:
+    1. Leave the return value in EAX.
+
+    2. Restore the old values of any callee-saved registers (EDI and ESI) that were modified. The register contents are restored by popping them from the stack. The registers should be popped in the inverse order that they were pushed.
+    
+    3. Deallocate local variables. The obvious way to do this might be to add the appropriate value to the stack pointer (since the space was allocated by subtracting the needed amount from the stack pointer). In practice, a less error-prone way to deallocate the variables is to move the value in the base pointer into the stack pointer: mov esp, ebp. This works because the base pointer always contains the value that the stack pointer contained immediately prior to the allocation of the local variables.
+    
+    4. Immediately before returning, restore the caller's base pointer value by popping EBP off the stack. Recall that the first thing we did on entry to the subroutine was to push the base pointer to save its old value.
+    
+    5. Finally, return to the caller by executing a ret instruction. This instruction will find and remove the appropriate return address from the stack. 
+
+Note that the callee's rules fall cleanly into two halves that are basically mirror images of one another. The first half of the rules apply to the beginning of the function, and are commonly said to define the prologue to the function. The latter half of the rules apply to the end of the function, and are thus commonly said to define the epilogue of the function.
+    EG.
+        .486
+        .MODEL FLAT
+        .CODE
+        PUBLIC _myFunc
+        _myFunc PROC
+        ; Subroutine Prologue
+        push ebp     ; Save the old base pointer value.
+        mov ebp, esp ; Set the new base pointer value.
+        sub esp, 4   ; Make room for one 4-byte local variable.
+        push edi     ; Save the values of registers that the function
+        push esi     ; will modify. This function uses EDI and ESI.
+        ; (no need to save EBX, EBP, or ESP)
+
+        ; Subroutine Body
+        mov eax, [ebp+8]   ; Move value of parameter 1 into EAX
+        mov esi, [ebp+12]  ; Move value of parameter 2 into ESI
+        mov edi, [ebp+16]  ; Move value of parameter 3 into EDI
+
+        mov [ebp-4], edi   ; Move EDI into the local variable
+        add [ebp-4], esi   ; Add ESI into the local variable
+        add eax, [ebp-4]   ; Add the contents of the local variable
+                            ; into EAX (final result)
+
+        ; Subroutine Epilogue 
+        pop esi      ; Recover register values
+        pop  edi
+        mov esp, ebp ; Deallocate local variables
+        pop ebp ; Restore the caller's base pointer value
+        ret
+        _myFunc ENDP
+        END
+
+            * If you use MOV ESP, EBP:
+                1. EBP is your "Anchor". it sits perfectly still at address 996.
+                2. You can PUSH 12 bytes, 16 bytes etc... your ESP (the boundary line) is now way out in the water.
+                3. when you run MOV ESP, EBP you aren't doing math. you aren't saying "Add 12." you are saying " Teleport the boundary line ESP exactly to where teh anchor (EBP) is."
+
+                    > its a better version that actually adding the push values (e.g. where there were 3 pushes of 4 bytes each)
+                        add ESP, 12 
