@@ -1,0 +1,11 @@
+                                No-Operation (NOP) INSTRUCTION 
+                            ====================================
+- No registers, no values, no nothin'!
+- Just there to pad/align bytes, or delay time.
+- Attackers use it to make simple exploits more reliable.
+
+- It is an alias mnemonic for the 
+    EG.
+        XCHG (E)AX, (E)AX 
+
+            * This exchanges the value of EAX with the value of EAX thus nothing changes.

@@ -1,0 +1,761 @@
+                                   TERMINOLOGIES.
+                    ========================
+* "In Memory" or "stored in memory" always means sotred in RAM.
+    EG.
+        mov rax, [0x1000] -> Reads the value from RAM address 0x1000
+
+        variables are stored in memory -> They live in RAM, not on disk.
+
+        Loading from memory is slow -> slow relative to registers, still fast relative to disk.
+
+
+* Registers are NOT in RAM 
+    - When the CPU needs to read or write RAM, it must:
+        1. Send a request down the memory bus (a set of physical electrical connections between the CPU and RAM chips)
+        2. Wait for the RAM to respond (RAM has its own internal timing requirements)
+        3. REceive the data back across the bus.
+
+    - Total latency: Approximately 60-200+ CPU clock cycles depending on whether the data is in CPU cache.
+
+
+* Why the stack (Which is in RAM) can feel faster than general RAM use.
+    > CPU cache 
+        - Modern CPUs have small, extremely fast memory banks called cache (L1, L2, L3) sitting between the CPU and RAM. 
+        - The CPU automatically copies frequently accessed RAM locations into cache. Because the stack is used constantly (every function call, every local variable, every saved register), it almost always lives in L1 or L2 cache.
+        - Cache access is roughly 4–12 clock cycles, compared to 60–200+ for actual RAM.
+    
+    > Allocation Has Zero Overhead:
+        - Using the stack just means subtracting a number from one register (RSP).
+        - That is one instruction. Allocating memory on the heap (the general-purpose RAM pool used by malloc/new) requires the operating system to find a free block, track it, and return it to you.
+        - That process can take hundreds of instructions. The stack win is not just speed — it is simplicity.
+
+
+* Stack direction : "Growing Down' and what RSP decreasing actually means:
+    - The stack grows toward lower memory addresses. This means:
+        1. Pushing data makes RSP smaller (RSP decreases - it moves towards address 0)
+        2. Popping data makes RSP larger (RSP increases - it moves back toward higher addresses)
+        3. Top of the stack is the lowest RSP value (Confusingly, this is the bottom of the diagram in most visualization.)
+            EG.
+                PUSH = RSP decreases + data is written there 
+                POP = data is read from the RSP + RSP increases.
+
+
+* memory offsets : Sequential vs overlapping
+    EG.
+        MOV RBX, 0x1000                ; Let's assume RBX is address 1000
+        MOV QWORD [RBX], 0xAABBCCDDEEFFGGHH    ; Write 8 bytes at 1000 (btw when a register is in square brackets, we are storing in the RAM)
+        MOV QWORD [RBX + 8], 0x112233445667788      ; Write 8 bytes at 1008
+           
+        - What the RAM looks like:
+            EG.
+                ; since RBX contains 0x1000 we go to the address 0x1000 in memory.
+                ; 1000 -> HH  
+                ; 1001 -> GG  
+                ; 1002 -> FF  
+                ; 1003 -> EE  
+                ; 1004 -> DD   
+                ; 1005 -> CC   
+                ; 1006 -> BB   
+                ; 1007 -> AA  
+                ; 1008 -> 88 
+                ; 1009 -> 77 ( start of value B )
+                ; ... ...
+                    * Imagine RAM is a long line of parking lots.
+                    * Each spot has an address (1000, 1001, 1002..) and each spot holds one byte (two hex characters)
+                    * if you used +2 you would be overwritting some of the data that was previously there.
+                        EG.
+                            ; 1000 -> HH 
+                            ; 1001 -> GG 
+                            ; 1002 -> 88 (deletes the AA and replaces with BB data)
+                            ; 1003 -> 77 
+                            ; 1004 -> 66 
+                            ; 1005 -> 55 
+                            ; 1006 -> 44 
+                            ; 1007 -> 33 
+                            ; 1008 -> 22 
+                            ; 1009 -> 11 
+
+
+                        REGISTRERS
+                    =====================
+- Modern (i.e 386 and later) x86 processors have 8 general purpose registers, each of which is 32 bits wide.
+- These registers are named EAX, EBX, ECX, EDX, ESI, EDI, EBP, and ESP.
+- The register names are mostly historical
+    EG.
+        * EAX used to be called the acuumulator since it was used by a number of arithmetic operations
+        * ECX was known as the counter since it was used to hold a loop index.
+
+- Whereas most of the registers have lost their special purposes in the modern instruction set, by convention, two are reserved for special purposes 
+    * the stack pointer (ESP)
+    * the base pointer (EBP)
+
+- For 32 bit systems:
+                                         <--------- 16 bits -------->
+                                            8 bits        8 bits 
+        |-------------------------------|-------------|-------------|   <---|
+     EAX|                             AX|      AH     |     AL      |       |
+        |-------------------------------|-------------|-------------|       |
+     EBX|                             BX|      BH     |     BL      |       |
+        |-------------------------------|-------------|-------------|       |
+     ECX|                             CX|      CH     |     CL      |       |-- General-purpose Registers.
+        |-------------------------------|-------------|-------------|       |
+     EDX|                             DX|      DH     |     DL      |       |
+        |-------------------------------|-------------|-------------|       |
+     ESI|                                                           |       |
+        |-----------------------------------------------------------|       |
+     EDI|                                                           |       |
+        |-----------------------------------------------------------|   <---|
+     ESP|                                                           |   (Stack Pointer)
+        |-----------------------------------------------------------|   
+     EBP|                                                           |   (Base pointer)
+        |-----------------------------------------------------------|
+        <----------------------- 32 bits --------------------------->
+
+- For the EAX, EBX, ECX and EDX registers, subsections may be used.
+    EG.
+        the least significant 2 bytes of EAX can be treated as a 16-bit register called AX 
+            the least significant byte of AX can be treated as a 8-bit register called AL.
+            the most significant byte of AX can be treated as a 8-bit register called AH.
+        
+        * This names refer to the same physical register.
+        * When a two-byte quantity is placed into DX, the update affects the value of DH, DL and EDX.
+        * These sub-registers are mainly hold-overs from older, 16-bit versions of the instruction set.
+        * Howerver, they are sometimes convenient when dealing with data that are smaller than 32-bits (e.g. 1-byte ASCII characters)
+
+- When referring to registers in assembly language, the names are not case-sensitive.
+    EG.
+        the names EAX and eax refer to the same register.
+
+- On x86-32, registers are 32 bits wide.
+- On x86-64, registers are 64 bits wide.
+
+- Also for 64 bit systems 
+                  |-------------------|------------------|--------------|-------------|
+         RAX / R0 |         EAX / R0D |         AX / R0W |     AH       |    AL / R0B |   Stores function return values and is used in arithmetic operations.
+                  |-------------------|------------------|--------------|-------------|
+         RCX / R1 |         ECX / R1D |         CX / R1W |     CH       |    CL / R1B |   Counter for string and loop operations.
+                  |-------------------|------------------|--------------|-------------|
+         RDX / R2 |         EDX / R2D |         DX / R2W |     DH       |    DL / R2B |   Data register for I/O operations 
+                  |-------------------|------------------|--------------|-------------|
+         RBX / R3 |         EBX / R3D |         BX / R3W |     BH       |    BL / R3B |   Base register for memory access.
+                  |-------------------|------------------|--------------|-------------|
+         RSP / R4 |         ESP / R4D |         SP / R4W |          SPL / R4B         |   Stack pointer, which points to the top of the stack.
+                  |-------------------|------------------|----------------------------|
+         RBP / R5 |         EBP / R5D |         BP / R5W |        BPL / R5B           |   Base pointer, used to point to the base of the current stack frame.
+                  |-------------------|------------------|----------------------------|
+         RSI / R6 |         ESI / R6D |         SI / R6W |          SIL / R6B         |   Source index for string operations.
+                  |-------------------|------------------|----------------------------|
+         RDI / R7 |         EDI / R7D |         DI / R7W |          DIL / R7B         |   Destination index for string operations.
+                  |-------------------|------------------|----------------------------|
+              RIP |         EIP       |          IP      |                            |   Instruction pointer, which points to the next instruction for executed.
+                  |-------------------|------------------|----------------------------|
+               R8 |         R8D       |         R8W      |          R8B               |
+                  |-------------------|------------------|----------------------------|
+               R9 |         R9D       |         R9W      |          R9B               |
+                  |-------------------|------------------|----------------------------|
+              R10 |         R10D      |         R10W     |          R10B              |
+                  |-------------------|------------------|----------------------------|
+              R11 |         R11D      |         R11W     |          R11B              |
+                  |-------------------|------------------|----------------------------|
+              R12 |         R12D      |         R12W     |          R12B              |
+                  |-------------------|------------------|----------------------------|
+              R13 |         R13D      |         R13W     |          R13B              |
+                  |-------------------|------------------|----------------------------|
+              R14 |         R14D      |         R14W     |          R14B              |
+                  |-------------------|------------------|----------------------------|
+              R15 |         R15D      |         R15W     |          R15B              |   
+                  |-------------------|------------------|--------------------------- |
+
+   AX - A Extended
+   EAX - Extended AX
+   RAX - Really Wide AX or R0 
+      * R0D - Double word
+      * R0W - Word 
+      * R0B - Byte
+
+|-------------------|-------------------|-----------------|-----------------|-------------|--------------------------|
+| Assembly Term     |   Abbreviation    |   Size in bits  | size in bytes   |  Hex Digits |    Example directive     |
+|-------------------|-------------------|-----------------|-----------------|-------------|--------------------------|
+|     Byte          |    DB             |   8 bits        |   1 byte        |    2 hex    |          db 0xFF         |
+|-------------------|-------------------|-----------------|-----------------|-------------|--------------------------|
+|     Word          |    DW             |   16 bits       |   2 bytes       |    4 hex    |          dw 0x1234       |
+|-------------------|-------------------|-----------------|-----------------|-------------|--------------------------|
+|   Double word     |    DD             |   32 bits       |   4 bytes       |    8 hex    |         dd 0xDEADBEEF    |
+|-------------------|-------------------|-----------------|-----------------|-------------|--------------------------|
+|   Quad word       |    DQ             |   64 bits       |   8 bytes       |    16 hex   |  dq 0x1234566789ABCDEF0  |
+|-------------------|-------------------|-----------------|-----------------|-------------|--------------------------|
+    - NB : STORING CAN BE DONE IN EITHER VALUES(base10/decimal), ASCII CHARACTERS OR HEXADECIMAL VALUES:
+        EG.
+            var1 DB 65  : Stores decimal 65 (which is the letter 'A')
+            var1 DB A : stores the letter A (assembler converts to 65 for you)
+            var1 DB 0x41 : Stores hex 41 (also decimal 65, also 'A')
+            var2 DB 0x6D, 0x41 : Stores hex 41 and 6D (ASCII value of m and k) similar to var2 DB 'mk' or var2 db 'm', 'k'
+        
+    - When you see WORD PTR, DW or the "W" suffix in register names like AX or R8W, it always mean 16 bits.
+
+
+> Classic Registers (RAX, RBX, RCX, RDX)
+    - These 4 registers have the most complex naming because they existed in 8-bit and 16-bit processors before the 64-bit era, so they accumulated names over generations.
+    |------------|------------|----------|--------------|------------|-----------------------|
+    |   64-bit   |  32-bit    |  16-bit  |  8-bit low   | 8-bit high |   Original purpose    |
+    |------------|------------|----------|--------------|------------|-----------------------|
+    |    RAX     |   EAX      |    AX    |      AL      |     AH     |     Accumulator       |
+    |------------|------------|----------|--------------|------------|-----------------------|
+    |    RBX     |   EBX      |    BX    |      BL      |     BH     |     Base              |
+    |------------|------------|----------|--------------|------------|-----------------------|
+    |    RCX     |   ECX      |    CX    |      CL      |     CH     |     Counter           |
+    |------------|------------|----------|--------------|------------|-----------------------|
+    |    RDX     |   EDX      |    DX    |      DL      |     DH     |     Data              |
+    |------------|------------|----------|--------------|------------|-----------------------|
+
+> The index/Pointer registers (RSI, RDI, RBP, RSP) 
+    - You have no high-byte access.
+        |------------|------------|----------|--------------|------------|-----------------------|
+        |   64-bit   |  32-bit    |  16-bit  |  8-bit low   | 8-bit high |   Original purpose    |
+        |------------|------------|----------|--------------|------------|-----------------------|
+        |    RSI     |   ESI      |    SI    |      SIL     |   NONE     |     Source index      |
+        |------------|------------|----------|--------------|------------|-----------------------|
+        |    RDI     |   EDI      |    DI    |      DIL     |   NONE     |     Destination index |
+        |------------|------------|----------|--------------|------------|-----------------------|
+        |    RBP     |   EBP      |    BP    |      BPL     |   NONE     |     Base Pointer      |
+        |------------|------------|----------|--------------|------------|-----------------------|
+        |    RSP     |   ESP      |    SP    |      SPL     |   NONE     |     Stack pointer     |
+        |------------|------------|----------|--------------|------------|-----------------------|
+
+> The new registers (R8-R15)
+        |------------|------------|----------|--------------|------------|----------------------------------------|
+        |   64-bit   |  32-bit    |  16-bit  |  8-bit low   | 8-bit high |          Original purpose              |
+        |------------|------------|----------|--------------|------------|----------------------------------------|
+        |    R8      |   R8D      |   R8W    |      R8B     |   NONE     |  Added in x86-64, not in 32 bits       |
+        |------------|------------|----------|--------------|------------|----------------------------------------|
+        |    R9      |   R9D      |   R9W    |      R9B     |   NONE     |  D = double, W=word, B=Byte            |
+        |------------|------------|----------|--------------|------------|----------------------------------------|
+        |    R10     |   R10D     |   R10W   |      R10B    |   NONE     |  No H (high-byte) access on any        |
+        |------------|------------|----------|--------------|------------|----------------------------------------|
+        |    R11     |   R11D     |   R11W   |      R11B    |   NONE     |                                        |
+        |------------|------------|----------|--------------|------------|----------------------------------------|
+        |    R12     |   R12D     |   R12W   |      R12B    |   NONE     | Calle-saved in both Linux and windows  |
+        |------------|------------|----------|--------------|------------|----------------------------------------|
+        |    R13     |   R13D     |   R13W   |      R13B    |   NONE     |                                        |
+        |------------|------------|----------|--------------|------------|----------------------------------------|
+        |    R14     |   R14D     |   R14W   |      R14B    |   NONE     |                                        |
+        |------------|------------|----------|--------------|------------|----------------------------------------|
+        |    R15     |   R15D     |   R15W   |      R15B    |   NONE     |                                        |
+        |------------|------------|----------|--------------|------------|----------------------------------------|
+
+- All sub-registers share the same physical bits.
+    EG.
+        RAX = 0x 11 22 33 44 55 66 77 88  (all 64 bits = 8 bytes = 16 hex digits)
+        EAX = 0x             55 66 77 88  (lower 32 bits only )
+         AX = 0x                   77 88  (lower 16 bits only )
+         AL = 0x                      88  (bits 0-7, lowest byte )
+         AH = 0x                   77     (bits 8 - 15, second byte from bottom )
+
+        ; Live example.
+        mov rax, 0x112233445667788
+
+        mov al, 0xFF    ; Change only the lowest byte.
+        ; RAX is now 0x11223344556677FF (only AL changes)
+
+        mov ah, 0x00    ; Change only bits 8-15
+        ; RAX is now 0x11223344556600FF (only AH changes)
+
+        mov eax, 0xABCDEF01     ; Write to 32-bit EAX.
+        ; RAX is now 0x00000000ABCDEF01 UPPER 32 BITS WERE ZEROED
+
+            > The 32-bit zero-Extension trap 
+                * Writing to a 32-bit register (like EAX) automatically zeroes the upper 32 bits of the full 64-bit register (RAX).
+                * Writing to a 16-bit or 8-bit sub-register does NOT automatically clear the upper bits.
+                    EG.
+                        ; Scenario : RAX currently holds 0xAAAAAAAABBBBBBBB
+                        
+                        mov eax, 0x123455678   ; Write to 32-bit EAX.
+                        ; RAX is now 0x0000000012345678 - Upper 32 bits were zeroed automatically.
+
+                        mov ax, 0xBEEF      ; Write to 16-bit AX.
+                        ; RAX is now 0x000000001234BEEF - only AX changed, nothing else zeroed.
+
+                        mov al, 0xFF        ; Write to 8-bit AL 
+                        ; RAX is now 0x000000001234BEFF - Only AL changed, nothing else zeroed.
+
+
+            GENERAL PURPOSE REGISTERS.
+        ---------------------------------
+RAX / EAX / AX / AH / AL ( The Accumulator Register )
+    - RAX stands for "Register A eXtended" (the R = 64-bit, the X = the AX lineage).
+    - Specific uses:
+        * Function return values 
+            > When a function returns a value, it's placed in RAX before the function returns.
+            > The caller reads RAX after the call.
+
+        * MUL and IMUL 
+            > implicit source/destination.
+            > When you write 'mul rbx', it multiplies RAX x RBX.
+            > The lower 64 bits of the result go into RAX, the upper 64 bits spill into RDX.
+                - Imagine you have 2 buckets that can only hold 2 digits each. you multiply 50 x 50. the answer 2500:
+                    i. Low bucket (RAX) : Holds the 00.
+                    ii. High bucket (RDX) : holds the 25.
+                
+                - The answer is gotten by RDX:RAX read together 2500.
+
+        * DIV and IDIV 
+            > The dividend is the 128-bit combination of RDX:RAX (RDX holds the high 64 bits, RAX holds the low 64 bits.)
+            > After division, quotient is in RAX, remainder in RDX.
+
+        * Linux system calls.
+            > The syscall number goes into RAX before executing the SYSCALL instruction.
+                EG.
+                    RAX = 60 means exit()
+                    RAX = 1 means write()
+                    RAx = 0 means read()
+
+        EG.
+            # observing that the return value of a function lands in RAX.
+            ; call a function - it returns 42
+            ; after the call , RAX = 42 (whatever the function returns)
+            mov rbx, rax    ; save the return value before RAX gets overwritten.
+
+            
+            # MUL overflowing into RDX:RAX 
+            mov rax, 0xFFFFFFFFFFFFFFFF     ; RAX = maximum insigned 64-bit value.
+            mov rbx, 2
+            mul rbx         ; Multiply RAX by RBX.
+            ; Result is 128 bits: RDX:RAX
+            ; RDX = 0x0000000000000001   (high 64 bits — the overflow)
+            ; RAX = 0xFFFFFFFFFFFFFFFE   (low 64 bits)
+
+            
+            # Linux exit() syscall using RAX as syscall number.
+            mov rax, 60       ; Syscall number 60 = exit()
+            mov rdi, 0        ; First argument: exit code 0 (success)
+            syscall           ; Kernel takes over, program terminates
+
+
+RBX / EBX / BX / BH / BL (base register)
+    - RBX stands for "Register B eXtended". Historically B stood for base.
+    - Specific uses:
+        * Callee-saved register 
+            > RBX must be preserved by any function that uses it.
+            > if your function uses RBX, you must push it at the start and pop it at the end.
+            > This makes it safe to hold long-lived values.
+
+        * Base address for arrays.
+            > A natural pattern is to load the start address of an array into RBX, then access elements as [rbx+8], [rbx+16], etc.
+            > RBX stays stable as an anchor while other registers do the indexing.
+        EG.
+            ; Using RBX to hold an array base address that survives a function call
+            mov rbx, array_start       ; RBX = address of first element in array
+            call some_other_function   ; This function might use RAX, RCX, RDX freely
+            ; RBX still holds array_start after the call (callee-saved guarantee)
+            mov rax, [rbx]             ; Access first element — RBX is still valid
+            mov rax, [rbx + 8]         ; Access second element (8 bytes per element)
+
+
+RCX / ECX / CX / CH / CL (The counter register)
+    - RCX stands for "Register C eXtended". Historically C stood for Counter.
+    - Specific uses.
+        * Loop instruction  
+            > LOOP label decrements RCX by 1, then jumps to the label if RCX is not zero. 
+            > This is the original loop counter use.
+
+        * REP prefix.
+            > REP MOVSB, REP STOSB, REP SCASB and similar string instructions repeat exactly RCX times, decrementing RCX on each iteration.
+
+        * Variable shift count 
+            > SHL rax, cl and SHR rax, cl shift RAX by the number of positions stored in CL.
+            > you can't use any other 8-bit register for this - it must be CL.
+
+        * Function argument (windows x64)
+            > In the windows 64-bit calling convention, RCX holds the first argument passed to a function.
+            > in Linux (System V AMD 64), the first argument is in RDI instead.
+        EG.
+            # LOOP instruction - repeating a block exactly N times.
+            mov rcx, 5      ; set the loop counter to 5.
+            top of loop:
+                ; ... your code here .....
+                loop top_of_loop    ; Decrement RCX. if RCX != 0, jump to top_of_loop
+
+            top_of_loop
+            ; After this, RCX = 0 and the loop has run 5 times.
+
+           
+            # REP MOVSB - copy memory using rcx as the byte count.
+            lea rsi, [source_data]   ; RSI = address to copy FROM
+            lea rdi, [dest_buffer]   ; RDI = address to copy TO
+            mov rcx, 64              ; RCX = how many bytes to copy
+            rep movsb                ; Copy 64 bytes: RSI->RDI, then RSI++, RDI--, RCX-- per iteration
+
+
+            # variable shift using cl.
+            mov rax, 0b00001111       ; RAX = 0x0F (b means binary thus 0000 reps 0 in hex and 1111 rep 7 in hex)
+            mov rcx, 3               ; CL = 3 (shift 3 positions left)
+            shl rax, cl              ; Shift RAX left by CL
+            ; RAX = 0b01111000 = 0x78  (shifted left 3 positions)
+
+
+RDX / EDX / DX / DH / DL (The data register)
+    - RDX stands for "Register D eXtended". Historically D stood for data.
+    - Specific uses:
+        * MUL overflow 
+            > After 'mul rbx', the product of RAX × RBX is stored as RDX:RAX (RDX = high 64 bits, RAX = low 64 bits).
+
+        * DIV dividend 
+            > Before 'div rbx', you supply the 128-bit dividend as RDX:RAX.
+            > Always clear RDX to zero (xor rdx, rdx) before dividing unless you genuinely have a 128-bit value.
+
+        * I/O port access.
+            > The IN and OUT instructions use DX to specify the hardware port number.
+            > Rare in modern userspace code but common in OS/kernel/embedded development.
+
+        * •	Function argument
+            > Third argument in Linux (System V AMD64) calling convention, second argument in Windows x64.
+        EG.
+            # DIV - dividing 100 by 7, reading quotient and remainder.
+            xor rdx, rdx          ; CRITICAL: clear RDX before dividing (sets high dividend half to 0)
+            mov rax, 100          ; Low half of dividend = 100
+            mov rbx, 7            ; Divisor = 7
+            div rbx               ; Divide RDX:RAX (which is 0:100 = 100) by RBX (7)
+            ; RAX = quotient  = 14    (100 / 7 = 14)
+            ; RDX = remainder = 2     (100 mod 7 = 2)
+
+                * What happens if you forget to clear RDX before DIV: 
+                    > If RDX contains garbage from a previous operation, the dividend becomes garbage:100, which is a completely wrong number, and your result is nonsense. This is a common beginner bug.
+
+
+RSI / ESI / SI / SIL (Source Index Register)
+    - It was designed to hold the source address for memory-to-memory copy operations.
+    - In modern code its most important role is as the second function argument in linux.
+    - Specific uses:
+        * String Operations (source)
+            > MOVSB/MOVSW/MOVSD/MOVSQ, CMPSB, LODSB all read from [RSI] and advance RSI by 1/2/4/8 bytes after each operation.
+
+        * Second function argument.
+            > In the linux system V AMD64 ABI, RSI holds the second argument passed to a function.
+            > EG. in Write(fd, buffer, count), the buffer address is passed in RSI.
+
+
+RDI / EDI / DI / DIL (Destination Index Register)
+    - This is the direct partner to RSI.
+    - It holds the destination address for memory copy operations, and the first function argument in linux.
+    - Specific uses:
+        * String operations (destination)
+            > MOVSB/MOVSW/MOVSD/MOVSQ, STOSB, SCASB all write to [RDI] (except SCASB which compares). RDI advances automatically.
+
+        * First function argument (Linux)
+            > In linux system V AMD64 ABI, RDI holds the first argument.
+            > EG. in write (fd, buffer, count), the file descriptor fd is passed in RDI.
+        EG.
+            lea rsi, [source_string]   ; RSI = address to read FROM
+            lea rdi, [dest_buffer]     ; RDI = address to write TO
+            mov rcx, 12               ; RCX = 12 bytes to copy
+            rep movsb                 ; Copy: [RSI] -> [RDI], RSI++, RDI++, RCX-- (repeat 12 times)
+            ; After: RSI and RDI both point 12 bytes past where they started
+
+
+RSP / ESP / SP / SPL (stack pointer register)
+    - It always holds the memory address of the current top of the stack - the last item that was pushed, waiting to be popped.
+    - It is automatically updated by PUSH, POP, CALL and RET instructions.
+        > When a program starts, the cpu gives the program a certain amount of memory for the stack to use.
+        > In modern systems its about 1 to 8 megabytes of memory for the stack, but this can vary depending on the operating system and the specific program being run.
+        > The stack is not truly empty but it contains garbage data leftover bits and bytes from previous programs that have used the stack.
+        > When we say it's empty, its because the RSP is at the very beginning(the high address).
+        > The cpu doesn't care what's in the RAM; it only considers something "on the stack" if it is at or below where the RSP is currently pointing.
+        > When you POP, you aren't deleting data; you are just moving the RSP "above" that data. That data is now "outside" the stack boundaries. The next time you PUSH, the cpu moves the RSP back down and overwrites that old garbage with your new data.
+        > If you push two values back to back, they don't overwrite each other. 
+            1. Initial : RSP is at 1000
+            2. PUSH A : the cpu subtracts 8 from RSP (its now 992) and writes A into address 992.
+            3. PUSH B : the cpu subtracts 8 from RSP again (its now 984) and writes B into address 984.
+            4. The results : A is at 992 and B is at 984. They are neighbors.
+            5. Popping: You must pop B first(Last-in, First-out). Once you POP B, the RSP moves back to 992 and you can then POP A. 
+
+        > We are subtracting 8 because RSP is a 8 byte register. 
+
+    - The stack.
+        > Its a region of RAM organised on the Last In, First Out (LIFO) principle - exactly like a stack of plates.
+            - You can only add a plate to the top, and you can only remove a plate from the top. 
+            - you cannot remove from the middle.
+        > in x86-64, the stack is used to store:
+            1.	Return addresses:
+                *  when CALL executes, it pushes the address of the next instruction (so RET knows where to jump back to)
+            
+            2.	Local variables:
+                * space for a function's working data that doesn't fit in registers
+            
+            3.	Saved registers:
+                * if a function must preserve callee-saved registers, it pushes them at the start and pops them at the end
+            
+            4.	Overflow arguments:
+                * when more than 6 arguments are passed to a function, the extras go on the stack
+
+        > It grows towards lower addresses (downwards)
+                High Addresses
+                +------------------------+
+                |        Stack           |  ← grows DOWN
+                |   (RSP / RBP control)  |
+                +------------------------+
+                |                        |
+                |        (gap)           |
+                |                        |
+                +------------------------+
+                |        Heap            |  ← grows UP
+                |   (malloc / new)       |
+                +------------------------+
+                |   Global / Static      |
+                +------------------------+
+                |        Code            |
+                +------------------------+
+                Low Addresses
+
+                - The OS places the stack at a high address and lets it grow downward. The heap starts near the program code at a low address and grows upward. Both can expand into the middle free area without colliding (for a while). This convention is also historical: early systems simply chose 'stack goes down' and every subsequent architecture and OS kept it for compatibility.
+
+        > PUSH mechanics — exactly what happens step by step:
+            - RSP is decreased by the size of the data being pushed
+            - The data is written to the memory address that RSP now points to
+                * PUSH RAX is therefore exactly equivalent to:
+                    EG.
+                        sub rsp, 8      ; Step 1: RSP decreases by 8 (one QWORD)
+                        mov [rsp], rax  ; Step 2: Write RAX to the new RSP location
+
+        > POP mechanics — exactly what happens step by step:
+            - Data is read from the memory address RSP currently points to
+            - RSP is increased by the size of the data that was popped
+                * POP RAX is therefore exactly equivalent to:
+                    EG.
+                        mov rax, [rsp]  ; Step 1: Read from current RSP into RAX
+                        add rsp, 8      ; Step 2: RSP increases by 8
+            |-----------|------------|----------------------|---------------------------|---------------------------|
+            | Data type |   Size     | PUSH effect on RSP   |  POP effect on RSP        |         example           |
+            |-----------|------------|----------------------|---------------------------|---------------------------|
+            | WORD (DW) |   2 bytes  | RSP decreases by 2   | RSP increases by 2        |       push ax             |
+            |-----------|------------|----------------------|---------------------------|---------------------------|
+            | DWORD (DD)|   4 bytes  | RSP decreases by 4   | RSP increases by 4        |       push eax            |
+            |-----------|------------|----------------------|---------------------------|---------------------------|
+            | QWORD (DQ)|   8 bytes  | RSP decreases by 8   | RSP increases by 8        |       push rax            |
+            |-----------|------------|----------------------|---------------------------|---------------------------|
+
+            NB : in 64-bit mode, push defaults to 8 bytes (QWORD) even if you push a smaller register like AX or EAX. The CPU will still decrement RSP by 8 and write the full 8 bytes, zero-extending the smaller value. This is a quirk of x86-64's push behavior.
+            if you want to push a smaller value and only adjust RSP by the appropriate amount, you would need to do it manually:
+                EG.
+                    ; To push a 16-bit AX value onto the stack without the default 8-byte push behavior:
+                    sub rsp, 2          ; Manually adjust RSP for 2 bytes
+                    mov [rsp], ax      ; Write AX to the new RSP location
+
+        > the System V AMD64 ABI requires that the stack be 16-byte aligned at the point of a CALL instruction. This means that before you execute a CALL, RSP must be a multiple of 16. If you push an odd number of 8-byte values (e.g., one QWORD), you will break this alignment and can cause performance penalties or crashes when calling functions that expect proper alignment.
+            EG.
+                ; Example of maintaining 16-byte stack alignment before a CALL
+                push rbx            ; Push one QWORD (8 bytes)
+                ; RSP is now misaligned (not a multiple of 16)
+
+                ; To fix alignment, we can push another value or adjust RSP manually:
+                push rax            ; Push another QWORD to restore alignment
+                ; RSP is now back to being a multiple of 16
+
+                call some_function   ; Now we can safely call the function with proper stack alignment
+
+                    * what if nothing was pushed before the call?
+                        - If you haven't pushed anything and RSP is already a multiple of 16, then you can call directly without worrying about alignment. However, if your function or any called functions use PUSH or CALL internally, they will change the stack alignment, so it's generally good practice to ensure proper alignment before any CALL.
+
+                    * does ret pop the value from the stack making the stack a multiple of 16 again?
+                        - RET pops the return address (8 bytes) from the stack, which can change the alignment. If your function is called with a properly aligned stack, and you don't push an odd number of QWORDs, then when you RET, the stack will still be properly aligned for the caller. However, if you push an odd number of QWORDs in your function, you will break the alignment for the caller when you RET.
+
+
+RBP / EBP / BP / BPL (Base Pointer Register)
+    - It marks the fixed reference point of the current function's stack frame - a stable anchor from which local variables and saved arguments can be found even as RSP moves around.
+    -  The Base pointer (RBP) is used as a fixed reference point (an anchor) to access data without disturbing the stack.
+        > setting the anchor : when a function starts, we "lock" the RBP to the current stack position.
+            PUSH RBP : We save the old address where RBP was pointing (from the previous function)
+            MOV RBP, ESP : we tell RBP to point exactly where ESP is right now.
+        > accessing data without popping
+            * Once RBP is set, it stays still. Even if you push 100 items, RBP remains at the "top" of that function's workspace.
+            * Because each push is 8 bytes, you can "peek" at any data using simple math.
+                EG. (pushing 3 numbers and accessing the 1st one)
+                    Initial state : RBP and ESP are both at 1000
+                    PUSH 10 : RSP moves to 992 (Address 992 holds 10)
+                    PUSH 20 : RSP moves to 984 (Address 984 holds 20)
+                    PUSH 30 : RSP moves to 976 (Address 976 holds 30)
+
+                # To read the first number (10) without popping 
+                    MOV RAX, [RBP - 8] -> RAX is now 10
+                    MOV RBX, [RBP - 24] -> RBX is now 30
+
+                    Key Rule: Subtracting from RBP lets you look "down" into the stack. Adding to RBP (e.g., [RBP + 8]) is how functions look "up" to find the arguments passed to them by the main program.
+        EG.
+            ; --- PROLOGUE (start of function) ---
+            push rbp           ; Save the CALLER's RBP onto the stack (RSP decreases by 8)
+            mov rbp, rsp       ; Set our RBP to the current stack position (this is our frame base)
+            sub rsp, 32        ; Allocate 32 bytes for local variables (RSP decreases by 32)
+
+            ; Access local variables via RBP:
+            mov qword [rbp - 8],  10   ; local variable 1 = 10
+            mov qword [rbp - 16], 20   ; local variable 2 = 20
+            mov qword [rbp - 24], 30   ; local variable 3 = 30
+
+            ; --- EPILOGUE (end of function) ---
+            mov rsp, rbp       ; Restore RSP to where RBP points (discards all locals)
+            pop rbp            ; Restore the CALLER's RBP (RSP increases by 8)
+            ret                ; Return: pops the return address from stack into RIP (RSP increases by 8)
+
+                    OR 
+            ; Before our function is called, assume RSP = 0x7FFF0000
+            ; CALL pushed return address: RSP = 0x7FFEFFF8
+
+            push rbp          ; RSP = 0x7FFEFFF0  (saved caller's RBP)
+            mov rbp, rsp      ; RBP = 0x7FFEFFF0  (our frame base is set)
+            sub rsp, 24       ; RSP = 0x7FFEFFD8  (allocate 24 bytes for 3 local vars)
+
+            ; Memory layout now (high to low addresses):
+            ;  0x7FFEFFF8 = return address          (put there by CALL)
+            ;  0x7FFEFFF0 = saved RBP               <- RBP points here
+            ;  0x7FFEFFE8 = local var 1  [rbp - 8]
+            ;  0x7FFEFFF0 = local var 2  [rbp - 16]
+            ;  0x7FFEFFD8 = local var 3  [rbp - 24] <- RSP points here
+
+            mov qword [rbp - 8],  100   ; Write local var 1
+            mov qword [rbp - 16], 200   ; Write local var 2
+            mov qword [rbp - 24], 300   ; Write local var 3
+
+            ; Epilogue — undo everything in reverse order:
+            mov rsp, rbp      ; RSP = 0x7FFEFFF0  (discard locals by restoring RSP to RBP)
+            pop rbp           ; RSP = 0x7FFEFFF8  (restore caller's RBP)
+            ret               ; RSP = 0x7FFF0000  (pop return address into RIP, jump back)
+
+ 
+ R8 through R15 (the extended registers)
+    - The eight registers R8–R15 were added when Intel and AMD introduced the 64-bit x86 architecture.
+    - They do not exist in 32-bit mode.
+    - They have no special implicit use by any instruction (unlike RAX with MUL, or RCX with LOOP).
+    - They are truly general-purpose from hardware's perspective, though calling conventions assign some of them to function arguments.
+
+        |-------------|--------------------------------------|--------------------------------|---------------------------------------|
+        |   Register  | Linux (system v AMD64) - Argument #  | Windows x64 - argument #       |  callee-saved?                        |
+        |-------------|--------------------------------------|--------------------------------|---------------------------------------|
+        |    R8       |  5th argument                        |  3th argument                   | No (caller-saved)                    |
+        |    R9       |  6th argument                        |  4th argument                   | No (caller-saved)                    |
+        |    R10      |  Not used for arguments              |  5th argument                   | No (caller-saved)                    |
+        |    R11      |  Not used for arguments              |  6th argument                   | No (caller-saved)                    |
+        |    R12      |  Not used for arguments              |  Not used for arguments         | Yes (callee-saved) must be preserved |
+        |    R13      |  Not used for arguments              |  Not used for arguments         | Yes (callee-saved) must be preserved |
+        |    R14      |  Not used for arguments              |  Not used for arguments         | Yes (callee-saved) must be preserved |
+        |    R15      |  Not used for arguments              |  Not used for arguments         | Yes (callee-saved) must be preserved | 
+        |-------------|--------------------------------------|---------------------------------|--------------------------------------|
+        NB:
+        |-------------|--------------------------------------|-----------------------------------|
+        |   Register  | Linux (system v AMD64) - Argument #  | Windows x64 - argument #          |
+        |-------------|--------------------------------------|-----------------------------------|
+        |    RDI      |  1st argument                        |  No argument                      |
+        |    RSI      |  2nd argument                        |  No argument                      |
+        |    RDX      |  3rd argument                        |  2nd argument                     |
+        |    RCX      |  4th argument                        |  1st argument                     |
+        |-------------|--------------------------------------|-----------------------------------|
+
+            - What does preserved mean?
+                * If a register is callee-saved, it means that if your function uses that register, you must save its original value at the start of your function (usually by pushing it onto the stack) and restore it before returning (by popping it back). This ensures that the caller's value in that register is not lost or corrupted by your function. Caller-saved registers, on the other hand, can be freely used and overwritten by your function without needing to save and restore them, but the caller must assume they may be changed after a function call.
+                EG.
+                    ; Using R12 (callee-saved) in a function
+                    my_function:
+                        push r12        ; Save caller's R12
+                        mov r12, 42     ; Use R12 for some purpose
+                        ; ... do work ...
+                        pop r12         ; Restore caller's R12 before returning
+                        ret
+
+                    ; Using R10 (caller-saved) in a function
+                    my_other_function:
+                        mov r10, 99     ; Use R10 for some purpose
+                        ; ... do work ...
+                        ret              ; No need to restore R10, but caller must not expect it to be preserved
+
+
+RIP (The instruction pointer)
+    - also known as the program counter in other architectures.
+    - RIP always holds the memory address of the NEXT instruction the CPU will execute.
+    - After the CPU executes an instruction, RIP automatically advances to point at the following instruction.
+        EG.
+            ; Before CALL: RIP = address of CALL instruction
+            call my_function
+            ; CALL does two things:
+            ;   1. Pushes the address of the NEXT instruction (after this CALL) onto the stack
+            ;   2. Sets RIP = address of my_function  (jumps there) 
+            ; explanation: since RIP points to the next line to be executed, after calling the function the RIP is set to be inside the function being called so that the cpu goes there immediately.
+            ; When you CALL a function, the CPU automatically pushes the return address (the address of the next instruction after the CALL) onto the stack and then sets RIP to the address of the called function. This allows the called function to execute, and when it finishes, it can use RET to pop that return address back into RIP, jumping back to where it left off.
+            ; Inside my_function:
+            my_function:
+                ; ... do stuff ...
+                ret
+            ;   RET does one thing:
+            ;   Pops the saved return address from the stack into RIP  (jumps back)
+
+    - RIP-Relative addressing.
+        * In 64-bit mode, data references are typically RIP-relative. This means the address of a global variable or constant is encoded as a signed offset from the current RIP, not as an absolute address. This makes position-independent code (PIC) possible — the program works correctly regardless of where in memory it is loaded.
+        * this basically means that when you see an instruction like 'mov rax, [rip + offset]', the CPU calculates the effective address by taking the current value of RIP (which points to the next instruction) and adding the specified offset to it.
+        * This allows the program to access data relative to its current position in memory, which is essential for shared libraries and other scenarios where the code may be loaded at different addresses.
+            EG.
+                ; Assume RIP is currently at 0x400100
+                mov rax, [rip + 0x200]   ; Effective address = 0x400100 + 0x200 = 0x400300
+                ; This instruction reads from memory address 0x400300 into RAX
+
+    - RIP for security research
+        * Controlling RIP = controlling what code runs next. This is the central goal of most binary exploitation techniques.
+        * When a function executes RET, it pops the return address from the stack into RIP.
+        * If an attacker has overwritten that return address (via a stack buffer overflow, for example), RET loads the attacker's chosen address into RIP.
+        * The CPU then executes whatever code is at that address — which could be shellcode, a ROP gadget, or a system function
+        EG.
+            ; Normal RET behaviour:
+            ; Stack top = 0x401234 (legitimate return address placed there by CALL)
+            ret              ; RIP = 0x401234, execution continues at 0x401234
+
+            ; Exploited RET behaviour:
+            ; Stack top = 0xDEADBEEF (overwritten by attacker via buffer overflow)
+            ret              ; RIP = 0xDEADBEEF, CPU tries to execute attacker-controlled code
+
+
+RFLAGS (The Flags Register)
+    - Its a 64-bit register where each individual bit is an independent yes/no flag that tracks the state of the CPU and the results of operations.
+    - You never set most of these flags directly. Instead, they are automatically updated by the CPU after certain instructions (like arithmetic operations) or by explicit flag-manipulating instructions (like CLC, STC, etc.).
+    |------------------|-----------|--------------|----------------------------------------------------------------|---------------------------------|
+    |  Flag Name       |   Bit     |   short form | set to 1 when...                                               |     used by                     |
+    |------------------|-----------|--------------|----------------------------------------------------------------|---------------------------------|
+    | Carry Flag       | 0         | CF           | Unsigned overflow. Results exceeding the register size         | jB (jump if below), JNB, JAE, JC|
+    | Zero Flag        | 6         | ZF           | Result of an operation is zero                                 | JE (jump if equal), JZ, JNE     |
+    | Sign Flag        | 7         | SF           | Result of an operation is negative (most significant bit is 1) | JS (jump if sign), JNS          |
+    | Overflow Flag    | 11        | OF           | Signed overflow. Result is too large positive or negative      | JO (jump if overflow), JNO      |
+    | parity Flag      | 2         | PF           | Result has an even number of set bits (1s)                     | JP (jump if parity), JNP        |
+    | Interrupt Flag   | 9         | IF           | When set, allows the CPU to respond to hardware interrupts     | CLI (clear IF), STI (set IF)    |
+    | Direction Flag   | 10        | DF           | set manually with STD instructions                             | Controls MOVS/LODS/STOS direction|
+    | Auxiliary Flag   | 4         | AF           | BCD (binary-coded decimal) carry/borrow                        | Not commonly used in modern code |
+    |------------------|-----------|--------------|----------------------------------------------------------------|---------------------------------|
+        EG.
+            # CMP and Conditional Jumps
+            ; cmp performs a subtraction (without storing the result) to set flags based on the relationship between two values.
+            mov rax, 5
+            cmp rax, 5          ; Computes 5 - 5 = 0, result discarded, flags are set:
+            ; CF = 0 (no unsigned borrow, since 5 is not less than 5)
+            ; ZF = 1 (result is zero)
+            ; SF = 0 (result is not negative)
+            je equal_label      ; Jump to equal_label because ZF is 1 (5 == 5)
+
+            ; TEST example : check if RAX is zero 
+            ; TEST performs a bitwise AND of two operands and sets flags based on the result, without storing it.
+            mov rax, 0          ; RAX = 0
+            test rax, rax       ; AND RAX with itself: 0 & 0 = 0, flags set:
+            ; ZF = 1 (result is zero)
+            ; CF = 0 (no carry since it's a bitwise AND)
+            jz zero_label       ; Jump to zero_label because ZF is 1 (RAX is zero)
+
+
+            # Flags after arithmetic operations:
+            ; detecting overflow in signed arithmetic:
+            mov rax, 0x7FFFFFFFFFFFFFFF ; RAX = largest positive signed 64-bit integer.
+            ; decimal 9223372036854775807
+            add rax, 1          ; RAX = 0x8000000000000000 (which is -9223372036854775808 in signed) overflows into the negative range, flags set:
+            ; RAX = 0x8000000000000000 (the result, which is negative in signed interpretation)
+            ; OF = 1 (signed overflow occurred - result changed sign unexpectedly)
+
+            ; detecting unsigned overflow:
+            mov rax, 0          
+            sub rax, 1         ; RAX = 0xFFFFFFFFFFFFFFFF (unsigned underflow), flags set:
+            ; signed rax is -1 but unsigned rax is 18446744073709551615
+            ; CF = 1 (unsigned borrow occurred - result wrapped around)
+            ; ZF = 0 (result is not zero)
+            ; SF = 1 (result is negative in signed interpretation)
+            

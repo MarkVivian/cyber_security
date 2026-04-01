@@ -59,16 +59,22 @@
                             * values from 0 to 255.
                             * a single ASCII character e.g. 'A' (which has the ASCII value of 65) or 'B' (which has the ASCII value of 66).
                                 > Note: when declaring a byte with a character, the assembler will automatically convert the character to its corresponding ASCII value and store that value in the byte.
+                        - in C : char 
                                 
     * `DW` (Define Word) - declares a (2 byte) word (16 bits) of data.
                          - 2 bytes can store
                             * values from 0 to 65535.
                             * two ASCII characters e.g. 'AB' (which has the ASCII value of 65 for 'A' and 66 for 'B', so the word would store the combined value of 65 and 66).
+                        - in C : short
+
 
     * `DD` (Define Doubleword) - declares a (4 byte) doubleword (32 bits) of data.
                             - 4 bytes can store
                                 * values from 0 to 4294967295.
                                 * four ASCII characters e.g. 'ABCD' (which has the ASCII value of 65 for 'A', 66 for 'B', 67 for 'C', and 68 for 'D', so the doubleword would store the combined value of 65, 66, 67, and 68).
+                        - in C : int/long 
+
+NB : C : double/long long -> 64 bits long (QWORD)
 
 - Declared locations can be labbeled with names for later reference - This is similar to declaring variables by name, but abides by some lower level rules.
     EG.

@@ -1,0 +1,28 @@
+                                    STACK.
+                                ===============
+- A stack is a Last-In-First-Out (LIFO) data structure where data is "pushed" on to the top of the stack and "popped" off the top.
+- The stack is a conceptual area in main memory (RAM) which is designated by the OS when a program is started.
+    * Diff OSes start it at different addresses by their own convention, or if they're using Address Space Layout Randomization (ASLR)
+
+- By convention the stack grows towards lower memory addresses.
+    * Adding something to the stack means the top of the stack is now at the lower memory address.
+
+                            High addresses
+Grows down (stack)  ||  |--------------------|
+                   \||/ |        Stack       |  /\
+                    \/  |--------------------| /||\
+                        |        Heap        |  || Grows up (Heap)
+                        |--------------------|
+                        |        Code        |
+                        |--------------------|
+                        |    Global data     |
+                        |--------------------|
+                             Low Addresses
+
+- RSP (stack pointer) points to the top of the stack.
+    * The stack pointer points to the lowest address wwhich is being used.
+    * It contains:
+        >  
+
+
+- while data will exist at addresses beyond the top of the stack, it is considered undefined.  
