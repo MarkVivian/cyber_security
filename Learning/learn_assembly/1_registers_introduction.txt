@@ -1,5 +1,5 @@
                                    TERMINOLOGIES.
-                    ========================
+                            ========================
 * "In Memory" or "stored in memory" always means sotred in RAM.
     EG.
         mov rax, [0x1000] -> Reads the value from RAM address 0x1000
@@ -248,8 +248,8 @@
         RAX = 0x 11 22 33 44 55 66 77 88  (all 64 bits = 8 bytes = 16 hex digits)
         EAX = 0x             55 66 77 88  (lower 32 bits only )
          AX = 0x                   77 88  (lower 16 bits only )
-         AL = 0x                      88  (bits 0-7, lowest byte )
          AH = 0x                   77     (bits 8 - 15, second byte from bottom )
+         AL = 0x                      88  (bits 0-7, lowest byte )
 
         ; Live example.
         mov rax, 0x112233445667788
@@ -259,6 +259,9 @@
 
         mov ah, 0x00    ; Change only bits 8-15
         ; RAX is now 0x11223344556600FF (only AH changes)
+
+        mov ax, 0xBAEF   ; Change the lowest 16 bits (bits 0-15)
+        ; RAX is now 0x112233445566BAEF (only AX changes)
 
         mov eax, 0xABCDEF01     ; Write to 32-bit EAX.
         ; RAX is now 0x00000000ABCDEF01 UPPER 32 BITS WERE ZEROED

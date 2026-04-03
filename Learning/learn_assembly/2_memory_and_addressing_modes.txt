@@ -22,27 +22,27 @@
             global _start
 
             _start:
-                mov EAX, [num1] ; Load the value of num1 (5) into EAX
-                add EAX, [num2] ; Add the value of num2 (10) to EAX, now EAX = 15
-                mov [result], EAX ; Store the result (15) back into memory at result
+                mov RAX, [num1] ; Load the value of num1 (5) into RAX
+                add RAX, [num2] ; Add the value of num2 (10) to RAX, now RAX = 15
+                mov [result], RAX ; Store the result (15) back into memory at result
 
     * What is the difference between mov <mem>, <reg> and mov <reg>, <reg> like is the outcome the same?
         mov <mem>, <reg>
-            mov [EBX], EAX 
-                * Your telling the CPU " look at the number inside EBX, go to that memory address(location in RAM) and write the value of EAX to that memory address".
-                * If EBX contains 0x00000000 and EAX contains 0x00000001, then after this instruction is executed, the value at memory address(location in RAM) 0x00000000 will be 0x00000001.
-                * This actually saves the value of EAX to the memory address(location in RAM) of EBX, so that it can be accessed later on in the program.
+            mov [RBX], RAX 
+                * Your telling the CPU " look at the number inside RBX, go to that memory address(location in RAM) and write the value of RAX to that memory address".
+                * If RBX contains 0x00000000 and RAX contains 0x00000001, then after this instruction is executed, the value at memory address(location in RAM) 0x00000000 will be 0x00000001.
+                * This actually saves the value of RAX to the memory address(location in RAM) of RBX, so that it can be accessed later on in the program.
         
-            mov [var], EAX 
-                * Your telling the CPU "look at the number inside EAX and copy that number into the memory address(location in RAM) of var".
-                * If EAX contains 0x00000001, then after this instruction is executed, the value at memory address(location in RAM) of var will be 0x00000001.
-                * This actually saves the value of EAX to the variable var in memory(RAM), so that it can be accessed later on in the program.
+            mov [var], RAX 
+                * Your telling the CPU "look at the number inside RAX and copy that number into the memory address(location in RAM) of var".
+                * If RAX contains 0x00000001, then after this instruction is executed, the value at memory address(location in RAM) of var will be 0x00000001.
+                * This actually saves the value of RAX to the variable var in memory(RAM), so that it can be accessed later on in the program.
         
         mov <reg>, <reg>
-            mov EAX, EBX 
-                * Your telling the CPU "look at the number inside EBX and copy that number into EAX".
-                * If EBX contains 0x00000001 and EAX contains 0x00000000, then after this instruction is executed, EAX will also contain 0x00000001.
-                * No RAM is being accessed in this instruction, we are just copying the value of EBX into EAX. This is a much faster operation than accessing RAM since registers are much faster than RAM.
+            mov RAX, RBX 
+                * Your telling the CPU "look at the number inside RBX and copy that number into RAX".
+                * If RBX contains 0x00000001 and RAX contains 0x00000000, then after this instruction is executed, RAX will also contain 0x00000001.
+                * No RAM is being accessed in this instruction, we are just copying the value of RBX into RAX. This is a much faster operation than accessing RAM since registers are much faster than RAM.
 
 - Why move data from registers to memory?
     * After performing operations on data in registers, you may want to save the results back to memory for later use or to share with other parts of the program. For example, if you calculate a value that you want to print to the console or write to a file, you would need to move it from a register back to memory before you can use it for those purposes.
@@ -74,7 +74,11 @@
                                 * four ASCII characters e.g. 'ABCD' (which has the ASCII value of 65 for 'A', 66 for 'B', 67 for 'C', and 68 for 'D', so the doubleword would store the combined value of 65, 66, 67, and 68).
                         - in C : int/long 
 
-NB : C : double/long long -> 64 bits long (QWORD)
+    * `DQ` (Define Quadword) - declares an 8 byte quadword (64 bits) of data.
+                            - 8 bytes can store
+                                * values from 0 to 18446744073709551615.
+                                * eight ASCII characters e.g. 'ABCDEFGH' (which has the ASCII value of 65 for 'A', 66 for 'B', 67 for 'C', 68 for 'D', 69 for 'E', 70 for 'F', 71 for 'G', and 72 for 'H', so the quadword would store the combined value of those ASCII characters).
+                         - in C : long long
 
 - Declared locations can be labbeled with names for later reference - This is similar to declaring variables by name, but abides by some lower level rules.
     EG.
@@ -99,22 +103,22 @@ NB : C : double/long long -> 64 bits long (QWORD)
         var6 DB 1, 2, 3 : Declare three bytes with the values 1, 2, and 3 respectively and label the first byte var6. The second and third bytes do not have labels, but they are located in memory immediately after var6.
                         : Even though the location of 2 and 3 can be calculated as var6 + 1 and var6 + 2 respectively, they cannot be referenced by name since they do not have labels.
 
-        var 7 DD ct,cl,ad : Declare three doublewords with the values of the ASCII characters 'c', 't', 'c', 'l', 'a', and 'd' (which are 99, 116, 99, 108, 97, and 100 respectively) and label the first doubleword var7.
+        var7 DD ct,cl,ad : Declare three doublewords with the values of the ASCII characters 'c', 't', 'c', 'l', 'a', and 'd' (which are 99, 116, 99, 108, 97, and 100 respectively) and label the first doubleword var7.
                           : The second and third doubleword do not have labels, but they are located in memory at var7 + 4 and var7 + 8 respectively since each doubleword is 4 bytes in size.
                           : if you wanted to access the second and third doublewords of var7, how would you do that since they do not have labels?
                                 * You can access the second and third doublewords of var7 using pointer arithmetic. For example, you can use the following code to access the second doubleword:
-                                    MOV EAX, [var7 + 4] : This will move the value of the second doubleword (which is 'cl' or 99,108) into the EAX register.
+                                    MOV RAX, [var7 + 4] : This will move the value of the second doubleword (which is 'cl' or 99,108) into the RAX register.
                                 * Similarly, you can access the third doubleword using:
-                                    MOV EAX, [var7 + 8] : This will move the value of the third doubleword (which is 'ad' or 97,100) into the EAX register.
+                                    MOV RAX, [var7 + 8] : This will move the value of the third doubleword (which is 'ad' or 97,100) into the RAX register.
                          : if you want to access the first doubleword of var7, how would you do that since it is labeled as var7?
                                 * You can access the first doubleword of var7 using:
-                                    MOV EAX, [var7] : This will move the value of the first doubleword (which is 'ct' or 99,116) into the EAX register. Since var7 is a label that points to the location of the first doubleword, you can simply use [var7] to access it.
-                        : Why are we using the EAX register to access the values of the doublewords in var7? 
-                            * The EAX register is a general-purpose register that is commonly used for storing temporary values and for performing arithmetic operations. It is often used to hold the results of calculations or to store values that need to be accessed frequently. In this case, we are using EAX to access the values of the doublewords in var7 because it is a convenient register for holding those values while we work with them in our program.
-                        : Could i use EBX or any other general-purpose register to access the values of the doublewords in var7 instead of EAX?
-                            * Yes, you could use EBX or any other general-purpose register to access the values of the doublewords in var7 instead of EAX. The choice of register is often a matter of convention and convenience, but as long as you are consistent in your use of registers and do not overwrite values that you need to keep, you can use any general-purpose register to access the values in var7.
-                        : Could i also use the least significant byte of EAX (AL) to access the values of the doublewords in var7 instead of EAX?
-                            * No, you cannot use the least significant byte of EAX (AL) to access the values of the doublewords in var7 because AL is only 8 bits wide, while each doubleword in var7 is 32 bits wide. To access the full 32-bit value of each doubleword, you need to use a register that is at least 32 bits wide, such as EAX, EBX, ECX, or EDX.
+                                    MOV RAX, [var7] : This will move the value of the first doubleword (which is 'ct' or 99,116) into the RAX register. Since var7 is a label that points to the location of the first doubleword, you can simply use [var7] to access it.
+                        : Why are we using the RAX register to access the values of the doublewords in var7? 
+                            * The RAX register is a general-purpose register that is commonly used for storing temporary values and for performing arithmetic operations. It is often used to hold the results of calculations or to store values that need to be accessed frequently. In this case, we are using RAX to access the values of the doublewords in var7 because it is a convenient register for holding those values while we work with them in our program.
+                        : Could i use RBX or any other general-purpose register to access the values of the doublewords in var7 instead of RAX?
+                            * Yes, you could use RBX or any other general-purpose register to access the values of the doublewords in var7 instead of RAX. The choice of register is often a matter of convention and convenience, but as long as you are consistent in your use of registers and do not overwrite values that you need to keep, you can use any general-purpose register to access the values in var7.
+                        : Could i also use the least significant byte of RAX (AL) to access the values of the doublewords in var7 instead of RAX?
+                            * No, you cannot use the least significant byte of RAX (AL) to access the values of the doublewords in var7 because AL is only 8 bits wide, while each doubleword in var7 is 32 bits wide. To access the full 32-bit value of each doubleword, you need to use a register that is at least 32 bits wide, such as RAX, RBX, RCX, or RDX.
                             * If var7 was a single byte DB variable instead of a doubleword DD variable, then you could use AL to access its value since AL is 8 bits wide and can hold the value of a single byte. However, since var7 is declared as a doubleword, you need to use a 32-bit register to access its full value.
                                 EG.
                                     var7 DB ct,cl,ad : Declare three bytes with the values of the ASCII characters 'c', 't', 'c', 'l', 'a', and 'd' (which are 99, 116, 99, 108, 97, and 100 respectively) and label the first byte var7.
@@ -126,17 +130,17 @@ NB : C : double/long long -> 64 bits long (QWORD)
                                                      : To access the value of the first byte (which is 'c' or 99), you can use:
                                                         MOV AL, [var7] : This will move the value of the first byte (which is 'c' or 99) into the AL register.
 
-        mark DD 1,2,3 : Declare three doublewords with the values 1, 2, and 3 respectively and label the first doubleword mark. The second and third doubleword do not have labels, but they are located in memory immediately after mark.
+        var20 DD 1,2,3 : Declare three doublewords with the values 1, 2, and 3 respectively and label the first doubleword var20. The second and third doubleword do not have labels, but they are located in memory immediately after var20.
                         : isn't it wasting memory to use the 4 byte directive (DD) to declare values that could fit in a byte (DB)? 
                             * Yes, it is wasting memory to use the DD directive to declare values that could fit in a byte (DB). However, it can be useful for consistency and readability to use the same directive for all declarations, especially if you are declaring a large number of variables. Additionally, using DD allows for future expansion if you later decide to store larger values in those variables.
                         
-        spair DB 10 DUP(0) : Declare an array of 10 bytes, all initialized to 0, and label it spair. The DUP operator is used to repeat the declaration of a byte with the value 0 ten times.
-                            : Does this mean the next variable i create will be located at spair + 10 since spair takes up 10 bytes of space in memory?
-                                * Yes, the next variable you create will be located at spair + 10 since spair takes up 10 bytes of space in memory. The first byte of spair is at spair, the second byte is at spair + 1, and so on, until the tenth byte which is at spair + 9. Therefore, the next variable would be located at spair + 10.
+        var21 DB 10 DUP(0) : Declare an array of 10 bytes, all initialized to 0, and label it var21. The DUP operator is used to repeat the declaration of a byte with the value 0 ten times.
+                            : Does this mean the next variable i create will be located at var21 + 10 since var21 takes up 10 bytes of space in memory?
+                                * Yes, the next variable you create will be located at var21 + 10 since var21 takes up 10 bytes of space in memory. The first byte of var21 is at var21, the second byte is at var21 + 1, and so on, until the tenth byte which is at var21 + 9. Therefore, the next variable would be located at var21 + 10.
 
-        make DB 10 DUP (?) : Declare an array of 10 bytes which are not initialized and label it as make.
+        var22 DB 10 DUP (?) : Declare an array of 10 bytes which are not initialized and label it as var22.
 
-        var10 DP 10 DUP('A') : Declare an array of 10 bytes which are initialized to A and labelled as var10.
+        var10 DB 10 DUP('A') : Declare an array of 10 bytes which are initialized to A and labelled as var10.
 
         var11 DB 10 DUP('AB') : since 'AB' is 2 bytes and your are asking for it 10 times the assembler will allocate 20 bytes of total space.
                               : in most modern assemblers, there is no difference between 'AB' and "AB". Both are treated as strings of ASCII characters.
@@ -155,46 +159,93 @@ NB : C : double/long long -> 64 bits long (QWORD)
                     1 byte  = 8 bits  = 2 hex digits    like 0xFF or 0x41
                     2 bytes = 16 bits = 4 hex digits    like 0xFFAB
                     4 bytes = 32 bits = 8 hex digits    like 0xAABBCCDD   
+                    8 bytes = 64 bits = 16 hex digits   like 0xAABBCCDDEEFF0011
 
 - if we had two single byte variables which were declared e.g var1 DB 64 and var2 DB 'A', could i access the value of var2 by calculating its location as var1 + 1 since it is located in memory immediately after var1?
     * Yes, you could access the value of var2 by calculating its location as var1 + 1 since it is located in memory immediately after var1. However, it is generally better practice to use labels to access variables rather than relying on pointer arithmetic, as it can make the code more readable and less error-prone.
 
 - what happens if i store a big word in a DW like elephant?
     * In most modern assemblers (like NASM), this will trigger an Error or Warning (e.g., "character constant too long"). The assembler will not silently discard the letters "e-p-h-a-n-t".
-        + DW tells the assembler to reserve 2-byte "chunks." If you provide a string longer than 2 characters, you are giving it more data than the specific "Word" container is meant to hold at once. Unlike a high-level language, Assembly requires the data size to match the directive.
+        > DW tells the assembler to reserve 2-byte "chunks." If you provide a string longer than 2 characters, you are giving it more data than the specific "Word" container is meant to hold at once. Unlike a high-level language, Assembly requires the data size to match the directive.
     * Why won't it just separate the remaining characters and store them sequentially?
-        + Actually, if you use the DB (Define Byte) directive, it will do exactly that! If you use DW, the assembler expects you to be defining 16-bit integers or pairs of characters.
+        > Actually, if you use the DB (Define Byte) directive, it will do exactly that! If you use DW, the assembler expects you to be defining 16-bit integers or pairs of characters.
 
 - why is DW called a word if it only stores 2 bytes?
     * The term "word" is a historical term that originated from older computer architectures where a word was typically 16 bits (2 bytes) in size. In modern x86 architecture, a word is still defined as 16 bits, even though the architecture itself is 32-bit or 64-bit. Therefore, the DW directive is used to declare a word (16 bits) of data, and it is called a word for historical reasons, even though it may not align with the current architecture's word size.
 
 - what is the difference between using square brackets and without?
     EG.
-        mov AL, [EBX] # AL = *EBX
-            - [EBX] is taken as memory instead of register. Register <-> Memory
-            - This allows the assembler to take 1 byte from EBX and put it into AL.
+        mov RAX, [RBX] # RAX = *EBX
+            - [RBX] is taken as memory instead of register. Register <-> Memory
+            - This tells the assembler to go to the address in memory/RAM of RBX and take the value stored at that address and put it into RAX. 
 
-        mov AL, EBX # AL = EBX which is invalid due to size difference.
+        mov RAX, RBX # RAX = RBX which is invalid due to size difference.
             - this is taken as register. Register <-> Register.
-            - This mean the assembler will copy all the data from EBX and try to move it to AL and fail since AL takes 1 byte/8 bits.
+            - This tells the assembler to take the value stored in RBX and put it into RAX.
+            EG.
+                mov RBX, 0x12345678     ; RBX = 0x12345678
+                mov [RBX], 0xABCDEF01 ; Memory at address RBX (0x12345678) = 0xABCDEF01
+
+                mov RAX, RBX             ; RAX = 0x12345678 
+                mov RAX, [RBX]           ; RAX = 0xABCDEF01 (value at memory address RBX)
+
 
     > Register <-> Memory (with brackets) : Size is set by the register, always works cleanly.
     > Register <-> Register (without brackets) : size must match exactly, use movzx/movsx if not.
         EG.
-             mov EAX, AL : THIS IS INVALID SINCE WE ARE MOVING 8 BIT DATA TO A 32 BIT REGISTER.
-             # CORRECT WAY.
-             movzx EAX, AL : zero-extend : EAX = 0x000000xx
-                            : zero-extend always fills with 0's.
-                            : so if AL held "01000001" the value of EAX would be "00000000 00000000 00000000 01000001"
-                            : use when your value is unsigned (like a plain count, or ASCII code or just a positive number)
+             mov EAX, AL ; THIS IS INVALID SINCE WE ARE MOVING 8 BIT DATA TO A 32 BIT REGISTER.
+             
+             ; CORRECT WAY.
+             movzx EAX, AL  ; zero-extend : EAX = 0x000000xx
+                            ; zero-extend always fills with 0's.
+                            ; so if AL held "01000001" the value of EAX would be "00000000 00000000 00000000 01000001"
+                            ; use when your value is unsigned (like a plain count, or ASCII code or just a positive number)
 
-             movsx EAX, AL : Sign-extend : fills upper bits based on AL's sign bit.
-                            : fills with copies of the left most bit.
-                            : so if AL held "01000001" the left most bit is "0" thus the value of EAX would be "00000000 00000000 00000000 01000001"
-                            : if AL held "11001000" the leftmost bit is "1" thus making EAX be "11111111 11111111 11111111 11001000"
-                            : use when your value is signed (can be negative)
+             movsx EAX, AL  ; Sign-extend : fills upper bits based on AL's sign bit.
+                            ; fills with copies of the left most bit.
+                            ; if AL held "01000001" the leftmost bit is "0" thus making EAX be "00000000 00000000 00000000 01000001"
+                            ; if AL held "11001000" the leftmost bit is "1" thus making EAX be "11111111 11111111 11111111 11001000"
+                            ; use when your value is signed (can be negative)
 
                 > Use when moving from small to big.
+
+    - All sub-registers share the same physical bits.
+    EG.
+        RAX = 0x 11 22 33 44 55 66 77 88  (all 64 bits = 8 bytes = 16 hex digits)
+        EAX = 0x             55 66 77 88  (lower 32 bits only )
+         AX = 0x                   77 88  (lower 16 bits only )
+         AL = 0x                      88  (bits 0-7, lowest byte )
+         AH = 0x                   77     (bits 8 - 15, second byte from bottom )
+
+        ; Live example.
+        mov rax, 0x112233445667788
+
+        mov al, 0xFF    ; Change only the lowest byte.
+        ; RAX is now 0x11223344556677FF (only AL changes)
+
+        mov ah, 0x00    ; Change only bits 8-15
+        ; RAX is now 0x11223344556600FF (only AH changes)
+
+        mov ax, 0xBAEF   ; Change the lowest 16 bits (bits 0-15)
+        ; RAX is now 0x112233445566BAEF (only AX changes)
+
+        mov eax, 0xABCDEF01     ; Write to 32-bit EAX.
+        ; RAX is now 0x00000000ABCDEF01 UPPER 32 BITS WERE ZEROED
+
+            > The 32-bit zero-Extension trap 
+                * Writing to a 32-bit register (like EAX) automatically zeroes the upper 32 bits of the full 64-bit register (RAX).
+                * Writing to a 16-bit or 8-bit sub-register does NOT automatically clear the upper bits.
+                    EG.
+                        ; Scenario : RAX currently holds 0xAAAAAAAABBBBBBBB
+                        
+                        mov eax, 0x123455678   ; Write to 32-bit EAX.
+                        ; RAX is now 0x0000000012345678 - Upper 32 bits were zeroed automatically.
+
+                        mov ax, 0xBEEF      ; Write to 16-bit AX.
+                        ; RAX is now 0x000000001234BEEF - only AX changed, nothing else zeroed.
+
+                        mov al, 0xFF        ; Write to 8-bit AL 
+                        ; RAX is now 0x000000001234BEFF - Only AL changed, nothing else zeroed.
 
 - Visual representation of storage:
     EG.
@@ -231,8 +282,10 @@ NB : C : double/long long -> 64 bits long (QWORD)
                     * When Intel originally built the 8086 processor, the main register was AX (16 bits). Later when they expanded to 32 bits they added the upper 16 bits and called the full thing EAX (the E stands for Extended). But they never gave that upper portion its own name because there was no clean way to access it directly anyway
                     * You cannot say "give me just the upper 16 bits of EAX" with a single instruction. If you need them you have to shift the bits down:
                         EG.
-                            mov EBX, EAX    ; copy EAX into EBX
+                            mov EAX, 0xABCDEF10  ; EAX = 0xABCDEF10
+                            mov EBX, EAX    ; copy EAX into EBX 
                             shr EBX, 16     ; shift right by 16 positions, upper bits drop into lower half
+                                            ; EBX is now 0x0000ABCD, and the upper 16 bits of EBX are zeroed out.
                                             ; now BX contains what was the upper 16 bits of EAX
                             ```
 
@@ -243,7 +296,7 @@ NB : C : double/long long -> 64 bits long (QWORD)
         -----------------------
 - In the examples above, where we used labels to refer to memory regions , these labels are actually replaced by the assembler with 32-bit quantities that specify addresses in memory.
 - In addition to supporting referring to memory regions by labels (i.e. constant values), the x86 provides a flexible scheme for computing and referring to memory addresses: up to two of the 32-bit registers and a 32-bit signed constant can be added together to compute a memory address. One of the registers can be optionally pre-multiplied by 2, 4, or 8.
-- he addressing modes can be used with many x86 instructions.
+- The addressing modes can be used with many x86 instructions.
 - Here we illustrate some examples using the mov instruction that moves data between registers and memory. This instruction has two operands: the first is the destination and the second specifies the source. 
     EG.
         mov EAX, [EBX] : Move the 4 bytes (32 bits) in memory at the address contained in EBX into EAX.
@@ -285,6 +338,7 @@ NB : C : double/long long -> 64 bits long (QWORD)
             > BYTE PTR 
             > WORD PTR 
             > DWORD PTR 
+            > QWORD PTR
 
                 - Serves this purpose, indicating sizes of 1,2 and 4 bytes respectively.
             
@@ -292,12 +346,15 @@ NB : C : double/long long -> 64 bits long (QWORD)
                 mov BYTE PTR [ebx], 2 : Move 2 into the single byte at the address stored in EBX.
                 mov WORD PTR [ebx], 2 : Move the 16-bit integer representation of 2 into the 2 bytes starting at the address in EBX.
                 mov DWORD PTR [ebx], 2 : move the 32-bit interger representation of 2 into the 4 byte starting at the address in EBX.
+                mov QWORD PTR [ebx], 2 : move the 64-bit interger representation of 2 into the 8 byte starting at the address in EBX.
 
 - size mismatches (EAX vs AL)
     EG.
         mov EAX, [EBX] : This is valid because the assembler can infer that we want to move a 32-bit value from memory into the 32-bit register EAX.
 
         mov AL, [EBX] : This is valid because the assembler can infer that we want to move a single byte from memory into the 8-bit register AL.
+
+        mov AL, EBX : This is invalid because the assembler cannot infer whether we want to move a single byte from EBX into AL (which would require truncation) or if we want to move the full 32-bit value of EBX into AL (which would require zero-extension). The size mismatch between the source and destination operands creates ambiguity that the assembler cannot resolve without explicit size directives.
 
         mov EAX, BYTE PTR [EBX] : This is valid because the size directive BYTE PTR explicitly indicates that we want to move a single byte from memory into the 32-bit register EAX. The assembler will zero-extend the byte value to fill the entire 32 bits of EAX.
 

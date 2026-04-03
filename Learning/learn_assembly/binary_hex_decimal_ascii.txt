@@ -1,0 +1,148 @@
+                                    BINARY TO HEX TO DECIMAL
+                                ==============================
+Decimal (base 10)   | Binary (base 2)     |   hexadecimal (aka hex) (base 16)
+--------------------|-----------------------|-------------------------------------
+    00              |       0000b           |       0x00 / 00h
+    01              |       0001b           |       0x01 / 01h
+    02              |       0010b           |       0x02 / 02h       
+    03              |       0011b           |       0x03 / 03h
+    04              |       0100b           |       0x04 / 04h
+    05              |       0101b           |       0x05 / 05h
+    06              |       0110b           |       0x06 / 06h
+    07              |       0111b           |       0x07 / 07h
+    08              |       1000b           |       0x08 / 08h
+    09              |       1001b           |       0x09 / 09h
+    10              |       1010b           |       0x0A / 0Ah
+    11              |       1011b           |       0x0B / 0Bh
+    12              |       1100b           |       0x0C / 0Ch
+    13              |       1101b           |       0x0D / 0Dh
+    14              |       1110b           |       0x0E / 0Eh
+    15              |       1111b           |       0x0F / 0Fh
+
+    Convert Hex to Decimal 
+        EG.
+            0xFA / FAh -> new hex value is FA -> 250 in decimal
+
+                step 1 : separate the value to F and A 
+                step 2 : find the binary for F and for A seperately.
+                step 3 : F is 1111 an A is 1010 
+                step 4 : combine to form 11111010 
+                    = 11111010
+
+                    = 128 + 64 + 32 + 16 + 8 + 0 + 2 + 0
+                    = 250 in decimal
+            
+            28h -> new hex value is 28 -> 40 in decimal
+
+                step 1 : separate the value to 2 and 8 
+                step 2 : find the binary for 2 and for 8 seperately.
+                step 3 : 2 is 0010 an 8 is 1000 
+                step 4 : combine to form 00101000 
+                    = 00101000
+
+                    = 0 + 0 + 32 + 0 + 8 + 0 + 0 + 0
+                    = 40 in decimal
+
+
+                    SIGNED AND UNSIGNED VALUES
+                ---------------------------------
+- Unsigned number : Positive numbers only.
+    * This is normal binary.
+        EG.
+            0000 -> 1111 = 0 to 15 in decimal
+
+- Signed number : Both positive and negative numbers.
+    * If the most significant bit (MSB) is 0, then the number is positive. If the MSB is 1, then the number is negative.
+        EG.
+            0000 -> 0111 = 0 to 7 in decimal
+            1000 -> 1111 = -8 to -1 in decimal
+
+- Calculating signed values:
+    * If the MSB is 0, then the value is the same as the unsigned value.
+    * if the MSB is 1 : 
+        EG.
+            1010 1100 (8 bits) -> 1 is the MSB so it's negative
+
+            Bits position:  7    6   5   4   3   2   1   0
+                Bit Value   1    0   1   0   1   1   0   0
+              Place Value  128   0  32   0   8   4   0   0
+
+              Step 1 : Treat every bit normally except the MSB/leftmost bit, which is treated as negative.
+              
+            Bits position:  7    6   5   4   3   2   1   0
+                Bit Value   1    0   1   0   1   1   0   0
+              Place Value -128   0  32   0   8   4   0   0
+
+                Step 2 : Add up the place values .
+                -128 + 0 + 32 + 0 + 8 + 4 + 0 + 0 = -84 in decimal
+
+- Calculating signed values using two's complement:
+    * To find the two's complement of a binary number, you invert all the bits and add 1 to the result.
+        EG.
+            1010 1100 (8 bits) -> 1 is the MSB so it's negative
+
+            Step 1 : Invert all the bits
+                0101 0011
+
+            Step 2 : Add 1 to the result
+                0101 0011
+              +         1
+              ------------
+                0101 0100
+
+            Step 3 : Calculate the decimal value of the result
+                Bits position:  7    6   5   4   3   2   1   0
+                    Bit Value   0    1   0   1   0   1   0   0
+                  Place Value   0   64   0   16   0   4   0   0
+
+                Step 4 : Add up the place values 
+                - (64 +16 +4) = -84 in decimal
+
+
+| Operation     | Signed instruction    | Unsigned instruction |
+|---------------|-----------------------|----------------------|
+| Multiply      | IMUL                  | MUL                  |
+| Divide        | IDIV                  | DIV                  |
+|jump if greater| JG                    | JA                   |
+|jump if less   | JL                    | JB                   |
+|shift left     | SAL/SHL               | SHL                  |
+|shift right    | SAR                   | SHR                  |
+|---------------|-----------------------|----------------------|
+
+
+                    ASCII CHARACTERS AND VALUES.
+                ---------------------------------
+- You cannot calculate ascii values but there are anchor points you memmorize and then calculate with those:
+    | Anchor |  Value |
+    |--------|--------|
+    |   0    |   48   |
+    |   A    |   65   |
+    |   a    |   97   |
+
+    > From the anchor points you just count:
+        C = 65(A) + 2 = 67
+        z = 97(a) + 25 = 122
+        7 = 48(0) + 7 = 55
+
+    > The gap between the upper case letter and its lowercase equivalent is always exactly 32.
+        a - A = 97 - 65 = 32
+        b = 66(B) + 32 = 98
+
+    > the full ascii table
+        * 0 - 31 - control characters 
+            - This are invisible non-printable instructions.
+                EG.
+                    0 = null terminator (you'll see this constantly in assemlby - it marks the end of a string)
+                    9 = tab 
+                    10 = newline
+                    13 = carriage return 
+
+        * 32 - space 
+
+        * 33 - 47 : Symbols (!, ", #, $, %, &, etc)
+
+        * 48 - 57 : Digits 0 - 9
+
+        * 58 - 64 : More symbols (:, ;, <, =, >, ?, @)
+
+        * 65 - : Letters start here 
