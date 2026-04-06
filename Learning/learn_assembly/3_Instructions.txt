@@ -113,6 +113,8 @@
             mov eax, 0b10101010 ; Move the binary value 0b10101010 (which is 170 in decimal) into EAX.
 
 
+NB::: If you see <reg32>, <reg> or <reg64> it means the instruction works for all the registers unless implicitly stated in the explanation that it doesn't.
+
 
                                         INSTRUCTIONS.
                                         ==================
@@ -132,33 +134,33 @@
     * doesn't activate any flags in RFLAGS, so it is safe to use before or after any instruction where you care about the flags.
         EG.
             mov <reg>, <reg>
-                mov EAX, EBX : Move the contents of EBX into EAX.
+                mov RAX, RBX : Move the contents of RBX into RAX.
             mov <reg>, <mem>
-                mov EAX, [EBX] : Move the 32-bit value at the memory address in EBX into EAX.
+                mov RAX, [RBX] : Move the 64-bit value at the memory address in RBX into RAX.
             mov <mem>, <reg>
-                mov [EBX], EAX : Move the 32-bit value in EAX into the memory address in EBX.
+                mov [RBX], RAX : Move the 64-bit value in RAX into the memory address in RBX.
             mov <reg>, <con>
-                mov EAX, 2 : Move the 32-bit integer representation of 2 into EAX.
+                mov RAX, 2 : Move the 64-bit integer representation of 2 into RAX.
             mov <mem>, <con>
-                mov [EBX], 2 : Move the 32-bit integer representation of 2 into the memory address in EBX.
+                mov [RBX], 2 : Move the 64-bit integer representation of 2 into the memory address in RBX.
 
     * What is the difference between mov <mem>, <reg> and mov <reg>, <reg> like is the outcome the same?
         mov <mem>, <reg>
-            mov [EBX], EAX 
-                * Your telling the CPU " look at the number inside EBX, go to that memory address(location in RAM) and write the value of EAX to that memory address".
-                * If EBX contains 0x00000000 and EAX contains 0x00000001, then after this instruction is executed, the value at memory address(location in RAM) 0x00000000 will be 0x00000001.
-                * EBX value is not changed thus remaining as 0x00000000, but the value of data at the memory address that EBX points to is changed to 0x00000001. This is how we save data to memory(RAM) using the value of a register.
+            mov [RBX], RAX 
+                * Your telling the CPU " look at the number inside RBX, go to that memory address(location in RAM) and write the value of RAX to that memory address".
+                * If RBX contains 0x00000000 and RAX contains 0x00000001, then after this instruction is executed, the value at memory address(location in RAM) 0x00000000 will be 0x00000001.
+                * RBX value is not changed thus remaining as 0x00000000, but the value of data at the memory address that RBX points to is changed to 0x00000００１. This is how we save data to memory(RAM) using the value of a register.
 
-            mov [var], EAX 
-                * Your telling the CPU "look at the number inside EAX and copy that number into the memory address(location in RAM) of var".
-                * If EAX contains 0x00000001, then after this instruction is executed, the value at memory address(location in RAM) of var will be 0x00000001.
-                * This actually saves the value of EAX to the variable var in memory(RAM), so that it can be accessed later on in the program.
+            mov [var], RAX 
+                * Your telling the CPU "look at the number inside RAX and copy that number into the memory address(location in RAM) of var".
+                * If RAX contains 0x00000001, then after this instruction is executed, the value at memory address(location in RAM) of var will be 0x00000001.
+                * This actually saves the value of RAX to the variable var in memory(RAM), so that it can be accessed later on in the program.
         
         mov <reg>, <reg>
-            mov EAX, EBX 
-                * Your telling the CPU "look at the number inside EBX and copy that number into EAX".
-                * If EBX contains 0x00000001 and EAX contains 0x00000000, then after this instruction is executed, EAX will also contain 0x00000001.
-                * No RAM is being accessed in this instruction, we are just copying the value of EBX into EAX. This is a much faster operation than accessing RAM since registers are much faster than RAM.
+            mov RAX, RBX 
+                * Your telling the CPU "look at the number inside RBX and copy that number into RAX".
+                * If RBX contains 0x00000001 and RAX contains 0x00000000, then after this instruction is executed, RAX will also contain 0x00000001.
+                * No RAM is being accessed in this instruction, we are just copying the value of RBX into RAX. This is a much faster operation than accessing RAM since registers are much faster than RAM.
 
     * move with sign-extension and zero-extension 
         MOVSX (move with sign-extend)
@@ -182,18 +184,18 @@
                 movzx EAX, AL      ; EAX = 0b0000000001111111 (the upper bits of EAX are filled with 0's regardless of the sign bit of AL)
 
     EG.
-        mov EAX, 0x00000001     ; Your telling the CPU "move the constant value 0x00000001 into EAX".
-                                ; After this instruction is executed, EAX will contain 0x00000001.
+        mov RAX, 0x00000001     ; Your telling the CPU "move the constant value 0x00000001 into RAX".
+                                ; After this instruction is executed, RAX will contain 0x00000001.
 
-        mov EBX, [EAX+4]       ; Your telling the CPU "look at the number inside EAX, add 4 to it, and copy the value at that memory address into EBX".
+        mov RBX, [RAX+4]       ; Your telling the CPU "look at the number inside RAX, add 4 to it, and copy the value at that memory address into RBX".
 
-        mov al, [EAX]         ; The cpu reads 1 byte from the memory address in EAX and copies it into AL. The rest of EAX is unaffected.
+        mov al, [RAX]         ; The cpu reads 1 byte from the memory address in RAX and copies it into AL. The rest of RAX is unaffected.
 
     * However, in some cases the size of a referred-to memory region is ambiguous. 
     EG.
-        * Consider the instruciton mov [ebx], 2. 
-            > Should the instruction move the value 2 into the single byte at address EBX 
-            > should it move the 32-bit interger representation of 2 into the 4 byte starting at address EBX.
+        * Consider the instruciton mov [rbx], 2. 
+            > Should the instruction move the value 2 into the single byte at address RBX 
+            > should it move the 64-bit interger representation of 2 into the 8 byte starting at address RBX.
 
         * Since either is a valid possible interpratation, the assembler must be explicitly directed as to which is correct.
         * The size directives 
@@ -205,10 +207,10 @@
                 - Serves this purpose, indicating sizes of 1,2 and 4 bytes respectively.
             
             EG.
-                mov BYTE PTR [ebx], 2   ; Move 2 into the single byte at the address stored in EBX.
-                mov WORD PTR [ebx], 2   ; Move the 16-bit integer representation of 2 into the 2 bytes starting at the address in EBX.
-                mov DWORD PTR [ebx], 2  ; move the 32-bit interger representation of 2 into the 4 byte starting at the address in EBX.
-                mov QWORD PTR [ebx], 2  ; move the 64-bit interger representation of 2 into the 8 byte starting at the address in EBX.
+                mov BYTE PTR [rbx], 2   ; Move 2 into the single byte at the address stored in RBX.
+                mov WORD PTR [rbx], 2   ; Move the 16-bit integer representation of 2 into the 2 bytes starting at the address in RBX.
+                mov DWORD PTR [rbx], 2  ; move the 32-bit interger representation of 2 into the 4 byte starting at the address in RBX.
+                mov QWORD PTR [rbx], 2  ; move the 64-bit interger representation of 2 into the 8 byte starting at the address in RBX.
 
 
 
@@ -240,17 +242,17 @@ NB  : the stack pointer (RSP) is a register that always points to the top of the
                     PUSH 30 : RSP moves to 976 (Address 976 holds 30)
 
                 # To read the first number (10) without popping 
-                    MOV EAX, [RBP - 8] -> EAX is now 10
-                    MOV EBX, [RBP - 24] -> EBX is now 30
+                    MOV RAX, [RBP - 8] -> RAX is now 10
+                    MOV RBX, [RBP - 24] -> RBX is now 30
 
                     Key Rule: Subtracting from RBP lets you look "down" into the stack. Adding to RBP (e.g., [RBP + 8]) is how functions look "up" to find the arguments passed to them by the main program.
 
 
 - push 
     * Push Stack 
-        push <reg32>
+        push <reg64>
         push <mem>
-        push <con32>
+        push <con64>
     * The push instruction places its operand/argument onto the top of the stack and decrements the stack pointer (RSP) by 8 to point to the new top of the stack.
     * The push instruction can only take 64-bit register, memory or constant operands.
     * x86-64 stacks grow downwards meaning they are arranged in memory from higher addresses to lower addresses. 
@@ -259,23 +261,23 @@ NB  : the stack pointer (RSP) is a register that always points to the top of the
         > Because we are working with 64-bit values, which are 8 bytes (8 bits per byte) in size. So when we push a 64-bit value onto the stack, we need to decrement the stack pointer (RSP) by 8 to make room for the new value on the stack. If we were working with 32-bit(4 bytes) values, we would decrement RSP by 4, and if we were working with 16-bit(2 bytes) values, we would decrement RSP by 2.
     * What is the point of pushing something onto the stack?
         > The stack is a special region of memory that is used for storing temporary data, such as function parameters, return addresses, and local variables. By pushing data onto the stack, we can save it for later use and access it when needed. For example, when we call a function, we often push the function's parameters onto the stack so that they can be accessed by the called function. When the called function is done executing, it can pop the parameters off the stack to clean up and return control back to the caller.
-        > This means instead of saving the value of a register to a variable in memory(RAM) using mov <mem>, <reg>, we can push the value of the register onto the stack using push <reg32>. This is often more efficient than saving the value to memory since accessing the stack is faster than accessing RAM. Additionally, using the stack allows us to easily manage temporary data and function parameters without having to worry about naming variables in memory.
+        > This means instead of saving the value of a register to a variable in memory(RAM) using mov <mem>, <reg>, we can push the value of the register onto the stack using push <reg64>. This is often more efficient than saving the value to memory since accessing the stack is faster than accessing RAM. Additionally, using the stack allows us to easily manage temporary data and function parameters without having to worry about naming variables in memory.
             EG.
-                push EAX 
-                    * Your telling the CPU "look at the number inside EAX and push that number onto the stack".
-                    * If EAX contains 0x00000001, then after this instruction is executed, the value 0x00000001 will be on top of the stack and ESP will be decremented by 4 to point to the new top of the stack.
-                    * This actually saves the value of EAX to the stack in memory(RAM), so that it can be accessed later on in the program.
+                push RAX 
+                    * Your telling the CPU "look at the number inside RAX and push that number onto the stack".
+                    * If RAX contains 0x00000001, then after this instruction is executed, the value 0x00000001 will be on top of the stack and RSP will be decremented by 8 to point to the new top of the stack.
+                    * This actually saves the value of RAX to the stack in memory(RAM), so that it can be accessed later on in the program.
                 
                 # IF YOU WANT TO ACCESS THE DATA THAT HAS BEEN PUSHED ONTO THE STACK, YOU CAN USE THE POP INSTRUCTION TO POP IT OFF THE STACK AND INTO A REGISTER OR MEMORY LOCATION.
                     EG.
-                        pop EAX 
-                            * Your telling the CPU "pop the value on top of the stack and copy it into EAX".
-                            * If the value on top of the stack is 0x00000001 and ESP points to that value, then after this instruction is executed, EAX will contain 0x00000001 and ESP will be incremented by 4 to point to the new top of the stack.
-                            * This actually retrieves the value from the stack in memory(RAM) and stores it in EAX, so that it can be accessed later on in the program.
+                        pop RAX 
+                            * Your telling the CPU "pop the value on top of the stack and copy it into RAX".
+                            * If the value on top of the stack is 0x00000001 and RSP points to that value, then after this instruction is executed, RAX will contain 0x00000001 and RSP will be incremented by 8 to point to the new top of the stack.
+                            * This actually retrieves the value from the stack in memory(RAM) and stores it in RAX, so that it can be accessed later on in the program.
                 
                 push [var]
                     * Your telling the CPU "look at the value at the memory address(location in RAM) of var and push that value onto the stack".
-                    * If the value at the memory address(location in RAM) of var is 0x00000001, then after this instruction is executed, the value 0x00000001 will be on top of the stack and ESP will be decremented by 4 to point to the new top of the stack.
+                    * If the value at the memory address(location in RAM) of var is 0x00000001, then after this instruction is executed, the value 0x00000001 will be on top of the stack and RSP will be decremented by 8 to point to the new top of the stack.
                     * This actually saves the value of var to the stack in memory(RAM), so that it can be accessed later on in the program.
 
                 # BUT IF WE ARE STILL ACCESSING/STORING INTO RAM, WHY NOT JUST STORE IT DIRECTLY ISN'T THE SPEED THE SAME?
@@ -321,7 +323,28 @@ NB  : the stack pointer (RSP) is a register that always points to the top of the
 
 - XCHG
     * Exchange 
-        
+        xchg <reg32>, <reg32>
+    * The xchg instruction swaps the values of its two register operands.
+    *  the xchg instruction only works with register operands. You cannot use xchg to swap values between a register and memory or between two memory locations. If you want to swap values involving memory, you would need to use a temporary register to hold one of the values during the swap process.
+        EG.
+            mov rax, 10 
+            mov rbx, 20 
+
+            xchg rax, rbx 
+                ; After this instruction is executed, RAX will contain 20 and RBX will contain 10. The values of RAX and RBX have been swapped.
+
+
+- BSWAP 
+    * Byte Swap 
+        bswap <reg32>
+    * The bswap instruction reverses the byte order of its 32-bit or 64-bit register operand. This means that the least significant byte (LSB) becomes the most significant byte (MSB), the second least significant byte becomes the second most significant byte, and so on.
+    * bswap instruction cannot be used on 16-bit registers or memory operands; it only works with 32-bit registers and 64-bit registers. 
+        EG.
+            mov rax, 0x0102030405060708 
+                ; RAX = 0x0102030405060708 (in memory, this is stored as 08 07 06 05 04 03 02 01)
+            
+            bswap rax       
+                ; After this instruction is executed, RAX will contain 0x0807060504030201 (in memory, this is stored as 01 02 03 04 05 06 07 08). The byte order of RAX has been reversed.
 
 
         II. ARITHMETIC AND LOGIC INSTRUCTIONS.
@@ -334,13 +357,26 @@ NB  : the stack pointer (RSP) is a register that always points to the top of the
         add <mem>, <reg32>
         add <mem>, <con32>
     * The add instruction adds the value of its second operand (i.e. a register, memory contents or a constant) to the value of its first operand (i.e. a register or memory) and stores the result in the location specified by its first operand.
-    * The add instruction can only take 32-bit register, memory or constant operands.
+    * The add instruction can only take registers, memory or constant operands.
+    * Flags set:
+        > CF (Carry Flag) - set to 1 if an unsigned overflow occurred (i.e. the result exceeded the maximum value that can be represented in the destination operand).
+        > OF (Overflow Flag) - set to 1 if a signed overflow occurred (i.e. the result exceeded the maximum positive value or minimum negative value that can be represented in the destination operand).
+        > SF (Sign Flag) - set to 1 if the result is negative (i.e. the most significant bit of the result is 1).
+        > ZF (Zero Flag) - set to 1 if the result is zero.
+        > PF (Parity Flag) - set to 1 if the low byte of the result has an even number of 1 bits.
+        > AF (Auxiliary Carry Flag) - set to 1 if there is a carry from the lower nibble (the least significant 4 bits) to the upper nibble (the most significant 4 bits) in the result. This flag is primarily used for BCD (Binary-Coded Decimal) arithmetic operations.
         EG.
-            add EAX, EBX - add the value of EBX to EAX and store the result in EAX.
-            add EAX, [EBX] - add the value at the memory address in EBX to EAX and store the result in EAX.
-            add EAX, 2 - add the constant value 2 to EAX and store the result in EAX.
-            add [EBX], EAX - add the value of EAX to the value at the memory address in EBX and store the result at that memory address.
-            add [EBX], 2 - add the constant value 2 to the value at the memory address in EBX and store the result at that memory address.
+            add RAX, RBX - add the value of RBX to RAX and store the result in RAX.
+            add RAX, [RBX] - add the value at the memory address in RBX to RAX and store the result in RAX.
+            add RAX, 2 - add the constant value 2 to RAX and store the result in RAX.
+            add [RBX], RAX - add the value of RAX to the value at the memory address in RBX and store the result at that memory address.
+            add [RBX], 2 - add the constant value 2 to the value at the memory address in RBX and store the result at that memory address.
+
+            # UNSIGNED OVERFLOW
+            mov rax, 0xFFFFFFFFFFFFFFFF ; RAX = 18446744073709551615 in decimal, which is the maximum value for a 64-bit unsigned integer.
+            add RAX, 1 ; RAX = 0xFFFFFFFFFFFFFFFF + 0x01 = 0x10000000000000000 (18446744073709551616 in decimal)
+                        ; Since RAX can only hold 64 bits, it wraps around to 0x0000000000000000 and sets the Carry Flag (CF) to indicate that an unsigned overflow occurred.
+                        ; CF = 1 because the result exceeded the maximum value that can be represented in 64 bits, causing it to wrap around back to 0.
 
     * question.. if we use add [EBX], EAX, does EBX contain the memory address with the value or the value itself?
         > EBX contains the memory address. When we use add [EBX], EAX, we are telling the CPU to look at the memory address that EBX points to, retrieve the value at that memory address, add it to EAX, and then store the result back at that same memory address. So EBX is not directly involved in the addition operation; it is just providing the location in memory where the value is stored.
@@ -353,10 +389,22 @@ NB  : the stack pointer (RSP) is a register that always points to the top of the
         sub <mem>, <reg>
     * The sub instruction stores in the value of its first operand/argument the result of subtracting the value of its second operand from the value of its first operand.
     * Similar to add.
+    * Flags set:
+        > CF (Carry Flag) 
+        > OF (Overflow Flag)
+        > SF (Sign Flag) 
+        > ZF (Zero Flag) 
+        > PF (Parity Flag)
+        > AF (Auxiliary Carry Flag)
         EG.
-            sub EAX, EBX - subtract the value of EBX from EAX and store the result in EAX.
-            sub EAX, [EBX] - subtract the value at the memory address in EBX from EAX and store the result in EAX.
-            sub [EBX], EAX - subtract the value of EAX from the value at the memory address in EBX and store the result at that memory address.
+            mov rax, 20
+            mov rbx, 10
+            sub RAX, RBX - subtract the value of RBX from RAX and store the result in RAX.
+            sub RBX, RAX - subtract the value of RAX from RBX and store the result in RBX.
+                ; since the result (10 - 20 = -10) is negative, the Sign Flag (SF) will be set to 1. The Overflow Flag (OF) will also be set to 1 because the result exceeded the maximum negative value that can be represented in a signed 64-bit integer. The Carry Flag (CF) will be set to 1 because there was a borrow during the subtraction operation.
+                ; RAX stores -10 as a signed or a large positive in unsigned.
+            sub RAX, [RBX] - subtract the value at the memory address in RBX from RAX and store the result in RAX.
+            sub [RBX], RAX - subtract the value of RAX from the value at the memory address in RBX and store the result at that memory address.
 
 
 -inc, dec 
