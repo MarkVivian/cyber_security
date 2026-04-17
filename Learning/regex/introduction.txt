@@ -1,0 +1,903 @@
+                        REGEX 
+                    ================
+             WHAT REGEX ACTUALLY IS
+            --------------------------
+- A regex (regular expression) is a **pattern** you write to describe text you want to find.
+- The engine reads your pattern left to right and tries to match it against a string.
+- That's it. Everything else is just learning the syntax for describing patterns.
+- Before touching a single character of syntax, understand the mental model:
+    EG.
+        Pattern:   cat
+        String:    "I have a cat at home"
+        Match:     "cat" at position 9
+            
+            > You are describing a shape. The engine finds that shape in text.
+
+
+             LITERAL CHARACTERS AND THE DOT
+            ----------------------------------
+I. Literals
+    - Any normal letter or digit in a pattern matches itself exactly.
+    EG.
+        Pattern:   hello
+        Matches:   "hello" anywhere in a string
+
+II. The Dot `.`
+    - The dot matches **any single character** except a newline.
+    EG.
+        Pattern:   c.t
+        Matches:   "cat", "cot", "c3t", "c t", "c@t"
+        No match:  "ct"  (nothing between c and t)
+
+            > The dot is a wildcard for exactly ONE character. Not zero, not two. One.
+
+
+III. Escaping — `\.`
+    - When you want a literal dot (like in an IP address), you escape it with `\`.
+    - `\.` means "a real dot character", not "any character".
+    EG.
+        Pattern:   192\.168\.1\.1
+        Matches:   "192.168.1.1"
+        No match:  "192X168Y1Z1"
+
+            > This principle applies to ALL special characters.
+            > If you want the literal symbol, put `\` before it: `\.` `\*` `\+` `\?` `\(` `\)` `\[` `\]` `\{` `\}` `\\`
+
+
+            CHARACTER CLASSES `[ ]`
+        ------------------------------
+- A character class lets you say "match ONE character from this set."
+
+1. Basic class
+    EG.
+        Pattern:   [aeiou]
+        Matches:   any single vowel
+
+        Pattern:   c[aou]t
+        Matches:   "cat", "cot", "cut"
+        No match:  "cet", "cit"
+
+
+2.  Ranges inside classes
+    - Use `-` to define a range:
+        EG.
+            [a-z]     any lowercase letter
+            [A-Z]     any uppercase letter
+            [0-9]     any digit
+            [a-zA-Z]  any letter (upper or lower)
+            [a-zA-Z0-9]  any letter or digit
+
+
+3. Negated class `[^ ]`
+    - Put `^` at the START of a class to mean "any character NOT in this set":
+        EG.
+            [^aeiou]   any character that is NOT a vowel
+            [^0-9]     any character that is NOT a digit
+
+                > Note: `^` only means "not" when it is the FIRST character inside `[ ]`.
+                > Outside brackets, `^` means something else entirely (covered below)
+
+
+4. Special characters INSIDE classes
+    - Inside `[ ]`, most special characters lose their meaning.
+    - You do NOT need to escape `.` inside a class — `[.]` means a literal dot.
+    - The only characters with special meaning inside classes are: `]` `-` `^` `\`
+        EG.
+            [.+*?]    matches a literal dot, plus, asterisk, or question mark
+
+
+            SHORTHAND CLASSES
+            -----------------------
+- These are built-in shortcuts for common character classes:
+
+| Shorthand | Meaning                            | Equivalent        |
+|-----------|------------------------------------|-------------------|
+| `\d`      | any digit                          | `[0-9]`           |
+| `\D`      | any NON-digit                      | `[^0-9]`          |
+| `\w`      | any word character                 | `[a-zA-Z0-9_]`    |
+| `\W`      | any NON-word character             | `[^a-zA-Z0-9_]`   |
+| `\s`      | any whitespace (space/tab/newline) | `[ \t\n\r\f]`     |
+| `\S`      | any NON-whitespace                 | `[^ \t\n\r\f]`    |
+
+`\w` includes the underscore `_`. This matters when parsing identifiers in code.
+    EG.
+        \d\d\d     matches "123", "456", "007"
+        \w+        matches "hello", "user_name", "var1"  (+ means one or more — covered next)
+        \s         matches a single space, tab, or newline
+
+
+                 QUANTIFIERS
+            -------------------
+- Quantifiers control HOW MANY TIMES the preceding element must appear.
+
+| Quantifier | Meaning               | Example        | Matches                        |
+|------------|-----------------------|----------------|--------------------------------|
+| `*`        | 0 or more             | `lo*l`         | "ll", "lol", "lool", "loool"   |
+| `+`        | 1 or more             | `lo+l`         | "lol", "lool" — NOT "ll"       |
+| `?`        | 0 or 1 (optional)     | `colou?r`      | "color" and "colour"           |
+| `{n}`      | exactly n times       | `\d{4}`        | "2024", "1999"                 |
+| `{n,}`     | n or more times       | `\d{2,}`       | "12", "123", "1234"...         |
+| `{n,m}`    | between n and m times | `\d{2,4}`      | "12", "123", "1234"            |
+
+1. What "preceding element" means
+    - The quantifier applies to the single thing directly before it.
+        EG.
+            ab+ - means a, then ONE OR MORE b's
+                - matches "ab", "abb", "abbb"
+                - NOT "aab" (the + applies to b only, not ab)
+
+                    > To quantify multiple characters, use a group `( )` — covered in Section 6.
+
+
+2. Greedy vs Lazy
+    - By default, quantifiers are **greedy** — they match as MUCH as possible.
+        EG.
+            Pattern:   <.+>
+            String:    "<b>hello</b>"
+            Match:     "<b>hello</b>"  (the entire thing, greedy)
+
+                > Add `?` after a quantifier to make it **lazy** — match as LITTLE as possible:
+
+            Pattern:   <.+?>
+            String:    "<b>hello</b>"
+            Match:     "<b>"  (stops at first >, lazy)
+
+                > This distinction matters constantly when parsing HTML, XML, or any nested structure.
+
+
+                     ANCHORS
+                   ------------
+- Anchors do not match characters — they match **positions** in the string.
+
+| Anchor | Matches position                    |
+|--------|-------------------------------------|
+| `^`    | Start of the string (or line)       |
+| `$`    | End of the string (or line)         |
+| `\b`   | Word boundary                       |
+| `\B`   | NOT a word boundary                 |
+
+1.  `^` and `$`
+    EG.
+        Pattern:   ^hello
+        Matches:   "hello world"  (hello is at the START)
+        No match:  "say hello"    (hello is not at the start)
+
+        Pattern:   world$
+        Matches:   "hello world"  (world is at the END)
+        No match:  "world of code" (world is not at the end)
+
+        Pattern:   ^hello world$
+        Matches:   ONLY the exact string "hello world", nothing else
+
+
+2.  `\b` — Word Boundary
+    - `\b` matches the position between a word character (`\w`) and a non-word character (`\W`).
+    - Think of it as "the edge of a word."
+        EG.
+            Pattern:   \bcat\b
+            String:    "the cat sat on a catfish"
+            Matches:   "cat" (the standalone word)
+            No match:  "cat" inside "catfish" (no boundary after t)
+
+    - Without `\b`:
+        EG.
+            Pattern:   cat
+            String:    "the cat sat on a catfish"
+            Matches:   "cat" in BOTH "cat" and "catfish"
+
+                > `\b` is essential when you want whole-word matches.
+
+
+             GROUPS AND ALTERNATION
+            ----------------------------
+I. Groups `( )`
+    - Parentheses group things together. This does two things:
+        1. Lets you apply a quantifier to multiple characters
+        2. Captures the matched text for later use
+        EG.
+            Pattern:   (ha)+
+            Matches:   "ha", "haha", "hahaha"
+            (the + now applies to the whole group "ha")
+
+            Pattern:   (cat|dog)
+            Matches:   "cat" or "dog"
+            (alternation — covered below)
+
+
+II. Alternation `|`
+    - The pipe `|` means OR. It alternates between complete expressions.
+        EG.
+            Pattern:   cat|dog
+            Matches:   "cat" or "dog"
+
+                > Be careful — `|` has very low precedence. It alternates between everything on its left and everything on its right:
+
+            Pattern:   I have a cat|dog
+            Matches:   "I have a cat"  OR  "dog"
+            NOT:       "I have a cat"  OR  "I have a dog"
+
+    - To fix this, use a group:
+        EG.
+            Pattern:   I have a (cat|dog)
+            Matches:   "I have a cat"  OR  "I have a dog"
+
+
+III. Non-capturing groups `(?: )`
+    - If you want to group for quantifiers or alternation but DON'T need to capture:
+        EG.
+            Pattern:   (?:ha)+
+            Same matching as (ha)+ but doesn't save the match for backreferences
+
+                > Use this when you have many groups and don't want to count them.
+
+
+IV. Backreferences `\1`, `\2`...
+    - When you capture with `( )`, you can refer back to what was matched:
+        EG.
+            Pattern:   (\w+) \1
+            Matches:   "hello hello", "the the", "word word"
+            No match:  "hello world"
+
+                > `\1` means "whatever the first capturing group matched."
+                > This is powerful for finding repeated words or duplicated content.
+
+
+V. Named groups `(?P<name> )` (Python) / `(?<name> )` (others)
+    - You can name groups for clarity:
+        EG.
+            # Python
+            (?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})
+            # Access with match.group('year'), match.group('month'), etc.
+
+
+                 LOOKAHEAD AND LOOKBEHIND
+                ---------------------------
+- These are "zero-width assertions" — they check what's around a match without including it.
+
+| Syntax      | Name               | Meaning                              |
+|-------------|--------------------|--------------------------------------|
+| `(?=...)`   | Positive lookahead | Match if followed by ...             |
+| `(?!...)`   | Negative lookahead | Match if NOT followed by ...         |
+| `(?<=...)`  | Positive lookbehind| Match if preceded by ...             |
+| `(?<!...)`  | Negative lookbehind| Match if NOT preceded by ...         |
+
+### Lookahead examples
+```
+Pattern:   \d+(?= dollars)
+String:    "I have 100 dollars and 50 euros"
+Match:     "100"  (the number before " dollars", but " dollars" not included in match)
+```
+
+```
+Pattern:   \d+(?! dollars)
+String:    "I have 100 dollars and 50 euros"
+Match:     "50"  (the number NOT followed by " dollars")
+```
+
+### Lookbehind examples
+```
+Pattern:   (?<=\$)\d+
+String:    "Price: $250 or 300 euros"
+Match:     "250"  (digits preceded by $, but $ not included in match)
+```
+
+### Why this matters in security
+When parsing logs for IP addresses only inside certain fields:
+```
+(?<=src=)\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}
+```
+Matches an IP only when preceded by "src=" — no need to include "src=" in your match.
+
+---
+
+## SECTION 9 — FLAGS / MODIFIERS
+
+Flags change how the engine interprets your pattern.
+
+| Flag             | Python   | Bash (grep) | PowerShell | Meaning                                   |
+|------------------|----------|-------------|------------|-------------------------------------------|
+| Case insensitive | `re.I`   | `-i`        | default*   | `cat` matches "Cat", "CAT", "cat"         |
+| Multiline        | `re.M`   | `-`         | `(?m)`     | `^` and `$` match each line, not just string start/end |
+| Dot matches all  | `re.S`   | `-`         | `(?s)`     | `.` also matches newlines                 |
+| Verbose          | `re.X`   | `-`         | `-`        | Ignore whitespace in pattern, allow comments |
+
+*PowerShell's `-match` is case insensitive by default. Use `-cmatch` for case sensitive.
+
+### Multiline flag — why it matters
+Without multiline:
+```
+Pattern:   ^\d+
+String:    "123\n456\n789"
+Match:     "123" only  (^ = start of whole string)
+```
+
+With multiline (`re.M` in Python):
+```
+Pattern:   ^\d+
+String:    "123\n456\n789"
+Matches:   "123", "456", "789"  (^ = start of each line)
+```
+
+---
+
+## SECTION 10 — SYNTAX ACROSS LANGUAGES
+
+### Python (`re` module)
+
+```python
+import re
+
+text = "My phone is 0712-345-678"
+
+# Search (finds first match anywhere)
+match = re.search(r'\d{4}-\d{3}-\d{3}', text)
+if match:
+    print(match.group())        # "0712-345-678"
+
+# Match (only checks at START of string)
+match = re.match(r'\d{4}', text)  # None — string starts with "My"
+
+# Findall (returns list of all matches)
+numbers = re.findall(r'\d+', text)  # ['0712', '345', '678']
+
+# Sub (search and replace)
+clean = re.sub(r'\d', 'X', text)   # "My phone is XXXX-XXX-XXX"
+
+# Compile (reuse a pattern efficiently)
+pattern = re.compile(r'\d{4}-\d{3}-\d{3}')
+match = pattern.search(text)
+
+# Flags
+re.search(r'phone', text, re.IGNORECASE)
+re.search(r'phone', text, re.I)        # same thing
+re.search(r'^\d', text, re.MULTILINE)  # ^ matches each line
+
+# Raw strings — ALWAYS use r'' for regex in Python
+# Without r'': \d means d (the escape is consumed by Python)
+# With    r'': \d is passed as-is to the regex engine
+```
+
+### Named groups in Python
+```python
+pattern = re.compile(r'(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})')
+match = pattern.search("Date: 2024-03-15")
+if match:
+    print(match.group('year'))   # "2024"
+    print(match.group('month'))  # "03"
+    print(match.group('day'))    # "15"
+    print(match.groupdict())     # {'year': '2024', 'month': '03', 'day': '15'}
+```
+
+---
+
+### Bash — `grep`, `sed`, `awk`
+
+Bash has TWO regex flavours:
+- **BRE (Basic)** — default in grep, sed. Some characters need escaping to be special.
+- **ERE (Extended)** — use `grep -E` or `egrep`, `sed -E`. More natural syntax.
+
+**Key difference:** In BRE, `+` `?` `|` `( )` `{ }` need a backslash to be special.
+In ERE, they work without backslash (like Python).
+
+```bash
+# grep — search for pattern in file or stdin
+grep 'pattern' file.txt
+grep -E 'pattern' file.txt       # Extended regex
+grep -i 'pattern' file.txt       # Case insensitive
+grep -n 'pattern' file.txt       # Show line numbers
+grep -v 'pattern' file.txt       # Invert — lines that DON'T match
+grep -o 'pattern' file.txt       # Only print matched part, not whole line
+grep -P 'pattern' file.txt       # Perl-compatible regex (enables \d \w etc fully)
+
+# Examples
+grep -E '\d{4}-\d{2}-\d{2}' logfile.txt      # find dates (ERE)
+grep -oP '(?<=src=)\S+' logfile.txt           # extract value after src= (Perl)
+grep -v '^#' config.txt                       # remove comment lines
+
+# sed — stream editor, mainly for substitution
+sed 's/pattern/replacement/' file.txt         # replace first match per line
+sed 's/pattern/replacement/g' file.txt        # replace ALL matches per line
+sed -E 's/pattern/replacement/g' file.txt     # Extended regex
+sed -n '/pattern/p' file.txt                  # only print matching lines
+
+# Examples
+sed 's/foo/bar/g' file.txt
+sed -E 's/\b([A-Z])/\L\1/g' file.txt         # lowercase first letter of each word (\L is GNU extension)
+sed '/^$/d' file.txt                          # delete blank lines
+
+# awk — process text by fields
+awk '/pattern/ {print $0}' file.txt           # print lines matching pattern
+awk -F: '/root/ {print $1}' /etc/passwd       # print field 1 of lines matching root
+
+# In Bash [[ ]] conditionals — uses ERE, captured in BASH_REMATCH
+if [[ "hello123" =~ ^([a-z]+)([0-9]+)$ ]]; then
+    echo "Full match: ${BASH_REMATCH[0]}"    # "hello123"
+    echo "Group 1:    ${BASH_REMATCH[1]}"    # "hello"
+    echo "Group 2:    ${BASH_REMATCH[2]}"    # "123"
+fi
+```
+
+---
+
+### PowerShell
+
+```powershell
+# -match operator (case insensitive by default)
+"hello123" -match '\d+'           # True
+$matches[0]                        # "123" — last match stored in $matches
+
+# -cmatch operator (case sensitive)
+"Hello" -cmatch '^[A-Z]'          # True
+
+# -notmatch
+"hello" -notmatch '^\d'           # True
+
+# With groups — $matches stores all groups
+"2024-03-15" -match '(\d{4})-(\d{2})-(\d{2})'
+$matches[0]   # "2024-03-15"
+$matches[1]   # "2024"
+$matches[2]   # "03"
+$matches[3]   # "15"
+
+# Select-String — like grep for files and pipeline
+Select-String -Pattern '\d{4}' -Path *.log
+Get-Content log.txt | Select-String -Pattern 'ERROR'
+Get-Content log.txt | Select-String -Pattern 'ERROR' -NotMatch    # invert
+
+# -replace operator (regex by default)
+"hello world" -replace 'world', 'there'         # "hello there"
+"foo123bar" -replace '\d+', 'NUM'                # "fooNUMbar"
+
+# [regex] class for more control
+$r = [regex]'\d+'
+$r.Matches("abc123def456") | ForEach { $_.Value }   # "123", "456"
+
+# Named groups in PowerShell
+"2024-03-15" -match '(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2})'
+$matches['year']    # "2024"
+$matches['month']   # "03"
+```
+
+---
+
+## SECTION 11 — BUILDING REAL PATTERNS
+
+This section walks through building practical patterns from scratch.
+The process is always: describe what you want in English first, then translate.
+
+### Pattern: Email address (simplified)
+English: "one or more word characters or dots or hyphens, then @, then one or more word chars or hyphens, then a dot, then 2-6 letters"
+
+```
+[\w.\-]+@[\w\-]+\.[a-zA-Z]{2,6}
+```
+
+Breaking it down:
+```
+[\w.\-]+    — username: word chars, dots, hyphens, one or more
+@           — literal @
+[\w\-]+     — domain name: word chars and hyphens
+\.          — literal dot
+[a-zA-Z]{2,6} — TLD: 2 to 6 letters
+```
+
+### Pattern: IPv4 address
+English: "1-3 digits, dot, 1-3 digits, dot, 1-3 digits, dot, 1-3 digits"
+
+```
+\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}
+```
+
+Note: this matches invalid IPs like 999.999.999.999.
+A fully correct IPv4 regex is complex. For most use cases, this is enough.
+
+### Pattern: Extract key=value pairs from a log
+Log line: `timestamp=2024-03-15 src=192.168.1.1 action=BLOCK port=443`
+Goal: extract all values
+
+```python
+import re
+log = "timestamp=2024-03-15 src=192.168.1.1 action=BLOCK port=443"
+pairs = re.findall(r'(\w+)=(\S+)', log)
+# [('timestamp', '2024-03-15'), ('src', '192.168.1.1'), ('action', 'BLOCK'), ('port', '443')]
+result = dict(pairs)
+# {'timestamp': '2024-03-15', 'src': '192.168.1.1', 'action': 'BLOCK', 'port': '443'}
+```
+
+### Pattern: Password validation
+Rules: min 8 chars, at least one uppercase, one lowercase, one digit, one special char
+
+```python
+import re
+
+def validate_password(pw):
+    checks = [
+        re.search(r'.{8,}', pw),           # at least 8 chars
+        re.search(r'[A-Z]', pw),            # at least one uppercase
+        re.search(r'[a-z]', pw),            # at least one lowercase
+        re.search(r'\d', pw),               # at least one digit
+        re.search(r'[!@#$%^&*(),.?":{}|]', pw),  # at least one special
+    ]
+    return all(checks)
+```
+
+Note: these are SEPARATE patterns, each checking one rule.
+One combined pattern using lookaheads also works:
+```
+^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%]).{8,}$
+```
+
+The lookaheads assert conditions without consuming characters.
+
+### Pattern: Find hardcoded credentials in code (security use case)
+Common patterns that suggest hardcoded secrets:
+
+```python
+patterns = [
+    r'password\s*=\s*["\'][^"\']{4,}["\']',    # password = "something"
+    r'api_?key\s*=\s*["\'][^"\']{8,}["\']',     # api_key = "something"
+    r'secret\s*=\s*["\'][^"\']{4,}["\']',       # secret = "something"
+    r'["\'][0-9a-fA-F]{32,}["\']',              # long hex strings (possible hashes/keys)
+    r'Bearer\s+[A-Za-z0-9\-._~+/]+=*',          # JWT/Bearer tokens
+]
+```
+
+---
+
+## SECTION 12 — EXERCISES
+
+Do each one before looking at the answer. Write the pattern, then test your reasoning.
+
+---
+
+### BEGINNER
+
+**Exercise 1**
+Write a pattern that matches any 4-digit number.
+```
+Answer: \d{4}
+Note: this also matches "12345" (the first 4 digits). To match ONLY 4 digits as a standalone number use: \b\d{4}\b
+```
+
+**Exercise 2**
+Write a pattern that matches "colour" and "color" (British vs American spelling).
+```
+Answer: colou?r
+The u? makes u optional (0 or 1 times).
+```
+
+**Exercise 3**
+Write a pattern that matches any line that starts with #  (comment lines in many config files).
+```
+Answer: ^#.*
+^    — start of line
+#    — literal hash
+.*   — anything after (0 or more of any character)
+```
+
+**Exercise 4**
+Write a pattern matching a UK postcode format like "SW1A 2AA" or "EC1A 1BB"
+(1-2 letters, 1-2 digits, space, 1 digit, 2 letters)
+```
+Answer: [A-Z]{1,2}\d{1,2}\s\d[A-Z]{2}
+```
+
+**Exercise 5**
+Match a hexadecimal number like 0x1A3F or 0xFF
+```
+Answer: 0x[0-9a-fA-F]+
+Or with case insensitive flag: 0x[0-9a-f]+  with re.I
+```
+
+---
+
+### INTERMEDIATE
+
+**Exercise 6**
+Extract all domain names from this string:
+`"Visit https://google.com and http://example.co.uk for info"`
+
+Goal: match google.com and example.co.uk
+```
+Answer: (?:https?://)([\w\-]+(?:\.[\w\-]+)+)
+
+Breaking down:
+(?:https?://)         — non-capturing group: match http:// or https:// but don't capture
+([\w\-]+              — capture group starts: domain name part (letters, digits, hyphens)
+(?:\.[\w\-]+)+)       — one or more occurrences of: dot then more domain chars
+```
+
+**Exercise 7**
+Write a pattern that matches a valid time in 24-hour format: HH:MM (00:00 to 23:59)
+
+```
+Answer: ([01]\d|2[0-3]):[0-5]\d
+
+Breaking down:
+([01]\d|2[0-3])    — hours: 00-19 (0 or 1, then any digit) OR 20-23 (2, then 0-3)
+:                  — literal colon
+[0-5]\d            — minutes: 0-5, then any digit (00-59)
+```
+
+**Exercise 8**
+In Python, write code that finds all words in a string that appear more than once (doubled words).
+
+```python
+import re
+text = "the the cat sat on the mat"
+doubled = re.findall(r'\b(\w+)\s+\1\b', text)
+# ['the'] — finds "the the"
+
+# \b(\w+)   — word boundary, then capture a word
+# \s+       — one or more whitespace
+# \1        — backreference: same word again
+# \b        — word boundary
+```
+
+**Exercise 9**
+Write a Bash one-liner that extracts all IP addresses from a log file called access.log
+
+```bash
+grep -oP '\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b' access.log
+
+# -o: print only matched part
+# -P: Perl regex (enables full \d support)
+# \b: word boundaries to avoid matching IPs inside larger numbers
+```
+
+**Exercise 10**
+Write a PowerShell command to find all lines in a file that contain "ERROR" or "CRITICAL" (case insensitive).
+
+```powershell
+Get-Content system.log | Select-String -Pattern 'ERROR|CRITICAL' -CaseSensitive:$false
+
+# Or with -match in a pipeline:
+Get-Content system.log | Where-Object { $_ -match 'ERROR|CRITICAL' }
+```
+
+---
+
+### ADVANCED
+
+**Exercise 11**
+Write a pattern that matches a URL (simplified: http or https, domain, optional path).
+
+```
+Answer: https?://[\w\-]+(\.[\w\-]+)+(\/[\w\-._~:/?#\[\]@!$&'()*+,;=%]*)?
+
+Breaking down:
+https?://              — http or https
+[\w\-]+                — domain start
+(\.[\w\-]+)+           — one or more domain segments (e.g. .co.uk)
+(\/[\w\-._~:/?#...]*)?  — optional path after /
+```
+
+**Exercise 12**
+Write a Python function that takes a log line and extracts:
+- timestamp
+- log level
+- message
+
+from lines like: `[2024-03-15 14:32:01] ERROR: Connection refused`
+
+```python
+import re
+
+def parse_log(line):
+    pattern = r'\[(\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2})\]\s(\w+):\s(.+)'
+    match = re.match(pattern, line)
+    if match:
+        return {
+            'timestamp': match.group(1),
+            'level':     match.group(2),
+            'message':   match.group(3)
+        }
+    return None
+
+# Test
+result = parse_log("[2024-03-15 14:32:01] ERROR: Connection refused")
+# {'timestamp': '2024-03-15 14:32:01', 'level': 'ERROR', 'message': 'Connection refused'}
+```
+
+**Exercise 13**
+Write a sed command that replaces all occurrences of an IP address in a file with [REDACTED].
+
+```bash
+sed -E 's/\b[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\b/[REDACTED]/g' file.txt
+```
+
+**Exercise 14**
+Write a pattern using a negative lookbehind to match numbers that are NOT preceded by a $ sign.
+
+```
+Answer: (?<!\$)\d+
+
+(?<!\$)   — negative lookbehind: not preceded by $
+\d+       — one or more digits
+
+Test:
+"$100 and 200"  →  matches only "200"
+```
+
+**Exercise 15 — Security focused**
+You are scanning source code files for potential SQL injection vulnerabilities.
+Write a Python script that finds lines where string concatenation is used to build what looks like a SQL query.
+
+```python
+import re
+
+# Patterns that suggest string-built SQL queries
+dangerous_patterns = [
+    r'(SELECT|INSERT|UPDATE|DELETE|DROP).*\+',    # SQL keyword followed by + (concatenation)
+    r'["\']\s*\+\s*\w+\s*\+\s*["\']',            # "..." + var + "..." string building
+    r'f["\'].*(?:SELECT|INSERT|UPDATE|DELETE)',    # f-strings with SQL keywords (Python)
+    r'%s.*(?:SELECT|WHERE|FROM)',                  # %s formatting with SQL
+    r'\.format\(.*\).*(?:SELECT|WHERE)',           # .format() with SQL
+]
+
+def scan_file(filepath):
+    findings = []
+    with open(filepath) as f:
+        for i, line in enumerate(f, 1):
+            for pattern in dangerous_patterns:
+                if re.search(pattern, line, re.IGNORECASE):
+                    findings.append((i, line.strip(), pattern))
+                    break  # don't double-report same line
+    return findings
+```
+
+---
+
+## SECTION 13 — COMMON MISTAKES AND HOW TO AVOID THEM
+
+### Mistake 1: Forgetting to escape the dot
+```
+Wrong:  192.168.1.1     (the dots match ANY character)
+Right:  192\.168\.1\.1  (literal dots)
+```
+
+### Mistake 2: Greedy matching eating too much
+```
+Wrong:  <.+>   matches "<b>hello</b>" as one entire match
+Right:  <.+?>  lazy — stops at first >
+Or:     <[^>]+>  explicit — match anything that isn't >
+```
+
+### Mistake 3: `^` and `$` not working as expected with multiline text
+If you have a string with multiple lines and you want to match per line, you need the multiline flag.
+```python
+# Without re.M: ^ only matches the very start of the string
+# With re.M: ^ matches start of each line
+re.findall(r'^\d+', text, re.M)
+```
+
+### Mistake 4: Not using raw strings in Python
+```python
+Wrong:  re.search('\d+', text)   # Python may interpret \d as escape sequence
+Right:  re.search(r'\d+', text)  # r'' passes \d directly to regex engine
+```
+
+### Mistake 5: Alternation scope
+```
+Wrong:  cat|dog food    # matches "cat" OR "dog food"
+Right:  (cat|dog) food  # matches "cat food" OR "dog food"
+```
+
+### Mistake 6: Character class with `-` in wrong position
+```
+Wrong:  [a-z0-9-+]   # ambiguous — is -+ a range?
+Right:  [a-z0-9+\-]  # escape the hyphen
+Right:  [-a-z0-9+]   # or put hyphen at the start
+Right:  [a-z0-9+-]   # or put hyphen at the end
+```
+
+### Mistake 7: Confusing `\b` with `^` and `$`
+```
+^pattern$   means the ENTIRE string is just the pattern
+\bpattern\b means the pattern appears as a whole word (can be anywhere in string)
+```
+
+---
+
+## SECTION 14 — QUICK REFERENCE CHEAT SHEET
+
+### Characters
+```
+.        any character except newline
+\d       digit [0-9]
+\D       non-digit
+\w       word character [a-zA-Z0-9_]
+\W       non-word character
+\s       whitespace
+\S       non-whitespace
+[abc]    any of a, b, c
+[^abc]   not a, b, or c
+[a-z]    a through z
+```
+
+### Quantifiers
+```
+*        0 or more (greedy)
++        1 or more (greedy)
+?        0 or 1
+{n}      exactly n
+{n,}     n or more
+{n,m}    n to m
+*?       0 or more (lazy)
++?       1 or more (lazy)
+```
+
+### Anchors
+```
+^        start of string/line
+$        end of string/line
+\b       word boundary
+\B       not word boundary
+```
+
+### Groups
+```
+(...)         capturing group
+(?:...)       non-capturing group
+(?P<name>...) named group (Python)
+(?<name>...)  named group (others)
+\1 \2 ...     backreference to group 1, 2...
+```
+
+### Lookaround
+```
+(?=...)    positive lookahead
+(?!...)    negative lookahead
+(?<=...)   positive lookbehind
+(?<!...)   negative lookbehind
+```
+
+### Alternation
+```
+a|b      match a or b
+```
+
+### Escapes
+```
+\.  \*  \+  \?  \(  \)  \[  \]  \{  \}  \\  \^  \$  \|
+```
+
+### Python flags
+```python
+re.I    # case insensitive
+re.M    # multiline (^ and $ match each line)
+re.S    # dot matches newline too
+re.X    # verbose (ignore whitespace, allow comments)
+# Combine: re.I | re.M
+```
+
+### Language syntax summary
+```python
+# Python
+import re
+re.search(r'pattern', text)
+re.match(r'pattern', text)       # anchored at start
+re.findall(r'pattern', text)
+re.sub(r'pattern', 'replacement', text)
+re.compile(r'pattern', re.I)
+```
+
+```bash
+# Bash
+grep -E 'pattern' file
+grep -oP 'pattern' file          # Perl regex, print match only
+sed -E 's/pattern/replacement/g' file
+[[ "$var" =~ pattern ]]          # in conditionals
+```
+
+```powershell
+# PowerShell
+"string" -match 'pattern'        # case insensitive
+"string" -cmatch 'pattern'       # case sensitive
+"string" -replace 'pattern', 'replacement'
+Select-String -Pattern 'pattern' -Path file
+```
+
+---
+
+*End of document. When you can write the advanced exercises from memory, you own regex.*

@@ -26,19 +26,57 @@
                            
 - Most arithmetic and logic instructions automatically update the RFLAGS register as a side effect.
     ZF (Zero Flag)
-        > Set to 1 if the result is exactly zero 
+        > Set to 1 if the result is exactly zero
+        > set to 0 if the result is anything else. 
 
     SF (Sign Flag)
-        > Set to 1 if the top bit of the result is 1 (result looks negative in signed arithmetic)
+        > Set to 1 if the top bit / most significant bit of the result is 1 (result looks negative in signed arithmetic)
+        > Set to 0 if the top bit / most significant bit of the result is 0 (result looks positive in signed arithmetic)
+        NB :: most significant bit is the leftmost bit in the binary representation of the result. For example, if the result is 0b11111111 (255 in decimal), the most significant bit is 1, so SF would be set to 1. If the result is 0b01111111 (127 in decimal), the most significant bit is 0, so SF would be set to 0.
 
     CF (Carry Flag)
         > Set to 1 if an unsigned overflow or borrow occurred.
+        UNSIGNED OVERFLOW
+            > When you add two unsigned numbers and the result exceeds the maximum value that can be represented in the destination register, the Carry Flag (CF) is set to 1 to indicate that an unsigned overflow occurred.
+            EG.
+                mov al, 255   ; AL = 0xFF (255 in decimal, which is the maximum value for an 8-bit unsigned integer)
+                add al, 1     ; AL = 0xFF + 0x01 = 0x100 (256 in decimal)
+                              ; AL wraps around to 0x00 and sets the Carry Flag (CF) to indicate that an unsigned overflow occurred.
+
+        BORROW
+            > When you subtract, if we need to borrow past zero to get the correct result, the Carry Flag (CF) is set to 1 to indicate that a borrow occurred.
+            EG.
+                mov al, 0     ; AL = 0x00 (0 in decimal)
+                sub al, 1     ; AL = 0x00 - 0x01 = 0xFF (255 in decimal)
+                              ; AL wraps around to 0xFF and sets the Carry Flag (CF) to indicate that a borrow occurred.
 
     OF (overflow flag)
         > Set to 1 if a signed overflow occurred (result changed sign unexpectedly)
+        > The intuition is:
+            * Positive + Positive = Negative (OF = 1) since adding two positive numbers should not give a negative result.
+            * Negative + Negative = Positive (OF = 1) since adding two negative numbers should not give a positive result.
+                EG.
+                    mov al, 127   ; AL = 0x7F (127 in decimal, which is the maximum positive value for an 8-bit signed integer)
+                    add al, 1     ; AL = 0x7F + 0x01 = 0x80 (128 in decimal, which is interpreted as -128 in signed arithmetic)
+                                  ; AL wraps around to 0x80 and sets the Overflow Flag (OF) to indicate that a signed overflow occurred.
+
+                    mov al, -128  ; AL = 0x80 (128 in decimal, which is interpreted as -128 in signed arithmetic)
+                    sub al, 1     ; AL = 0x80 - 0x01 = 0x7F (127 in decimal, which is interpreted as a positive number in signed arithmetic)
+                                  ; AL wraps around to 0x7F and sets the Overflow Flag (OF) to indicate that a signed overflow occurred.
+
+                    mov ax, 1
+                    sub ax, 2     ; AX = 0x0001 - 0x0002 = 0xFFFF (65535 in decimal, which is interpreted as -1 in signed arithmetic)
+                                  ; Since the result (-1) is mathematically correct for signed arithmetic, the Overflow Flag (OF) is not set because there is no unexpected change in sign. The Carry Flag (CF) would be set to indicate that a borrow occurred, but OF remains 0 because the result is correct for signed arithmetic.        
+
+
+    AF (Auxiliary Carry Flag)
+        > Set to 1 if there is a carry from the lower nibble (the least significant 4 bits) to the upper nibble (the most significant 4 bits) in the result. This flag is primarily used for BCD (Binary-Coded Decimal) arithmetic operations.
+        > In modern assembly and compiled code you will almost never see this used directly. It shows up sometimes in very old code and in code that does BCD arithmetic (which is also very old). Don't spend energy on it now.
 
     PF (parity flag)
         > Set to 1 if the low byte of the result has an even number of 1 bits.
+        > In modern assembly and compiled code you will almost never see this used directly. It shows up sometimes in cryptography and in very old code.
+        > Don't spend energy on it now.
             EG.
                 mov eax, 0b1010101010
                 ; the low byte of the result is 0b10101010, which has 4 1 bits (an even number), so PF would be set to 1.
@@ -46,6 +84,72 @@
                 mov rax, 0b1111111100000010
                 ; the low byte of the result is 0b00000010, which has 1 1 bit (an odd number), so PF would be set to 0.
                 ; remember that 1 byte = 8 bites, so the low byte is the last 8 bits of the result.
+
+    > Nature of Flags.
+        * Does the instruction touch data at all, or just move it around?
+            - If the instruction does not touch data at all, it will not update any flags. 
+                EG.
+                    mov rax, rbx  ; move does not touch data, so it does not update any flags.
+        
+        * Is it "real" arithmetic or just counting or comparing?
+            - If the instruction is doing "real" arithmetic (like add, sub, imul, etc.) it will update all the flags.
+            - If the instruction is just counting or comparing (like inc, dec, cmp, test, etc.) it will update some flags but not all of them. 
+                EG.
+                    inc rax  ; inc updates ZF and SF but does not update CF or OF because it is just counting and not doing "real" arithmetic.
+
+    > Special cases.
+        * Shift instructions ( like shl, shr, sar, etc.) only update CF and OF based on the last bit shifted out of the value. They do not update ZF or SF based on the final result of the shift.
+            EG.
+                mov rax, 0b10000000
+                shl rax, 1 
+                    ; After this instruction is executed, RAX will contain 0b00000000 (the result of the shift), CF will be set to 1 (because the last bit shifted out was 1), OF will be set to 0 (because the sign bit did not change), ZF will be set to 1 (because the result is zero), and SF will be set to 0 (because the most significant bit of the result is 0).
+                    ; if more than than 1 bit of shift occures, only the last bit shifted out will affect CF and OF. For example, if we shift RAX left by 2 instead of 1, CF will be set based on the second-to-last bit shifted out, and OF will be set based on whether the sign bit changed after the entire shift operation is completed.
+
+                        - cf : it is set to the last shifted out bit, which in this case is 0 (the second-to-last bit shifted out was 1, but CF only cares about the last bit shifted out).
+                        - of : it is set to 1 if the sign bit changed after the entire shift operation is completed. In this case, the sign bit of the original value (0b10000000) was 1, and the sign bit of the result (0b00000000) is 0, so OF will be set to 1 because there was a change in the sign bit.
+
+
+- Jump instructions
+    * Based on zero flag alone
+        > jz (jump if zero) / je (jump if equal) : jumps if ZF = 1
+        > jnz (jump if not zero) / jne (jump if not equal) : jumps if ZF = 0
+
+            ; if the result of cmp a, b (does a - b internally) is zero (a == b), ZF is set to 1 and jz/je will jump.
+            ; if the result is not zero (a != b), ZF is set to 0 and jnz/jne will jump.
+
+    * Based on unsigned comparisons (uses CF and ZF)
+        > ja (jump if above) : jumps if CF = 0 and ZF = 0 (unsigned greater than)
+        > jae (jump if above or equal) : jumps if CF = 0 (unsigned greater than or equal)
+        > jb (jump if below) : jumps if CF = 1 (unsigned less than)
+        > jbe (jump if below or equal) : jumps if CF = 1 or ZF = 1 (unsigned less than or equal)
+
+            ; if the result of cmp a, b (does a - b internally) is greater than zero in unsigned arithmetic (a > b), CF is 0 and ZF is 0, so ja will jump.
+            ; if the result is greater than or equal to zero in unsigned arithmetic (a >= b), CF is 0, so jae will jump.
+            ; if the result is less than zero in unsigned arithmetic (a < b), CF is 1, so jb will jump.
+            ; if the result is less than or equal to zero in unsigned arithmetic (a <= b), CF is 1 or ZF is 1, so jbe will jump.
+
+    * Based on signed comparisons (uses SF, ZF and OF)
+        > jg (jump if greater) : jumps if ZF = 0 and SF = OF (signed greater than)
+        > jge (jump if greater or equal) : jumps if SF = OF (signed greater than or equal)
+        > jl (jump if less) : jumps if SF != OF (signed less than)
+        > jle (jump if less or equal) : jumps if ZF = 1 or SF != OF (signed less than or equal)
+
+            ; if the result of cmp a, b (does a - b internally) is greater than zero in signed arithmetic (a > b), ZF is 0 and SF is equal to OF, so jg will jump.
+            ; if the result is greater than or equal to zero in signed arithmetic (a >= b), SF is equal to OF, so jge will jump.
+            ; if the result is less than zero in signed arithmetic (a < b), SF is not equal to OF, so jl will jump.
+            ; if the result is less than or equal to zero in signed arithmetic (a <= b), ZF is 1 or SF is not equal to OF, so jle will jump.
+
+    * Individual flag checks.
+        | instruction              |    condition   |   When you'd use it
+        |--------------------------|----------------|----------------------
+        | jc (jump if carry)       | CF = 1         | when you want to jump if an unsigned overflow or borrow occurred.
+        | jnc (jump if no carry)   | CF = 0         | when you want to jump if an unsigned overflow or borrow did not occur.
+        | js (jump if sign)        | SF = 1         | when you want to jump if a signed operation resulted in a negative value.
+        | jns (jump if no sign)    | SF = 0         | when you want to jump if a signed operation resulted in a non-negative value.
+        | jo (jump if overflow)    | OF = 1         | when you want to jump if a signed operation resulted in an overflow.
+        | jno (jump if no overflow)| OF = 0         | when you want to jump if a signed operation did not result in an overflow.
+        | jpe (jump if parity even)| PF = 1         | when you want to jump if the low byte of the result has an even number of 1 bits.
+        | jpo (jump if parity odd) | PF = 0         | when you want to jump if the low byte of the result has an odd number of 1 bits.
 
 - Operand size must match 
     > You cannot mix operand sizes in most instructions.
@@ -116,7 +220,7 @@
 NB::: If you see <reg32>, <reg> or <reg64> it means the instruction works for all the registers unless implicitly stated in the explanation that it doesn't.
 
 
-                                        INSTRUCTIONS.
+                                            INSTRUCTIONS.
                                         ==================
     
         I. DATA MOVEMENT INSTRUCTION.
@@ -361,7 +465,7 @@ NB  : the stack pointer (RSP) is a register that always points to the top of the
     * Flags set:
         > CF (Carry Flag) - set to 1 if an unsigned overflow occurred (i.e. the result exceeded the maximum value that can be represented in the destination operand).
         > OF (Overflow Flag) - set to 1 if a signed overflow occurred (i.e. the result exceeded the maximum positive value or minimum negative value that can be represented in the destination operand).
-        > SF (Sign Flag) - set to 1 if the result is negative (i.e. the most significant bit of the result is 1).
+        > SF (Sign Flag) - set to 1 if the the most significant bit of the result is 1 (result is negative in signed mode).
         > ZF (Zero Flag) - set to 1 if the result is zero.
         > PF (Parity Flag) - set to 1 if the low byte of the result has an even number of 1 bits.
         > AF (Auxiliary Carry Flag) - set to 1 if there is a carry from the lower nibble (the least significant 4 bits) to the upper nibble (the most significant 4 bits) in the result. This flag is primarily used for BCD (Binary-Coded Decimal) arithmetic operations.
@@ -407,75 +511,209 @@ NB  : the stack pointer (RSP) is a register that always points to the top of the
             sub [RBX], RAX - subtract the value of RAX from the value at the memory address in RBX and store the result at that memory address.
 
 
+-ADC
+    * Add with Carry
+        adc <reg32>, <reg32>
+        adc <reg32>, <mem>
+        adc <reg32>, <con32>
+        adc <mem>, <reg32>
+        adc <mem>, <con32>
+    * The adc instruction adds the value of its second operand (i.e. a register, memory contents or a constant) to the value of its first operand (i.e. a register or memory) along with the value of the Carry Flag (CF) and stores the result in the location specified by its first operand.
+    * The adc instruction is typically used for multi-word addition, where you need to add numbers that are larger than what can fit in a single register. In such cases, you would perform the addition on the lower word first, and then use adc to add the higher word along with any carry that may have resulted from the lower word addition.
+    * Flags set:
+        > CF (Carry Flag) - set to 1 if an unsigned overflow occurred (i.e. the result exceeded the maximum value that can be represented in the destination operand).
+        > OF (Overflow Flag) - set to 1 if a signed overflow occurred (i.e. the result exceeded the maximum positive value or minimum negative value that can be represented in the destination operand).
+        > SF (Sign Flag) - set to 1 if the most significant bit of the result is 1 (result is negative in signed mode).
+        > ZF (Zero Flag) - set to 1 if the result is zero.
+        > PF (Parity Flag) - set to 1 if the low byte of the result has an even number of 1 bits.
+        > AF (Auxiliary Carry Flag) - set to 1 if there is a carry from the lower nibble (the least significant 4 bits) to the upper nibble (the most significant 4 bits) in the result. This flag is primarily used for BCD (Binary-Coded Decimal) arithmetic operations.
+        EG.
+            mov RAX, 0xFFFFFFFFFFFFFFFF ; RAX = 18446744073709551615 in decimal, which is the maximum value for a 64-bit unsigned integer.
+            mov RBX, 0x01 ; RBX = 1
+            mov CF, 1 ; Set Carry Flag to 1
+
+            adc RAX, RBX ; RAX = RAX + RBX
+                        ; RAX = 0xFFFFFFFFFFFFFFFF + 0x01 + 0x01 (the value of CF) = 0x10000000000000001 (18446744073709551617 in decimal)
+                        ; Since RAX can only hold 64 bits, it wraps around to 0x0000000000000001 and sets the Carry Flag (CF) to indicate that an unsigned overflow occurred.
+                        ; CF = 1 because the result exceeded the maximum value that can be represented in 64 bits, causing it to wrap around back to 0.
+
+
+- SBB 
+    * Subtract with Borrow
+        sbb <reg32>, <reg32>
+        sbb <reg32>, <mem>
+        sbb <mem>, <reg32>
+    * The sbb instruction subtracts the value of its second operand (i.e. a register or memory contents) along with the value of the Carry Flag (CF) from the value of its first operand (i.e. a register or memory) and stores the result in the location specified by its first operand.
+    * The sbb instruction is typically used for multi-word subtraction, where you need to subtract numbers that are larger than what can fit in a single register. In such cases, you would perform the subtraction on the lower word first, and then use sbb to subtract the higher word along with any borrow that may have resulted from the lower word subtraction.
+    * Flags set:
+        > CF (Carry Flag) - set to 1 if an unsigned overflow occurred (i.e. the result exceeded the maximum value that can be represented in the destination operand).
+        > OF (Overflow Flag) - set to 1 if a signed overflow occurred (i.e. the result exceeded the maximum positive value or minimum negative value that can be represented in the destination operand).
+        > SF (Sign Flag) - set to 1 if the most significant bit of the result is 1 (result is negative in signed mode).
+        > ZF (Zero Flag) - set to 1 if the result is zero.
+        > PF (Parity Flag) - set to 1 if the low byte of the result has an even number of 1 bits.
+        > AF (Auxiliary Carry Flag) - set to 1 if there is a carry from the lower nibble (the least significant 4 bits) to the upper nibble (the most significant 4 bits) in the result. This flag is primarily used for BCD (Binary-Coded Decimal) arithmetic operations.
+        EG.
+            mov RAX, 20
+            mov RBX, 10
+            mov CF, 1 ; Set Carry Flag to 1
+
+            sbb RAX, RBX ; RAX = RAX - RBX - CF
+                        ; RAX = 20 - 10 - 1 = 9
+                        ; Since the result is positive, the Sign Flag (SF) will be cleared to 0. The Overflow Flag (OF) will also be cleared to 0 because there was no signed overflow. The Carry Flag (CF) will be cleared to 0 because there was no borrow during the subtraction operation.
+
+             sbb RBX, RAX ; RBX = RBX - RAX - CF
+                        ; RBX = 10 - 9 - 0 = 1
+                        ; Since the result is positive, the Sign Flag (SF) will be cleared to 0. The Overflow Flag (OF) will also be cleared to 0 because there was no signed overflow. The Carry Flag (CF) will be cleared to 0 because there was no borrow during the subtraction operation.
+
+
 -inc, dec 
     * Increment, Decrement
         inc <reg32>
         inc <mem>
         dec <reg32>
         dec <mem>
+    * Flags set:
+        > OF (Overflow flag)
+        > SF (Sign flag)
+        > ZF (Zero flag)
+        > PF (Parity flag)
+        > AF (Auxiliary Carry Flag)
     * The inc instruction adds 1 to the value of its operand (i.e. a register or memory), while the dec instruction subtracts 1 from the value of its operand and stores the result back in the same location.
+    * CF is intentionally not affected since the instructions are mostly used in loop counting here the carry flag state from an earlier operation must be preserved.
         EG.
             inc EAX - add 1 to EAX and store the result in EAX.
             inc [EBX] - add 1 to the value at the memory address in EBX and store the result at that memory address.
             dec EAX - subtract 1 from EAX and store the result in EAX.
             dec [EBX] - subtract 1 from the value at the memory address in EBX and store the result at that memory address.
 
+            # Common uses 
+            mov rcx, 10 
+            .loop:
+                ; ... body ...
+                dec rcx         ; RCX-- (does not touch cf (carry flag))
+                jnz .loop       ; Jump if RCX != 0 (ZF was set by DEC, not CF)
+
+
+-mul
+    * Unsigned Multiplication
+        mul <reg64>
+        mul <mem>
+    * The mul instruction multiplies the value in the RAX register by the value of its operand (which can be a register or memory contents) and stores the result in the RDX:RAX register pair, where RAX contains the lower 64 bits of the result and RDX contains the upper 64 bits of the result.
+        EG.
+            mul RBX - multiply the value in RAX by the value of RBX, store the lower 64 bits of the result in RAX and the upper 64 bits of the result in RDX.
+            mul [RBX] - multiply the value in RAX by the value at the memory address in RBX, store the lower 64 bits of the result in RAX and the upper 64 bits of the result in RDX.
+
+            mov rax, 100
+            mov rbx, 200
+            mul rbx     ;  RAX = 100 * 200 = 20000 (0x0000000000004E20 in hexadecimal)
+                        ; After this instruction is executed, RAX will contain 0x0000000000004E20 (the lower 64 bits of the result) and RDX will contain 0x00000000 (the upper 64 bits of the result). The full 64-bit result of the multiplication is stored across RDX:RAX, with RDX containing the most significant bits and RAX containing the least significant bits.
+
+            mov rax, 0xFFFFFFFFFFFFFFFFFF ; RAX = 18446744073709551615 in decimal, which is the maximum value for a 64-bit unsigned integer.
+            mov rbx, 2      ;  RBX = 2
+            mul rbx         ; RAX = 0xFFFFFFFFFFFFFFFFFF * 2 = 0x1FFFFFFFFFFFFFFFE (36893488147419103230 in decimal)
+                            ; After this instruction is executed, RAX will contain 0xFFFFFFFFFFFFFFFE (the lower 64 bits of the result) and RDX will contain 0x1 (the upper 64 bits of the result). The full 64-bit result of the multiplication is stored across RDX:RAX, with RDX containing the most significant bits and RAX containing the least significant bits.
+
 
 -imul 
     * Interger Multiplication
-        imul <reg32>, <reg32>
-        imul <reg32>, <mem>
-        imul <reg32>, <con32>
+        imul <reg64>, <reg64>
+        imul <reg64>, <mem>
+        imul <reg64>, <con64>
     * The imul instruction has two basic formats
-        > Two-operand format: imul <reg32>, <reg32/mem/con32>
-            * This format multiplies the value of the second operand (which can be a register, memory contents or a constant) by the value of the first operand (which must be a register) and stores the result in the first operand register.
+        > Single-operand format: imul <reg64/mem>
+            * This format multiplies the value of its operand (which can be a register or memory contents) by the value in the RAX register and stores the result in the RAX register.
+            * similar to mul but for signed integers.
+            * this is the only form that produces a double-width result, which is stored in RDX:RAX. The other forms of imul produce a single-width result that is stored in the destination register.
             EG.
-                imul EAX, EBX - multiply the value of EBX by EAX and store the result in EAX.
-                imul EAX, [EBX] - multiply the value at the memory address in EBX by EAX and store the result in EAX.
-                imul EAX, 2 - multiply the constant value 2 by EAX and store the result in EAX.
+                ; imul source  - destination = RDX:RAX = RAX * source.
 
-        > Three-operand format: imul <reg32>, <reg32/mem>, <reg32/mem/con32>
+                imul RBX    ; multiply the value of RBX by RAX and store the result in RAX.
+                imul [RBX]  ; multiply the value at the memory address in RBX by RAX and store the result in RAX.
+
+        > Two-operand format: imul <reg64>, <reg64/mem/con64>
+            * This format multiplies the value of the second operand (which can be a register, memory contents or a constant) by the value of the first operand (which must be a register) and stores the result in the first operand register.
+            * If it overflowed, CF and OF are set.
+            EG.
+                ; imul destination, source - destination = destination * source.
+
+                imul RAX, RBX - multiply the value of RBX by RAX and store the result in RAX.
+                imul RAX, [RBX] - multiply the value at the memory address in RBX by RAX and store the result in RAX.
+                imul RAX, 2 - multiply the constant value 2 by RAX and store the result in RAX.
+
+        > Three-operand format: imul <reg64>, <reg64/mem>, <reg64/mem/con64>
             * This format multiplies the value of the second operand (which can be a register or memory contents) by the value of the third operand (which must be a constant) and stores the result in the first operand register.
             EG.
-                imul EAX, EBX, 3 - multiply the value of EBX by the constant value 3 and store the result in EAX.
-                imul EAX, [EBX], 4 - multiply the value at the memory address in EBX by the constant value 4 and store the result in EAX.
-                imul EAX, EBX, 2 - multiply the value of EBX by the constant value 2 and store the result in EAX.
+                ; imul destination, source, multiplier - destination = source * multiplier.
+                ; multiplier is sign-extended to 64 bits before multiplication.
+
+                imul RAX, RBX, 3 - multiply the value of RBX by the constant value 3 and store the result in RAX.
+                imul RAX, [RBX], 4 - multiply the value at the memory address in RBX by the constant value 4 and store the result in RAX.
+                imul RAX, RBX, 2 - multiply the value of RBX by the constant value 2 and store the result in RAX.
+
+
+-div
+    * Unsigned Division
+        div <reg64>
+        div <mem>
+    * The div instruction divides the value in the RDX:RAX register pair by the value of its operand (which can be a register or memory contents) and stores the quotient/result in RAX and the remainder in RDX.
+    * Always clears RDX before performing the division, so if you want to perform unsigned division, you need to make sure to clear RDX before executing the div instruction. If you are performing signed division, you should use the idiv instruction instead, which properly handles the sign of the dividend and divisor.
+        EG.
+            xor RDX, RDX    ; clear RDX to ensure it does not affect the result of the division.
+                            ; This is important because the div instruction treats the value in RDX as the upper 64 bits of a 128-bit dividend, with RAX being the lower 64 bits. If RDX is not cleared, it could contain a non-zero value that would be included in the division operation, leading to incorrect results. By clearing RDX, we ensure that the dividend is effectively just the value in RAX, which is what we want for unsigned division.
+            mov rax, 100    ; RAX = dividend = 100
+            mov rbx, 3      ; RBX = divisor = 3
+            div RBX         ; divide the value in RDX:RAX (which is 0:100) by the value of RBX (3), store the quotient (33) in RAX and the remainder (1) in RDX.
+            div [RBX]       ; divide the value in RDX:RAX by the value at the memory address in RBX, store the quotient in RAX and the remainder in RDX.
 
 
 -idiv
-    * Interger Division
-        idiv <reg32>
+    * signed Division
+        idiv <reg64>
         idiv <mem>
-    * The idiv instruction divides the value in the EDX:EAX register pair by the value of its operand (which can be a register or memory contents) and stores the quotient/result in EAX and the remainder in EDX.
+    * The idiv instruction divides the value in the RDX:RAX register pair by the value of its operand (which can be a register or memory contents) and stores the quotient/result in RAX and the remainder(which is sign-extended to 64 bits) in RDX.
+    * you sign-extend the value in RAX into RDX using the cqo instruction before executing idiv to ensure that the dividend is properly represented as a signed 128-bit value in RDX:RAX. While DIV uses xor RDX, RDX to clear RDX for unsigned division, IDIV uses cqo to sign-extend RAX into RDX for signed division. This is because signed division needs to take into account the sign of the dividend, and cqo ensures that the value in RDX correctly reflects the sign of the value in RAX.
         EG.
-            idiv EBX - divide the value in EDX:EAX by the value of EBX, store the quotient in EAX and the remainder in EDX.
-            idiv [EBX] - divide the value in EDX:EAX by the value at the memory address in EBX, store the quotient in EAX and the remainder in EDX.
+            cqo - convert quadword to octword (sign-extend RAX into RDX).
+            idiv RBX - divide the value in RDX:RAX by the value of RBX, store the quotient in RAX and the remainder in RDX.
+            idiv [RBX] - divide the value in RDX:RAX by the value at the memory address in RBX, store the quotient in RAX and the remainder in RDX.
 
         # USAGE
         # Unsigned division
-            mov EAX, 10 - move the value 10 into EAX
-            mov EDX, 0 - move the value 0 into EDX (since we are doing unsigned division, we need to clear EDX)
-            mov EBX, 2 - move the value 2 into EBX (the divisor)
-            idiv EBX - divide the value in EDX:EAX (which is 0:10) by the value of EBX (2), store the quotient (5) in EAX and the remainder (0) in EDX.
+            mov RAX, 10 - move the value 10 into RAX
+            mov RDX, 0 - move the value 0 into RDX (since we are doing unsigned division, we need to clear RDX)
+            mov RBX, 2 - move the value 2 into RBX (the divisor)
+            idiv RBX - divide the value in RDX:RAX (which is 0:10) by the value of RBX (2), store the quotient (5) in RAX and the remainder (0) in RDX.
 
                 > Signed division is used when we are working with negative numbers like -5 / 2, while unsigned division is used when we are working with only positive numbers like 5 / 2.
                 
         # signed division
-            mov EAX, -10 - move the value -10 into EAX
-            cdq - convert double to quadword (sign-extend EAX into EDX)
-            mov EBX, 2 - move the value 2 into EBX (the divisor)
-            idiv EBX - divide the value in EDX:EAX (which is the sign-extended value of EAX) by the value of EBX (2), store the quotient (-5) in EAX and the remainder (0) in EDX.
+            mov RAX, -10 - move the value -10 into RAX
+            cqo - convert quadword to octword (sign-extend RAX into RDX)
+                ; RDX is now 0xFFFFFFFFFFFFFFFF (which is -1 in signed) because the sign bit of RAX is 1 (indicating a negative number), so when we sign-extend RAX into RDX, we fill RDX with 1s to maintain the correct sign representation for the division operation.
+            mov RBX, 2 - move the value 2 into RBX (the divisor)
+            idiv RBX - divide the value in RDX:RAX (which is the sign-extended value of RAX) by the value of RBX (2), store the quotient (-5) in RAX and the remainder (0) in RDX.
 
                 > The difference between using CDQ and manually clearing EDX is that CDQ is used for signed division, while manually clearing EDX is typically used for unsigned division. When performing signed division, we need to ensure that the value in EDX is properly sign-extended to match the value in EAX, which is what CDQ does. For unsigned division, we can simply clear EDX to ensure that it does not affect the result of the division.
 
         # Note: The idiv instruction can only be used for integer division. If you need to perform floating-point division, you would need to use the appropriate floating-point instructions instead.
 
         # Results of division:
-            > Quotient: The result of the division operation, which is stored in EAX after the idiv instruction is executed.
-            > Remainder: The value left over after the division operation, which is stored in EDX after the idiv instruction is executed. The remainder is calculated as the original value in EDX:EAX minus the product of the quotient and the divisor.
+            > Quotient: The result of the division operation, which is stored in RAX after the idiv instruction is executed.
+            > Remainder: The value left over after the division operation, which is stored in RDX after the idiv instruction is executed. The remainder is calculated as the original value in RDX:RAX minus the product of the quotient and the divisor.
+
+        |---------------|------------------------------------------|------------------------------------|
+        |   Instruction | Meaning                                  | Use Before                         |
+        |---------------|------------------------------------------|------------------------------------|
+        |    CBW        | Sign-extend AL to AX (8-bit to 16-bit)   | IDIV with 16-bit operand using AX  |
+        |    CWDE       | Sign-extend AX to EAX (16-bit to 32-bit) | Widening, not division             |
+        |    CDQE       | Sign-extend EAX to RAX (32-bit to 64-bit)| Widening,                          |
+        |    CWD        | Sign-extend AX into DX:AX (16-bit)       | IDIV with 16-bit operand using AX  |
+        |    CDQ        | Sign-extend EAX into EDX:EAX (32-bit)    | IDIV with 32-bit operand using EAX |
+        |    CQO        | Sign-extend RAX into RDX:RAX (64-bit)    | IDIV with 64-bit operand using RAX |
+        |---------------|------------------------------------------|------------------------------------|
 
 
-- and, or, xor, not
+- and, or, xor, not, test
     * Bitwise AND, OR, XOR, NOT
         and <reg32>, <reg32>
         and <reg>, <mem>
@@ -488,25 +726,81 @@ NB  : the stack pointer (RSP) is a register that always points to the top of the
         xor <mem>, <reg>
         not <reg32>
         not <mem>
+        test <reg32>, <reg32>
+        test <reg>, <mem>
     * The and instruction performs a bitwise AND operation between the value of its first operand (which can be a register or memory) and the value of its second operand (which can be a register, memory contents or a constant) and stores the result in the location specified by its first operand.
         > A bitwise AND operation compares each bit of the first operand with the corresponding bit of the second operand and returns a new value where each bit is set to 1 only if both corresponding bits in the operands are 1; otherwise, the bit is set to 0.
+        EG.
+            and RAX, RBX - perform a bitwise AND operation between RAX and RBX and store the result in RAX.
+            and RAX, [RBX] - perform a bitwise AND operation between RAX and the value at the memory address in RBX and store the result in RAX.
+
+            mov rax, 0b1100 ; RAX = 12 in decimal
+            mov rbx, 0b1010 ; RBX = 10 in decimal
+            ; rax = 0b1000 (8 in decimal) because only the third bit from the right is 1 in both RAX and RBX.
+
+            ;checking if a specific bit is set (e.g., bit 3 (fourth bit from the right) = 8 in decimal)
+            mov rax, 0b10111010 ; RAX = 178 in decimal
+            test rax, 8     ; set ZF to 0 because bit 3 of RAX is 1 (RAX & 8 = 8)
+                ; instead of 8 if we used 4 (which is 0b100), ZF would be set to 1 because bit 2 of RAX is 0 (RAX & 4 = 0).
+
+            ; isolate just the lower byte.
+            mov rax, 0x12345678 ; RAX = 305419896 in decimal
+            and rax, 0xFF ; RAX = 0x78 (120 in decimal) because the bitwise AND operation with 0xFF (which is 255 in decimal) effectively masks out all but the lowest 8 bits of RAX, leaving us with just the value of the lower byte.
+
     * The or instruction performs a bitwise OR operation, the xor instruction performs a bitwise exclusive OR operation, 
         > A bitwise OR operation compares each bit of the first operand with the corresponding bit of the second operand and returns a new value where each bit is set to 1 if at least one of the corresponding bits in the operands is 1; otherwise, the bit is set to 0.
+        EG.
+            mov rax, 0b00001010 ; RAX = 10 in decimal
+            mov rbx, 0b00000101 ; RBX = 5 in decimal
+            or rax, rbx ; RAX = 0b00001111 (15 in decimal) because at least one of the corresponding bits in RAX and RBX is 1 for the first, second and third bits from the right.
+
+            mov al, 'A'     ; AL = 0x41 (65 in decimal) 0b01000001 in binary
+            or al, 0x20     ; AL = 0x61 (97 in decimal) 0b01100001 in binary because the bitwise OR operation with 0x20 (which is 32 in decimal) sets the fifth bit from the right to 1, effectively converting the uppercase letter 'A' to the lowercase letter 'a'.
+
         > A bitwise exclusive OR (XOR) operation compares each bit of the first operand with the corresponding bit of the second operand and returns a new value where each bit is set to 1 only if the corresponding bits in the operands are different (i.e., one is 1 and the other is 0); otherwise, the bit is set to 0.
+        EG.
+            ; zero a register
+            xor rax, rax ; RAX = 0 because the bitwise XOR operation with itself will always result in 0 (each bit is the same in both operands, so all bits in the result are set to 0).
+
+             ; toggle specific bits (e.g., toggle bit 3 (fourth bit from the right) = 8 in decimal)
+             mov rax, 0b00001111 ; RAX = 15 in decimal
+             xor rax, 0b00000001 ; RAX = 0b00001110 (14 in decimal) because the bitwise XOR operation with 0b00000001 toggles the least significant bit of RAX from 1 to 0, while leaving the other bits unchanged.
+             xor rax, 0b00000001 ; RAX = 0b00001111 (15 in decimal) because the bitwise XOR operation with 0b00000001 toggles the least significant bit of RAX back from 0 to 1, while leaving the other bits unchanged.
+
+             mov rax, 10
+             mov rbx, 20
+             xor rax, rbx ; RAX = 30 because the bitwise XOR operation between 10 (0b00001010) and 20 (0b00010100) results in 0b00011110, which is 30 in decimal.
+             xor rax, rbx ; RAX = 10 because the bitwise XOR operation between 30 (0b00011110) and 20 (0b00010100) results in 0b00001010, which is 10 in decimal.
+             xor rbx, rax ; RBX = 20 because the bitwise XOR operation between 30 (0b00011110) and 10 (0b00001010) results in 0b00010100, which is 20 in decimal.
+
     * not instruction performs a bitwise NOT operation on its operand.
         > A bitwise NOT operation takes each bit of the operand and inverts it, meaning that each bit that is 0 becomes 1 and each bit that is 1 becomes 0.
         EG.
-            and EAX, EBX - perform a bitwise AND operation between EAX and EBX and store the result in EAX.
-            and EAX, [EBX] - perform a bitwise AND operation between EAX and the value at the memory address in EBX and store the result in EAX.
-            or EAX, EBX - perform a bitwise OR operation between EAX and EBX and store the result in EAX.
-            xor EAX, EBX - perform a bitwise XOR operation between EAX and EBX and store the result in EAX.
-            not EAX - perform a bitwise NOT operation on EAX and store the result in EAX.
+            xor RAX, RBX - perform a bitwise XOR operation between RAX and RBX and store the result in RAX.
+            not RAX - perform a bitwise NOT operation on RAX and store the result in RAX.
+
+    * Test instruction performs a bitwise AND operation between its two operands (which can be registers, memory contents or constants) and sets the flags based on the result, but does not store the result anywhere.
+        > The test instruction is typically used to check if certain bits are set or cleared in a register or memory location by performing a bitwise AND operation and then examining the flags that are set as a result of that operation.
+        EG.
+            mov RAX, 0b10101010 ; RAX = 170 in decimal
+            test RAX, 0b00001000 ; set ZF to 0 because bit 3 of RAX is 1 (RAX & 0b00001000 = 0b00001000)
+                ; instead of 0b00001000 if we used 0b00000100 (which is 4 in decimal), ZF would be set to 1 because bit 2 of RAX is 0 (RAX & 0b00000100 = 0).
+
+            ; check if a registers is negative.
+            test rax, rax ; set SF to 1 if RAX is negative (i.e., if the most significant bit of RAX is 1), otherwise set SF to 0. ZF will be set to 1 if RAX is zero, and cleared to 0 if RAX is non-zero.
 
 
 - neg
     * Negate
         neg <reg32>
         neg <mem>
+    * Flags set:
+        > CF (carry flag)
+        > OF (overflow flag)
+        > SF (sign flag)
+        > ZF (zero flag)
+        > PF (parity flag)
+        > AF (Auxiliary carry flag)
     * The neg instruction takes the two's complement of its operand (which can be a register or memory) and stores the result back in the same location. This effectively negates the value, changing its sign from positive to negative or vice versa.
         > The two's complement of a number is calculated by inverting all the bits of the number and then adding 1 to the result. For example, if we have a 32-bit value of 5 (which is 0x00000005 in hexadecimal), the two's complement would be calculated as follows:
             1. Invert all the bits: 0xFFFFFFFA
@@ -514,9 +808,13 @@ NB  : the stack pointer (RSP) is a register that always points to the top of the
         EG.
             neg EAX - take the two's complement of EAX and store the result in EAX.
             neg [EBX] - take the two's complement of the value at the memory address in EBX and store the result at that memory address.
+            
+            mov RAX, 20 
+            neg rax         ; RAX = -42, set CF to 1 (CF = 0 only if operand/argument was 0)
+                            ; neg is basically 0 - operand, so if RAX was 0, then neg RAX would result in 0 - 0 = 0 and CF would be set to 0. But since RAX is 20, neg RAX results in 0 - 20 = -20 and CF is set to 1 to indicate that a borrow occurred during the negation operation.
 
 
-- shl, shr, sar
+- shl(sal), shr, sar
     * Shift Left, Shift Right Logical, Shift Right Arithmetic
         shl <reg32>, <reg32>
         shl <reg>, <mem>
@@ -525,18 +823,111 @@ NB  : the stack pointer (RSP) is a register that always points to the top of the
         sar <reg32>, <reg32>
         sar <reg>, <mem>
     * The shl instruction shifts the bits of its first operand (which can be a register or memory) to the left by the number of positions specified by its second operand (which can either be an 8-bit constant or the register CL) and fills the vacated rightmost bits with zeros.
+        > The last bit shifted out goes into the carry flag (CF), and the most significant bit of the result is copied into the overflow flag (OF) if the shift count is 1; otherwise, OF is undefined. The zero flag (ZF), sign flag (SF), and parity flag (PF) are set according to the result of the shift operation.
+        > shift left by N = multiply by 2^N
+        EG.
+            mov RAX, 0b00001010 - move the value 10 (which is 00001010 in binary) into RAX
+            shl RAX, 1 - shift the bits of RAX to the left by 1 position and fill the vacated rightmost bit with 0. After this instruction, RAX will contain 00010100 (which is 20 in decimal).
+            ; RAX new value : 00010100
+            ; CF will be set to 0 because the last bit shifted out is 0.
+            ; OF will be set to 0 because the most significant bit of the result (0) is not different from the original most significant bit (0).
+            ; ZF will be set to 0 because the result is not zero.
+
+            mov RAX, 0b10000000 - move the value 128 (which is 10000000 in binary) into RAX
+            shl RAX, 1 - shift the bits of RAX to the left by 1 position and fill the vacated rightmost bit with 0. After this instruction, RAX will contain 00000000 (which is 0 in decimal) because the most significant bit (1) is shifted out and lost, and the remaining bits are all shifted to the left and filled with 0.
+            ; RAX new value : 00000000
+            ; CF will be set to 1 because the last bit shifted out is 1.
+            ; OF will be set to 1 because the most significant bit of the result (0) is different from the original most significant bit (1).
+            ; ZF will be set to 1 because the result is zero.
+
     * The shr instruction shifts the bits of its first operand to the right by the number of positions specified by its second operand and fills the vacated leftmost bits with zeros.
+        > The last bit shifted out goes into the carry flag (CF), and the most significant bit of the result is copied into the overflow flag (OF) if the shift count is 1; otherwise, OF is undefined. The zero flag (ZF), sign flag (SF), and parity flag (PF) are set according to the result of the shift operation.
+        > shift right by N = divide by 2^N (for unsigned numbers)
+        > It fills with zeros from the left so negativesinged numbers become positive after the shift, which is why it is called a logical shift.
+        > for signed right-shift use SAR instead of SHR to preserve the sign bit (the most significant bit) of the original value.
+        EG.
+            mov RAX, 0b00001010 - move the value 10 (which is 00001010 in binary) into RAX
+            shr RAX, 1 - shift the bits of RAX to the right by 1 position and fill the vacated leftmost bit with 0. After this instruction, RAX will contain 00000101 (which is 5 in decimal).
+            ; RAX new value : 00000101
+            ; CF will be set to 0 because the last bit shifted out is 0.
+            ; OF will be set to 0 because the most significant bit of the result (0) is not different from the original most significant bit (0).
+            ; ZF will be set to 0 because the result is not zero.
+
+             mov RAX, 0b00000001 - move the value 1 (which is 00000001 in binary) into RAX
+             shr RAX, 1 - shift the bits of RAX to the right by 1 position and fill the vacated leftmost bit with 0. After this instruction, RAX will contain 00000000 (which is 0 in decimal) because all bits are shifted to the right and filled with zeros.
+             ; RAX new value : 00000000
+             ; CF will be set to 1 because the last bit shifted out is 1.
+             ; OF will be set to 0 because the most significant bit of the result (0) is not different from the original most significant bit (0).
+             ; ZF will be set to 1 because the result is zero.
+    
     * The sar instruction shifts the bits of its first operand to the right by the number of positions specified by its second operand and fills the vacated leftmost bits with the sign bit (the most significant bit) of the original value. This is used for signed numbers to preserve their sign during the shift operation.
         EG.
-            mov EAX, 00001010 - move the value 10 (which is 00001010 in binary) into EAX
-            shl EAX, 1 - shift the bits of EAX to the left by 1 position and fill the vacated rightmost bit with 0. After this instruction, EAX will contain 00010100 (which is 20 in decimal).
-            # EAX new value : 00010100
-            shr EAX, 2 - shift the bits of EAX to the right by 2 positions and fill the vacated leftmost bits with 0. After this instruction, EAX will contain 00000101 (which is 5 in decimal).
-            # EAX new value : 00000101
-            sar EAX, 3 - shift the bits of EAX to the right by 3 positions and fill the vacated leftmost bits with the sign bit of EAX. After this instruction, EAX will contain 00000000 (which is 0 in decimal) since the sign bit of EAX is 0.
+            mov RAX, 00001010 - move the value 10 (which is 00001010 in binary) into RAX
+            sar RAX, 4 - shift the bits of RAX to the right by 4 positions and fill the vacated leftmost bits with the sign bit of RAX. After this instruction, RAX will contain 00000000 (which is 0 in decimal) since the sign bit of RAX is 0.
                 OR
-            # EAX new value : 11111010 (which is -6 in decimal) since the sign bit of EAX is 1.
-            sar EAX, 3 - shift the bits of EAX to the right by 3 positions and fill the vacated leftmost bits with the sign bit of EAX. After this instruction, EAX will contain 11111111 (which is -1 in decimal) since the sign bit of EAX is 1.
+            # RAX new value : 11111010 (which is -6 in decimal) since the sign bit of RAX is 1.
+            sar RAX, 3 - shift the bits of RAX to the right by 3 positions and fill the vacated leftmost bits with the sign bit of RAX. After this instruction, RAX will contain 11111111 (which is -1 in decimal) since the sign bit of RAX is 1.
+
+
+- ROL / ROR, RCL / RCR, SHLD / SHRD
+    * Rotate Left/Right, Rotate through Carry Left/Right, Shift Left/Right Double
+        rol <reg32>, <reg32>
+        rol <reg>, <mem>
+        rcl <reg32>, <reg32>
+        rcl <reg>, <mem>
+        shld <reg32>, <reg32>, <reg32>
+        shld <reg>, <mem>, <reg32>
+    * The ROL (Rotate Left) instruction rotates the bits of its first operand to the left by the number of positions specified by its second operand and wraps the bits that are shifted out on the left back around to the right end of the operand.
+    * The ROR (Rotate Right) instruction rotates the bits of its first operand to the right by the number of positions specified by its second operand and wraps the bits that are shifted out on the right back around to the left end of the operand.
+        > Last bit rotated out goes into the carry flag (CF), and the most significant bit of the result is copied into the overflow flag (OF) if the shift count is 1; otherwise, OF is undefined. The zero flag (ZF), sign flag (SF), and parity flag (PF) are set according to the result of the rotate operation.
+        EG.
+            mov RAX, 0b10001010 - move the value -10 (which is 10001010 in binary) into RAX
+            rol RAX, 1 - rotate the bits of RAX to the left by 1 position. After this instruction, RAX will contain 00010101 (which is 21 in decimal) because the most significant bit (1) is rotated out on the left and wrapped around to the right end of the operand.
+            ; RAX new value : 00010101
+            ; CF will be set to 1 because the last bit rotated out is 1.
+            ; OF will be set to 1 because the most significant bit of the result (0) is different from the original most significant bit (1).
+            ; ZF will be set to 0 because the result is not zero.
+
+             mov RAX, 0b10001010 - move the value -10 (which is 10001010 in binary) into RAX
+             ror RAX, 1 - rotate the bits of RAX to the right by 1 position. After this instruction, RAX will contain 01000101 (which is 69 in decimal) because the least significant bit (0) is rotated out on the right and wrapped around to the left end of the operand.
+             ; RAX new value : 01000101
+             ; CF will be set to 0 because the last bit rotated out is 0.
+             ; OF will be set to 1 because the most significant bit of the result (0) is different from the original most significant bit (1).
+             ; ZF will be set to 0 because the result is not zero.
+
+    * The RCL (Rotate through Carry Left) instruction rotates the bits of its first operand to the left by the number of positions specified by its second operand, but instead of wrapping the bits that are shifted out back around to the right end of the operand, it rotates them through the carry flag (CF). This means that the last bit shifted out on the left goes into CF, and the previous value of CF is rotated into the rightmost bit of the operand.
+    * The RCR (Rotate through Carry Right) instruction rotates the bits of its first operand to the right by the number of positions specified by its second operand, but instead of wrapping the bits that are shifted out back around to the left end of the operand, it rotates them through the carry flag (CF). This means that the last bit shifted out on the right goes into CF, and the previous value of CF is rotated into the leftmost bit of the operand.
+        EG.
+            mov RAX, 0b10001010 - move the value -10 (which is 10001010 in binary) into RAX
+            mov CF, 1 - set the carry flag to 1
+            rcl RAX, 1 - rotate the bits of RAX to the left by 1 position through the carry flag. After this instruction, RAX will contain 00010101 (which is 21 in decimal) because the most significant bit (1) is rotated out on the left and goes into CF, while the previous value of CF (which is 1) is rotated into the rightmost bit of RAX.
+            ; RAX new value : 00010101
+            ; CF will be set to 1 because the last bit rotated out is 1.
+            ; OF will be set to 1 because the most significant bit of the result (0) is different from the original most significant bit (1).
+            ; ZF will be set to 0 because the result is not zero.
+
+            mov RAX, 0b10001010 - move the value -10 (which is 10001010 in binary) into RAX
+            mov CF, 0 - set the carry flag to 0
+            rcr RAX, 1 - rotate the bits of RAX to the right by 1 position through the carry flag. After this instruction, RAX will contain 01000101 (which is 69 in decimal) because the least significant bit (0) is rotated out on the right and goes into CF, while the previous value of CF (which is 0) is rotated into the leftmost bit of RAX.
+            ; RAX new value : 01000101
+            ; CF will be set to 0 because the last bit rotated out is 0.
+            ; OF will be set to 1 because the most significant bit of the result (0) is different from the original most significant bit (1).
+            ; ZF will be set to 0 because the result is not zero.
+
+    * The SHLD (Shift Left Double) instruction shifts the bits of its first operand to the left by the number of positions specified by its third operand, while simultaneously shifting in bits from a second operand (which can be a register or memory) into the vacated rightmost bits of the first operand. The bits shifted out on the left end of the first operand are discarded.
+    * The SHRD (Shift Right Double) instruction shifts the bits of its first operand to the right by the number of positions specified by its third operand, while simultaneously shifting in bits from a second operand (which can be a register or memory) into the vacated leftmost bits of the first operand. The bits shifted out on the right end of the first operand are discarded.
+        EG.
+            mov RAX, 0b00001010 - move the value 10 (which is 00001010 in binary) into RAX
+            mov RBX, 0b11110000 - move the value 240 (which is 11110000 in binary) into RBX
+            shld RAX, RBX, 4 - shift the bits of RAX to the left by 4 positions while shifting in bits from RBX. After this instruction, RAX will contain 10100000 (which is 160 in decimal) because the bits shifted out on the left end of RAX are discarded, and the upper 4 bits of RBX (1111) are shifted into the vacated rightmost bits of RAX.
+            ; rax = 0b10100000
+            ; rbx = 0b11110000 (unchanged)
+
+            mov RAX, 0b00001010 - move the value 10 (which is 00001010 in binary) into RAX
+            mov RBX, 0b11110000 - move the value 240 (which is 11110000 in binary) into RBX
+            shrd RAX, RBX, 4 - shift the bits of RAX to the right by 4 positions while shifting in bits from RBX. After this instruction, RAX will contain 00001111 (which is 15 in decimal) because the bits shifted out on the right end of RAX are discarded, and the upper 4 bits of RBX (1111) are shifted into the vacated leftmost bits of RAX.
+            ; rax = 0b00001111
+            ; rbx = 0b11110000 (unchanged)
 
 
                 CONTROL FLOW INSTRUCTIONS.
@@ -568,7 +959,7 @@ NB  : the stack pointer (RSP) is a register that always points to the top of the
     * The jmp instruction causes an unconditional jump to the specified label, which is a location in the code that can be jumped to. When the jmp instruction is executed, the instruction pointer (IP) is set to the address of the instruction at the specified label, and execution continues from there.
         EG.
             jmp start - jump to the label "start" and continue execution from there.
-
+ 
 
 -jcondition
     * Conditional Jump
@@ -593,7 +984,8 @@ NB  : the stack pointer (RSP) is a register that always points to the top of the
         cmp <mem>, <reg>
         cmp <reg>, <con>
         cmp <mem>, <con>
-    * The cmp instruction compares the value of its first operand (which can be a register or memory) with the value of its second operand (which can be a register, memory contents or a constant) and sets the flags in the EFLAGS register based on the result of the comparison. The cmp instruction does not store any result; it only affects the flags, which can then be used by subsequent conditional jump instructions to determine the flow of execution in the program.
+    * The cmp instruction compares the value of its first operand (which can be a register or memory) with the value of its second operand (which can be a register, memory contents or a constant) and sets the flags in the EFLAGS register based on the result of the comparison.
+    * The cmp instruction does not store any result; it only affects the flags, which can then be used by subsequent conditional jump instructions to determine the flow of execution in the program.
         EG.
             cmp EAX, EBX - compare the values of EAX and EBX and set the flags accordingly.
             cmp EAX, [EBX] - compare the value of EAX with the value at the memory address in EBX and set the flags accordingly.
@@ -601,7 +993,7 @@ NB  : the stack pointer (RSP) is a register that always points to the top of the
 
             # USAGE EXAMPLE
                 cmp EAX, EBX - compare the values of EAX and EBX and set the flags accordingly.
-                jz equal - jump to the label "equal" if EAX is equal to EBX (i.e., the zero flag is set)
+                je/jz equal - jump to the label "equal" if RAX is equal to RBX (i.e., the zero flag is set)
                 jg greater - jump to the label "greater" if EAX is greater than EBX (i.e., the sign flag is clear and the zero flag is clear)
                 jl less - jump to the label "less" if EAX is less than EBX (i.e., the sign flag is set and the zero flag is clear)
 
@@ -616,29 +1008,29 @@ NB  : the stack pointer (RSP) is a register that always points to the top of the
         # code snippet 
             SECTION .text
             main:
-                MOV EAX, 5         ; First number
-                MOV EBX, 10        ; Second number
+                MOV RAX, 5         ; First number
+                MOV RBX, 10        ; Second number
                 
                 CALL add_numbers   ; <--- STEP 1: The 'Bookmark' happens here
                 
                 ; The program returns HERE after the function is done
-                MOV ECX, EAX       ; ECX now has the result (15)
+                MOV RCX, RAX       ; RCX now has the result (15)
                 ...
 
             add_numbers:
                 ; --- PROLOGUE ---
-                PUSH EBP           ; Save the old anchor
-                MOV EBP, ESP       ; Set the new anchor
+                PUSH RBP           ; Save the old anchor
+                MOV RBP, RSP       ; Set the new anchor
                 
-                ADD EAX, EBX       ; Do the actual work (5 + 10 = 15)
-                
+                ADD RAX, RBX       ; Do the actual work (5 + 10 = 15)
+
                 ; --- EPILOGUE ---
-                MOV ESP, EBP       ; Reset the worker to the anchor
-                POP EBP            ; Restore the old anchor
+                MOV RSP, RBP       ; Reset the worker to the anchor
+                POP RBP            ; Restore the old anchor
                 
                 RET                ; <--- STEP 2: Find the 'Bookmark' and jump back
             
-                > In this example, we have a main function that initializes EAX and EBX with the values 5 and 10, respectively. It then calls the add_numbers function using the call instruction. When the call instruction is executed, it pushes the return address onto the stack and jumps to the add_numbers function. The add_numbers function performs its operations (in this case, adding EAX and EBX) and then uses the ret instruction to return control back to the main function. When the ret instruction is executed, it pops the return address from the stack and jumps back to that address in the main function, allowing execution to continue from where it left off after the call.
+                > In this example, we have a main function that initializes RAX and RBX with the values 5 and 10, respectively. It then calls the add_numbers function using the call instruction. When the call instruction is executed, it pushes the return address onto the stack and jumps to the add_numbers function. The add_numbers function performs its operations (in this case, adding RAX and RBX) and then uses the ret instruction to return control back to the main function. When the ret instruction is executed, it pops the return address from the stack and jumps back to that address in the main function, allowing execution to continue from where it left off after the call.
 
                 > When the CPU hits Call add_numbbers, it does two things automatically:
                     - PUSH EIP : It saves the address of the next instruction (MOV ECX, EAX) onto the stack. This is like bookmarking where we are in the main function so we can come back to it later.
@@ -651,3 +1043,394 @@ NB  : the stack pointer (RSP) is a register that always points to the top of the
                     - JMP EIP : It jumps back to the address stored in EIP, which is the instruction immediately following the original call in the main function (MOV ECX, EAX). This allows the program to continue executing from where it left off in the main function after the call to add_numbers.
                 
                 > the prologue with the push and mov EBP, ESP is a common pattern used in functions to set up a new stack frame. The push EBP instruction saves the old base pointer (the anchor) onto the stack, and the mov EBP, ESP instruction sets the new base pointer to the current stack pointer. This allows the function to use EBP as a stable reference point for accessing local variables and function parameters without worrying about changes to the stack pointer (ESP) during the function's execution. The epilogue with mov ESP, EBP and pop EBP is used to clean up the stack frame before returning from the function, restoring the previous base pointer and ensuring that the stack is in the correct state when control returns to the caller.
+
+
+- BT / BTS / BTR / BTC
+    * Bit Test, Bit Test and Set, Bit Test and Reset, Bit Test and Complement
+        bt <reg32>, <reg32>
+        bt <reg>, <mem>
+        bts <reg32>, <reg32>
+        bts <reg>, <mem>
+        btr <reg32>, <reg32>
+        btr <reg>, <mem>
+        btc <reg32>, <reg32>
+        btc <reg>, <mem>
+    * The BT (Bit Test) instruction tests the value of a specific bit in its first operand (which can be a register or memory) at the position specified by its second operand (which can be a register or memory) and sets the carry flag (CF) based on the value of that bit. If the specified bit is 1, CF is set to 1; if the specified bit is 0, CF is cleared to 0. The BT instruction does not modify the value of the first operand.
+    * The BTS (Bit Test and Set) instruction tests the value of a specific bit in its first operand at the position specified by its second operand, sets CF based on that bit, and then sets that bit to 1 in the first operand.
+    * The BTR (Bit Test and Reset) instruction tests the value of a specific bit in its first operand at the position specified by its second operand, sets CF based on that bit, and then resets that bit to 0 in the first operand.
+    * The BTC (Bit Test and Complement) instruction tests the value of a specific bit in its first operand at the position specified by its second operand, sets CF based on that bit, and then complements (toggles) that bit in the first operand (i.e., if it was 1, it becomes 0; if it was 0, it becomes 1).
+        EG.
+            mov RAX, 0b10101010 - move the value 170 (which is 10101010 in binary) into RAX
+            bt RAX, 3 - test the value of bit 3 (the fourth bit from the right) in RAX. Since bit 3 of RAX is 1, CF will be set to 1.
+            bts RAX, 2 - test the value of bit 2 in RAX and then set it to 1. Since bit 2 of RAX is initially 0, CF will be set to 0, and after this instruction, RAX will become 0b10101110 (174 in decimal).
+            btr RAX, 1 - test the value of bit 1 in RAX and then reset it to 0. Since bit 1 of RAX is initially 1, CF will be set to 1, and after this instruction, RAX will become 0b10101100 (172 in decimal).
+            btc RAX, 0 - test the value of bit 0 in RAX and then complement it. Since bit 0 of RAX is initially 0, CF will be set to 0, and after this instruction, RAX will become 0b10101101 (173 in decimal).  
+
+
+- BSF / BSR
+    * Bit Scan Forward, Bit Scan Reverse
+        bsf <reg32>, <reg32>
+        bsf <reg>, <mem>
+        bsr <reg32>, <reg32>
+        bsr <reg>, <mem>
+    * The BSF (Bit Scan Forward) instruction scans the bits of its second operand (which can be a register or memory) from least significant bit to most significant bit, looking for the first bit that is set to 1. When it finds a bit that is set to 1, it stores the index of that bit (starting from 0 for the least significant bit) into its first operand (which must be a register). If no bits are set to 1 in the second operand, the zero flag (ZF) is set to 1, and the first operand is left unchanged.
+    * The BSR (Bit Scan Reverse) instruction scans the bits of its second operand from most significant bit to least significant bit, looking for the first bit that is set to 1. When it finds a bit that is set to 1, it stores the index of that bit into its first operand. If no bits are set to 1 in the second operand, ZF is set to 1, and the first operand is left unchanged.
+        EG.
+            mov RAX, 0b00101000 - move the value 40 (which is 00101000 in binary) into RAX
+            bsf RBX, RAX - scan RAX from least significant bit to most significant bit for the first bit that is set to 1. Since the first bit that is set to 1 in RAX is at index 3 (the fourth bit from the right), RBX will be set to 3, and ZF will be cleared to 0.
+            ; why is the index 3? because the bits are indexed starting from 0 at the least significant bit, so the bits of RAX are indexed as follows:
+            ; bit 7 (most significant bit) : 0
+            ; bit 6 : 0
+            ; bit 5 : 1
+            ; bit 4 : 0
+            ; bit 3 : 1
+            ; bit 2 : 0
+            ; bit 1 : 0
+            ; bit 0 : 0
+
+            bsr RCX, RAX - scan RAX from most significant bit to least significant bit for the first bit that is set to 1. Since the first bit that is set to 1 in RAX when scanning from the left is at index 5 (the sixth bit from the right), RCX will be set to 5, and ZF will be cleared to 0.
+            ; why is the index 5? because the bits are indexed starting from 0 at the least significant bit, so the bits of RAX are indexed as follows:
+            ; bit 7 (most significant bit) : 0
+            ; bit 6 : 0
+            ; bit 5 : 1
+            ; bit 4 : 0
+            ; bit 3 : 1
+            ; bit 2 : 0
+            ; bit 1 : 0
+            ; bit 0 : 0
+
+
+- LZCNT / TZCNT / POPCNT
+    * Leading Zero Count, Trailing Zero Count, Population Count
+        lzcnt <reg32>, <reg32>
+        lzcnt <reg>, <mem>
+        tzcnt <reg32>, <reg32>
+        tzcnt <reg>, <mem>
+        popcnt <reg32>, <reg32>
+        popcnt <reg>, <mem> 
+    * The LZCNT (Leading Zero Count) instruction counts the number of consecutive leading zeros in its second operand (which can be a register or memory) starting from the most significant bit and stores the count in its first operand (which must be a register). If the second operand is zero, the result is undefined.
+    * The TZCNT (Trailing Zero Count) instruction counts the number of consecutive trailing zeros in its second operand starting from the least significant bit and stores the count in its first operand. If the second operand is zero, the result is undefined.
+    * The POPCNT (Population Count) instruction counts the number of bits that are set to 1 in its second operand and stores the count in its first operand. If the second operand is zero, the result will be zero.
+        EG.
+            mov RAX, 0b00010000 - move the value 16 (which is 00010000 in binary) into RAX
+            lzcnt RBX, RAX - count the number of leading zeros in RAX. Since there are 3 leading zeros before the first 1 bit in RAX, RBX will be set to 3.
+            tzcnt RCX, RAX - count the number of trailing zeros in RAX. Since there are 4 trailing zeros after the last 1 bit in RAX, RCX will be set to 4.
+            popcnt RDX, RAX - count the number of bits set to 1 in RAX. Since there is only one bit set to 1 in RAX, RDX will be set to 1.
+
+
+- LOOP / LOOPE / LOOPNE
+    * Loop, Loop if Equal, Loop if Not Equal
+        loop <label>
+        loope <label> (also known as loopz)
+        loopne <label> (also known as loopnz)
+    * The LOOP instruction decrements the value of the RCX register by 1 and then checks if RCX is not zero. If RCX is not zero, it jumps to the specified label; otherwise, it continues with the next instruction. This allows for creating loops that execute a certain number of times based on the initial value of RCX.
+    * The LOOPE (Loop if Equal) instruction decrements RCX by 1 and checks if RCX is not zero and the zero flag (ZF) is set to 1. If both conditions are true, it jumps to the specified label; otherwise, it continues with the next instruction. This is typically used in conjunction with a comparison instruction that sets ZF based on whether two values are equal.
+    * The LOOPNE (Loop if Not Equal) instruction decrements RCX by 1 and checks if RCX is not zero and ZF is clear (0). If both conditions are true, it jumps to the specified label; otherwise, it continues with the next instruction. This is typically used in conjunction with a comparison instruction that sets ZF based on whether two values are not equal.
+        EG.
+            mov RCX, 5 - initialize RCX to 5
+            start:
+                ; some code to execute in the loop
+                loop start - decrement RCX and jump back to "start" if RCX is not zero
+
+            mov RCX, 5 - initialize RCX to 5
+            start:
+                cmp EAX, EBX - compare EAX and EBX and set ZF accordingly
+                loope start - decrement RCX and jump back to "start" if RCX is not zero and ZF is set
+
+            mov RCX, 5 - initialize RCX to 5
+            start:
+                cmp EAX, EBX - compare EAX and EBX and set ZF accordingly
+                loopne start - decrement RCX and jump back to "start" if RCX is not zero and ZF is clear
+
+
+- ENTER / LEAVE
+    * Enter, Leave
+        enter <stack_size>, <nesting_level>
+        leave
+    * The ENTER instruction is used to set up a new stack frame for a function. It takes two operands: the first operand specifies the size of the stack frame (the amount of space to allocate on the stack for local variables), and the second operand specifies the nesting level (which is typically set to 0 for most functions). When the ENTER instruction is executed, it performs the following steps:
+        1. Pushes the current base pointer (RBP) onto the stack to save the previous stack frame.
+        2. Sets EBP to the current value of the stack pointer (RSP) to establish a new base for the current stack frame.
+        3. Allocates space on the stack for local variables by subtracting the specified stack size from RSP.
+    * The LEAVE instruction is used to clean up the current stack frame before returning from a function. When the LEAVE instruction is executed, it performs the following steps:
+        1. Sets RSP to the value of RBP, effectively deallocating any local variables and restoring ESP to its state before the function was called.
+        2. Pops the previous base pointer (the value that was saved by ENTER) from the stack back into RBP, restoring the previous stack frame.
+        3. After executing LEAVE, the function typically executes a RET instruction to return control back to the caller.
+        EG. 
+            ; Example of using ENTER and LEAVE in a function
+            my_function:
+                enter 16, 0 - set up a new stack frame with 16 bytes of space for local variables
+                ; ... function body that uses the stack frame ...
+                leave - clean up the stack frame before returning
+                ret - return control back to the caller
+
+
+- CMOVcc, SETcc
+    * Conditional Move, Set Byte on Condition
+        cmovz <reg32>, <reg32>
+        cmovz <reg>, <mem>
+        cmovnz <reg32>, <reg32>
+        cmovnz <reg>, <mem>
+        setz <reg8>
+        setnz <reg8>
+    * The CMOVcc (Conditional Move) instruction moves the value from the second operand to the first operand if a certain condition is met based on the flags in the EFLAGS register. The specific condition is determined by the suffix of the instruction (e.g., cmovz moves if zero flag is set, cmovnz moves if zero flag is clear). If the condition is not met, the first operand remains unchanged.
+    * The SETcc (Set Byte on Condition) instruction sets the value of its operand (which must be an 8-bit register) to 1 if a certain condition is met based on the flags in the EFLAGS register, or to 0 if the condition is not met. The specific condition is determined by the suffix of the instruction (e.g., setz sets to 1 if zero flag is set, setnz sets to 1 if zero flag is clear).
+        EG.
+            mov RAX, 5 - move the value 5 into RAX
+            mov RBX, 10 - move the value 10 into RBX
+            cmp RAX, RBX - compare RAX and RBX and set flags accordingly
+            cmovz RCX, RAX - move RAX into RCX if zero flag is set (i.e., if RAX == RBX); otherwise, RCX remains unchanged
+            cmovnz RDX, RBX - move RBX into RDX if zero flag is clear (i.e., if RAX != RBX); otherwise, RDX remains unchanged
+            setz CL - set CL to 1 if zero flag is set; otherwise, set CL to 0
+
+
+                STRING OPERATIONS.
+            -------------------------------
+- String operations use the RSI register as the source index and the RDI register as the destination index. These instructions can be used to perform operations on sequences of bytes, words, doublewords, or quadwords in memory, and they often work in conjunction with the REP prefix to repeat the operation a specified number of times based on the value in the RCX register.
+- The direction flag (DF) in the EFLAGS register determines whether the source and destination indices (RSI and RDI) are incremented or decremented after each operation. If DF is clear (0), both RSI and RDI are incremented by the size of the data being processed; if DF is set (1), both RSI and RDI are decremented by that size. This allows for flexible processing of strings in either direction in memory.
+
+- REP / REPE / REPZ / REPNE / REPNZ
+    * Repeat Prefixes
+        rep
+        repe / repz
+        repne / repnz
+    * The REP (Repeat) prefix is used to repeat the following string operation instruction a number of times specified by the RCX register. When the REP prefix is used, the instruction that follows it will be executed repeatedly until RCX becomes zero. The specific behavior of the repetition can be modified by using the REPE/REPZ (Repeat while Equal/Zero) or REPNE/REPNZ (Repeat while Not Equal/Not Zero) prefixes, which cause the repetition to continue only while certain conditions are met based on the flags in the EFLAGS register.
+        EG.
+            mov RCX, 5 - initialize RCX to 5
+            rep movsb - repeat MOVSB 5 times, copying bytes from source to destination
+
+            mov RCX, 5 - initialize RCX to 5
+            repe cmpsb - repeat CMPSB while RCX is not zero and ZF is set (i.e., while characters match)
+
+            mov RCX, 5 - initialize RCX to 5
+            repne cmpsb - repeat CMPSB while RCX is not zero and ZF is clear (i.e., while characters do not match)
+
+
+- MOVS / MOVSB / MOVSW / MOVSD / MOVSQ
+    * Move String
+        movsb
+        movsw
+        movsd
+        movsq
+    * The MOVS (Move String) instruction is used to copy a sequence of bytes, words, doublewords, or quadwords from a source memory location to a destination memory location. The specific variant of the MOVS instruction (MOVSB, MOVSW, MOVSD, MOVSQ) determines the size of the data being moved (1 byte, 2 bytes, 4 bytes, or 8 bytes, respectively).
+    * The MOVS instruction uses the RSI register as the source index and the RDI register as the destination index. When the MOVS instruction is executed, it performs the following steps:
+        1. Reads the value from the memory location pointed to by RSI and writes it to the memory location pointed to by RDI.
+        2. Increments or decrements RSI and RDI based on the direction flag (DF) in the EFLAGS register. If DF is clear (0), both RSI and RDI are incremented by the size of the data being moved; if DF is set (1), both RSI and RDI are decremented by that size.
+        3. The MOVS instruction can be repeated using the REP prefix, which causes it to repeat the move operation until RCX (the count register) reaches zero.
+        EG.
+            ; Example of using MOVSB to copy a string of bytes
+            CLD - clear the direction flag to ensure that RSI and RDI will be incremented after each move
+            mov RSI, source_string - set RSI to point to the source string
+            mov RDI, destination_string - set RDI to point to the destination buffer
+            mov RCX, string_length - set RCX to the length of the string in bytes
+            rep movsb - repeat MOVSB until RCX is zero, copying bytes from source to destination
+            
+            ; Example of using MOVSD to copy an array of doublewords
+            mov RSI, source_array - set RSI to point to the source array
+            mov RDI, destination_array - set RDI to point to the destination array
+            mov RCX, array_length - set RCX to the number of doublewords in the array
+            rep movsd - repeat MOVSD until RCX is zero, copying doublewords from source
+
+
+- CMPS / CMPSB / CMPSW / CMPSD / CMPSQ
+    * Compare String
+        cmpsb
+        cmpsw
+        cmpsd
+        cmpsq
+    * The CMPS (Compare String) instruction is used to compare a sequence of bytes, words, doublewords, or quadwords from a source memory location with a destination memory location. The specific variant of the CMPS instruction (CMPSB, CMPSW, CMPSD, CMPSQ) determines the size of the data being compared (1 byte, 2 bytes, 4 bytes, or 8 bytes, respectively).
+    * The CMPS instruction uses the RSI register as the source index and the RDI register as the destination index. When the CMPS instruction is executed, it performs the following steps:
+        1. Compares the value at the memory location pointed to by RSI with the value at the memory location pointed to by RDI and sets the flags in the EFLAGS register based on the result of the comparison.
+        2. Increments or decrements RSI and RDI based on the direction flag (DF) in the EFLAGS register. If DF is clear (0), both RSI and RDI are incremented by the size of the data being compared; if DF is set (1), both RSI and RDI are decremented by that size.
+        3. The CMPS instruction can be repeated using the REP prefix, which causes it to repeat the compare operation until RCX (the count register) reaches zero or until a mismatch is found (depending on whether REPZ/REPE or REPNZ/REPNE is used).
+        EG.
+            ; Example of using CMPSB to compare two strings of bytes
+            mov RSI, string1 - set RSI to point to the first string
+            mov RDI, string2 - set RDI to point to the second string
+            mov RCX, string_length - set RCX to the length of the strings in bytes
+            repe cmpsb - repeat CMPSB while RCX is not zero and ZF is set (i.e., while characters match)
+
+            ; Example of using CMPSD to compare two arrays of doublewords
+            mov RSI, array1 - set RSI to point to the first array
+            mov RDI, array2 - set RDI to point to the second array
+            mov RCX, array_length - set RCX to the number of doublewords in the arrays
+            repne cmpsd - repeat CMPSD while RCX is not zero and ZF is clear (i.e., while elements do not match)
+
+
+- STOSB / STOSW / STOSD / STOSQ
+    * Store String
+        stosb
+        stosw
+        stosd
+        stosq
+    * The STOS (Store String) instruction is used to store a sequence of bytes, words, doublewords, or quadwords from the AL, AX, EAX, or RAX register (depending on the variant) into a destination memory location pointed to by the RDI register. The specific variant of the STOS instruction (STOSB, STOSW, STOSD, STOSQ) determines the size of the data being stored (1 byte, 2 bytes, 4 bytes, or 8 bytes, respectively).
+    * When the STOS instruction is executed, it performs the following steps:
+        1. Stores the value from AL/AX/EAX/RAX into the memory location pointed to by RDI.
+        2. Increments or decrements RDI based on the direction flag (DF) in the EFLAGS register. If DF is clear (0), RDI is incremented by the size of the data being stored; if DF is set (1), RDI is decremented by that size.
+        3. The STOS instruction can be repeated using the REP prefix, which causes it to repeat the store operation until RCX (the count register) reaches zero.
+        EG.
+            ; Example of using STOSB to fill a buffer with a specific byte value
+            mov AL, 0xFF - set AL to the byte value to be stored (e.g., 255)
+            mov RDI, buffer - set RDI to point to the destination buffer
+            mov RCX, buffer_size - set RCX to the size of the buffer in bytes
+            rep stosb - repeat STOSB until RCX is zero, filling the buffer with 0xFF
+
+            ; Example of using STOSD to fill an array with a specific doubleword value
+            mov EAX, 0xDEADBEEF - set EAX to the doubleword value to be stored
+            mov RDI, array - set RDI to point to the destination array
+            mov RCX, array_length - set RCX to the number of doublewords in the array
+            rep stosd - repeat STOSD until RCX is zero, filling the array with 0xDEADBEEF
+
+
+- SCASB / SCASW / SCASD / SCASQ
+    * Scan String
+        scasb
+        scasw
+        scasd
+        scasq
+    * The SCAS (Scan String) instruction is used to compare a sequence of bytes, words, doublewords, or quadwords in memory with the value in the AL, AX, EAX, or RAX register (depending on the variant). The specific variant of the SCAS instruction (SCASB, SCASW, SCASD, SCASQ) determines the size of the data being compared (1 byte, 2 bytes, 4 bytes, or 8 bytes, respectively).
+    * When the SCAS instruction is executed, it performs the following steps:
+        1. Compares the value in AL/AX/EAX/RAX with the value at the memory location pointed to by RDI and sets the flags in the EFLAGS register based on the result of the comparison.
+        2. Increments or decrements RDI based on the direction flag (DF) in the EFLAGS register. If DF is clear (0), RDI is incremented by the size of the data being compared; if DF is set (1), RDI is decremented by that size.
+        3. The SCAS instruction can be repeated using the REP prefix, which causes it to repeat the scan operation until RCX (the count register) reaches zero or until a match/mismatch is found (depending on whether REPZ/REPE or REPNZ/REPNE is used).
+        EG.
+            ; Example of using SCASB to find a specific byte value in a string
+            mov AL, 0xFF - set AL to the byte value to search for
+            mov RDI, string - set RDI to point to the string to be scanned
+            mov RCX, string_length - set RCX to the length of the string in bytes
+            repe scasb - repeat SCASB while RCX is not zero and ZF is set (i.e., while characters match)
+
+            ; Example of using SCASD to find a specific doubleword value in an array
+            mov EAX, 0xDEADBEEF - set EAX to the doubleword value to search for
+            mov RDI, array - set RDI to point to the array to be scanned
+            mov RCX, array_length - set RCX to the number of doublewords in the array
+            repne scasd - repeat SCASD while RCX is not zero and ZF is clear (i.e., while elements do not match)
+
+
+- LODSB / LODSW / LODSD / LODSQ
+    * Load String
+        lodsb
+        lodsw
+        lodsd
+        lodsq
+    * The LODS (Load String) instruction is used to load a sequence of bytes, words, doublewords, or quadwords from a source memory location pointed to by the RSI register into the AL, AX, EAX, or RAX register (depending on the variant). The specific variant of the LODS instruction (LODSB, LODSW, LODSD, LODSQ) determines the size of the data being loaded (1 byte, 2 bytes, 4 bytes, or 8 bytes, respectively).
+    * When the LODS instruction is executed, it performs the following steps:
+        1. Loads the value from the memory location pointed to by RSI into AL/AX/EAX/RAX.
+        2. Increments or decrements RSI based on the direction flag (DF) in the EFLAGS register. If DF is clear (0), RSI is incremented by the size of the data being loaded; if DF is set (1), RSI is decremented by that size.
+        3. The LODS instruction can be repeated using the REP prefix, which causes it to repeat the load operation until RCX (the count register) reaches zero.
+        EG.
+            ; Example of using LODSB to read a string of bytes into AL
+            mov RSI, source_string - set RSI to point to the source string
+            mov RCX, string_length - set RCX to the length of the string in bytes
+            rep lodsb - repeat LODSB until RCX is zero, loading bytes from source into AL
+
+            ; Example of using LODSD to read an array of doublewords into EAX
+            mov RSI, source_array - set RSI to point to the source array
+            mov RCX, array_length - set RCX to the number of doublewords in the array
+            rep lodsd - repeat LODSD until RCX is zero, loading doublewords from source into EAX
+
+
+                            SYSTEM AND MISCELLANEOUS INSTRUCTIONS.
+                            --------------------------------------
+- NOP
+    * No Operation
+        nop
+    * The NOP (No Operation) instruction is used to indicate that no operation should be performed. When the NOP instruction is executed, it does nothing and simply moves to the next instruction in the sequence. NOP can be used for various purposes, such as creating delays, aligning code, or reserving space for future instructions.
+        EG.
+            nop - this instruction does nothing and execution continues to the next instruction immediately following it.
+
+                > NOP does a xchg RAX, RAX under the hood, which is a way to create a no-op without modifying any flags or registers. 
+
+
+- HLT / STI
+    * Halt / Set Interrupt Flag
+        hlt
+        sti
+    * The HLT (Halt) instruction is used to halt the CPU until the next external interrupt is received. When the HLT instruction is executed, the CPU enters a low-power state and stops executing instructions until an interrupt occurs, at which point it will resume normal operation. The HLT instruction is typically used in operating system kernels or low-level system code to efficiently wait for events without consuming CPU resources.
+    * The STI (Set Interrupt Flag) instruction is used to enable interrupts by setting the interrupt flag (IF) in the EFLAGS register. When IF is set, the CPU will respond to external interrupts. This instruction is often used in conjunction with HLT to allow the CPU to halt and wait for interrupts while still being able to respond to them when they occur.
+        EG.
+            sti - this instruction sets the interrupt flag (IF = 1), allowing the CPU to respond to external interrupts.
+            hlt - this instruction halts the CPU until the next external interrupt is received, allowing the system to save power while waiting for events.
+
+
+- INT
+    * Interrupt
+        int <interrupt_number>
+    * The INT (Interrupt) instruction is used to trigger a software interrupt, which causes the CPU to temporarily suspend the current execution flow and transfer control to an interrupt handler routine specified by the interrupt number. The interrupt handler can perform specific tasks or services in response to the interrupt, such as handling system calls, managing hardware events, or providing debugging support. After the interrupt handler has completed its work, control is typically returned to the point where the INT instruction was executed.
+        EG.
+            int 0x80 - this instruction triggers a software interrupt with the interrupt number 0x80, which is commonly used in Linux systems to invoke system calls.
+            int 0x21 - this instruction triggers a software interrupt with the interrupt number 0x21, which is commonly used in DOS systems for various system services.
+            int 0x3 - this instruction triggers a software interrupt with the interrupt number 0x3, which is commonly used for breakpoints in debugging.
+
+
+- CPUID
+    * CPU Identification
+        cpuid
+    * The CPUID instruction is used to retrieve information about the CPU, such as its features, capabilities, and manufacturer. When the CPUID instruction is executed, it takes the value in the EAX register as an input to specify the type of information being requested and returns the requested information in the EAX, EBX, ECX, and EDX registers. The specific information returned by CPUID depends on the value in EAX and can include details about the CPU's architecture, supported instruction sets, cache sizes, and more.
+        EG.
+            mov EAX, 0 - set EAX to 0 to request the highest valid function ID and vendor ID string
+            cpuid - execute CPUID to get CPU information
+            ; After this instruction, EAX will contain the highest valid function ID, and EBX, EDX, ECX will contain parts of the vendor ID string.
+
+            mov EAX, 1 - set EAX to 1 to request for SSE4.2 support information
+            cpuid - execute CPUID to get CPU feature information (ECX bit 20 = 1 indicates support for SSE4.2)
+            bt ECX, 20 - test bit 20 of ECX to check for SSE4.2 support
+            jc supported - if bit 20 is set, jump to "supported" label
+            ; If we reach here, it means SSE4.2 is not supported
+
+
+- IN / OUT
+    * Input/Output
+        in <AL/AX/EAX>, <port>
+        out <port>, <AL/AX/EAX>
+    * The IN instruction is used to read data from an I/O port into the AL, AX, or EAX register (depending on the size of the data being read). The OUT instruction is used to write data from the AL, AX, or EAX register to an I/O port. These instructions are typically used for low-level hardware communication, allowing software to interact with peripheral devices such as keyboards, mice, network cards, and other hardware components that are mapped to I/O ports.
+        EG.
+            in AL, 0x60 - read a byte from I/O port 0x60 (commonly used for keyboard input) into AL
+            out 0x64, AL - write the value in AL to I/O port 0x64 (commonly used for keyboard control)
+
+
+- PUSHF / POPF / PUSHFQ / POPFQ
+    * Push/Pop Flags
+        pushf
+        popf
+        pushfq
+        popfq
+    * The PUSHF (Push Flags) instruction is used to push the current value of the RFLAGS register onto the stack. The POPF (Pop Flags) instruction is used to pop a value from the stack and load it into the RFLAGS register, effectively restoring the flags to a previous state. The PUSHFQ and POPFQ instructions are the 64-bit variants of PUSHF and POPF, respectively, and operate on the RFLAGS register instead of EFLAGS.
+        EG.
+            PUSHFQ - this instruction pushes the current value of RFLAGS onto the stack
+            XOR RAX, RAX    - clear ZF AND OTHER FLAGS.
+            POPFQ - this instruction pops the value from the stack back into RFLAGS, restoring the previous flags state
+
+
+- LAHF / SAHF
+    * Load/Store AH into Flags
+        lahf
+        sahf
+    * The LAHF (Load AH from Flags) instruction loads the lower 8 bits of the RFLAGS register (the flags) into the AH register. The SAHF (Store AH into Flags) instruction stores the value from the AH register back into the lower 8 bits of the RFLAGS register, effectively modifying the flags based on the value in AH.
+        EG.
+            lahf - this instruction loads the flags from RFLAGS into AH
+            ; ... some code that modifies AH ...
+            sahf - this instruction stores the value from AH back into EFLAGS, modifying the flags accordingly
+
+
+- CLC / STC / CMC
+    * Clear/Set/Complement Carry Flag
+        clc
+        stc
+        cmc
+    * The CLC (Clear Carry Flag) instruction clears the carry flag (CF) in the EFLAGS register, setting it to 0. The STC (Set Carry Flag) instruction sets the carry flag to 1. The CMC (Complement Carry Flag) instruction toggles the state of the carry flag, setting it to 1 if it was previously 0, or clearing it to 0 if it was previously 1.
+        EG.
+            clc - this instruction clears the carry flag (CF = 0)
+            stc - this instruction sets the carry flag (CF = 1)
+            cmc - this instruction complements the carry flag (if CF was 0, it becomes 1; if CF was 1, it becomes 0)
+
+
+- SYSCALL
+    * System Call
+        syscall
+    * The SYSCALL instruction is used to make a system call to the operating system kernel. When the SYSCALL instruction is executed, it transfers control to a predefined entry point in the kernel, allowing user-mode applications to request services from the operating system, such as file I/O, process management, or network communication. The specific system call being requested is typically determined by the value in the RAX register, and additional arguments for the system call are passed through other registers (e.g., RDI, RSI, RDX).
+        EG.
+            mov RAX, 1 - set RAX to 1 to indicate the "write" system call in Linux
+            mov RDI, 1 - set RDI to 1 to specify the file descriptor for standard output
+            mov RSI, message - set RSI to point to the message string to be written
+            mov RDX, message_length - set RDX to the length of the message in bytes
+            syscall - execute the system call to write the message to standard output
