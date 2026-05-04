@@ -261,38 +261,35 @@ V. Named groups `(?P<name> )` (Python) / `(?<name> )` (others)
 | `(?<=...)`  | Positive lookbehind| Match if preceded by ...             |
 | `(?<!...)`  | Negative lookbehind| Match if NOT preceded by ...         |
 
-### Lookahead examples
-```
-Pattern:   \d+(?= dollars)
-String:    "I have 100 dollars and 50 euros"
-Match:     "100"  (the number before " dollars", but " dollars" not included in match)
-```
+1. Lookahead examples
+    EG.
+        Pattern:   \d+(?= dollars)
+        String:    "I have 100 dollars and 50 euros"
+        Match:     "100"  (the number before " dollars", but " dollars" not included in match)
 
-```
-Pattern:   \d+(?! dollars)
-String:    "I have 100 dollars and 50 euros"
-Match:     "50"  (the number NOT followed by " dollars")
-```
+        Pattern:   \d+(?! dollars)
+        String:    "I have 100 dollars and 50 euros"
+        Match:     "50"  (the number NOT followed by " dollars")
 
-### Lookbehind examples
-```
-Pattern:   (?<=\$)\d+
-String:    "Price: $250 or 300 euros"
-Match:     "250"  (digits preceded by $, but $ not included in match)
-```
 
-### Why this matters in security
-When parsing logs for IP addresses only inside certain fields:
-```
-(?<=src=)\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}
-```
-Matches an IP only when preceded by "src=" — no need to include "src=" in your match.
+2. Lookbehind examples
+    EG.
+        Pattern:   (?<=\$)\d+
+        String:    "Price: $250 or 300 euros"
+        Match:     "250"  (digits preceded by $, but $ not included in match)
 
----
 
-## SECTION 9 — FLAGS / MODIFIERS
+3. Why this matters in security
+    - When parsing logs for IP addresses only inside certain fields:
+        EG.
+            (?<=src=)\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}
 
-Flags change how the engine interprets your pattern.
+                > Matches an IP only when preceded by "src=" — no need to include "src=" in your match.
+
+
+                 FLAGS / MODIFIERS
+                -----------------------
+- Flags change how the engine interprets your pattern.
 
 | Flag             | Python   | Bash (grep) | PowerShell | Meaning                                   |
 |------------------|----------|-------------|------------|-------------------------------------------|
@@ -301,469 +298,440 @@ Flags change how the engine interprets your pattern.
 | Dot matches all  | `re.S`   | `-`         | `(?s)`     | `.` also matches newlines                 |
 | Verbose          | `re.X`   | `-`         | `-`        | Ignore whitespace in pattern, allow comments |
 
-*PowerShell's `-match` is case insensitive by default. Use `-cmatch` for case sensitive.
-
-### Multiline flag — why it matters
-Without multiline:
-```
-Pattern:   ^\d+
-String:    "123\n456\n789"
-Match:     "123" only  (^ = start of whole string)
-```
-
-With multiline (`re.M` in Python):
-```
-Pattern:   ^\d+
-String:    "123\n456\n789"
-Matches:   "123", "456", "789"  (^ = start of each line)
-```
-
----
-
-## SECTION 10 — SYNTAX ACROSS LANGUAGES
-
-### Python (`re` module)
-
-```python
-import re
-
-text = "My phone is 0712-345-678"
-
-# Search (finds first match anywhere)
-match = re.search(r'\d{4}-\d{3}-\d{3}', text)
-if match:
-    print(match.group())        # "0712-345-678"
-
-# Match (only checks at START of string)
-match = re.match(r'\d{4}', text)  # None — string starts with "My"
-
-# Findall (returns list of all matches)
-numbers = re.findall(r'\d+', text)  # ['0712', '345', '678']
-
-# Sub (search and replace)
-clean = re.sub(r'\d', 'X', text)   # "My phone is XXXX-XXX-XXX"
-
-# Compile (reuse a pattern efficiently)
-pattern = re.compile(r'\d{4}-\d{3}-\d{3}')
-match = pattern.search(text)
-
-# Flags
-re.search(r'phone', text, re.IGNORECASE)
-re.search(r'phone', text, re.I)        # same thing
-re.search(r'^\d', text, re.MULTILINE)  # ^ matches each line
-
-# Raw strings — ALWAYS use r'' for regex in Python
-# Without r'': \d means d (the escape is consumed by Python)
-# With    r'': \d is passed as-is to the regex engine
-```
-
-### Named groups in Python
-```python
-pattern = re.compile(r'(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})')
-match = pattern.search("Date: 2024-03-15")
-if match:
-    print(match.group('year'))   # "2024"
-    print(match.group('month'))  # "03"
-    print(match.group('day'))    # "15"
-    print(match.groupdict())     # {'year': '2024', 'month': '03', 'day': '15'}
-```
-
----
-
-### Bash — `grep`, `sed`, `awk`
-
-Bash has TWO regex flavours:
-- **BRE (Basic)** — default in grep, sed. Some characters need escaping to be special.
-- **ERE (Extended)** — use `grep -E` or `egrep`, `sed -E`. More natural syntax.
-
-**Key difference:** In BRE, `+` `?` `|` `( )` `{ }` need a backslash to be special.
-In ERE, they work without backslash (like Python).
-
-```bash
-# grep — search for pattern in file or stdin
-grep 'pattern' file.txt
-grep -E 'pattern' file.txt       # Extended regex
-grep -i 'pattern' file.txt       # Case insensitive
-grep -n 'pattern' file.txt       # Show line numbers
-grep -v 'pattern' file.txt       # Invert — lines that DON'T match
-grep -o 'pattern' file.txt       # Only print matched part, not whole line
-grep -P 'pattern' file.txt       # Perl-compatible regex (enables \d \w etc fully)
-
-# Examples
-grep -E '\d{4}-\d{2}-\d{2}' logfile.txt      # find dates (ERE)
-grep -oP '(?<=src=)\S+' logfile.txt           # extract value after src= (Perl)
-grep -v '^#' config.txt                       # remove comment lines
-
-# sed — stream editor, mainly for substitution
-sed 's/pattern/replacement/' file.txt         # replace first match per line
-sed 's/pattern/replacement/g' file.txt        # replace ALL matches per line
-sed -E 's/pattern/replacement/g' file.txt     # Extended regex
-sed -n '/pattern/p' file.txt                  # only print matching lines
-
-# Examples
-sed 's/foo/bar/g' file.txt
-sed -E 's/\b([A-Z])/\L\1/g' file.txt         # lowercase first letter of each word (\L is GNU extension)
-sed '/^$/d' file.txt                          # delete blank lines
-
-# awk — process text by fields
-awk '/pattern/ {print $0}' file.txt           # print lines matching pattern
-awk -F: '/root/ {print $1}' /etc/passwd       # print field 1 of lines matching root
-
-# In Bash [[ ]] conditionals — uses ERE, captured in BASH_REMATCH
-if [[ "hello123" =~ ^([a-z]+)([0-9]+)$ ]]; then
-    echo "Full match: ${BASH_REMATCH[0]}"    # "hello123"
-    echo "Group 1:    ${BASH_REMATCH[1]}"    # "hello"
-    echo "Group 2:    ${BASH_REMATCH[2]}"    # "123"
-fi
-```
-
----
-
-### PowerShell
-
-```powershell
-# -match operator (case insensitive by default)
-"hello123" -match '\d+'           # True
-$matches[0]                        # "123" — last match stored in $matches
-
-# -cmatch operator (case sensitive)
-"Hello" -cmatch '^[A-Z]'          # True
-
-# -notmatch
-"hello" -notmatch '^\d'           # True
-
-# With groups — $matches stores all groups
-"2024-03-15" -match '(\d{4})-(\d{2})-(\d{2})'
-$matches[0]   # "2024-03-15"
-$matches[1]   # "2024"
-$matches[2]   # "03"
-$matches[3]   # "15"
-
-# Select-String — like grep for files and pipeline
-Select-String -Pattern '\d{4}' -Path *.log
-Get-Content log.txt | Select-String -Pattern 'ERROR'
-Get-Content log.txt | Select-String -Pattern 'ERROR' -NotMatch    # invert
-
-# -replace operator (regex by default)
-"hello world" -replace 'world', 'there'         # "hello there"
-"foo123bar" -replace '\d+', 'NUM'                # "fooNUMbar"
-
-# [regex] class for more control
-$r = [regex]'\d+'
-$r.Matches("abc123def456") | ForEach { $_.Value }   # "123", "456"
-
-# Named groups in PowerShell
-"2024-03-15" -match '(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2})'
-$matches['year']    # "2024"
-$matches['month']   # "03"
-```
-
----
-
-## SECTION 11 — BUILDING REAL PATTERNS
-
-This section walks through building practical patterns from scratch.
-The process is always: describe what you want in English first, then translate.
-
-### Pattern: Email address (simplified)
-English: "one or more word characters or dots or hyphens, then @, then one or more word chars or hyphens, then a dot, then 2-6 letters"
-
-```
-[\w.\-]+@[\w\-]+\.[a-zA-Z]{2,6}
-```
-
-Breaking it down:
-```
-[\w.\-]+    — username: word chars, dots, hyphens, one or more
-@           — literal @
-[\w\-]+     — domain name: word chars and hyphens
-\.          — literal dot
-[a-zA-Z]{2,6} — TLD: 2 to 6 letters
-```
-
-### Pattern: IPv4 address
-English: "1-3 digits, dot, 1-3 digits, dot, 1-3 digits, dot, 1-3 digits"
-
-```
-\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}
-```
-
-Note: this matches invalid IPs like 999.999.999.999.
-A fully correct IPv4 regex is complex. For most use cases, this is enough.
-
-### Pattern: Extract key=value pairs from a log
-Log line: `timestamp=2024-03-15 src=192.168.1.1 action=BLOCK port=443`
-Goal: extract all values
-
-```python
-import re
-log = "timestamp=2024-03-15 src=192.168.1.1 action=BLOCK port=443"
-pairs = re.findall(r'(\w+)=(\S+)', log)
-# [('timestamp', '2024-03-15'), ('src', '192.168.1.1'), ('action', 'BLOCK'), ('port', '443')]
-result = dict(pairs)
-# {'timestamp': '2024-03-15', 'src': '192.168.1.1', 'action': 'BLOCK', 'port': '443'}
-```
-
-### Pattern: Password validation
-Rules: min 8 chars, at least one uppercase, one lowercase, one digit, one special char
-
-```python
-import re
-
-def validate_password(pw):
-    checks = [
-        re.search(r'.{8,}', pw),           # at least 8 chars
-        re.search(r'[A-Z]', pw),            # at least one uppercase
-        re.search(r'[a-z]', pw),            # at least one lowercase
-        re.search(r'\d', pw),               # at least one digit
-        re.search(r'[!@#$%^&*(),.?":{}|]', pw),  # at least one special
-    ]
-    return all(checks)
-```
-
-Note: these are SEPARATE patterns, each checking one rule.
-One combined pattern using lookaheads also works:
-```
-^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%]).{8,}$
-```
-
-The lookaheads assert conditions without consuming characters.
-
-### Pattern: Find hardcoded credentials in code (security use case)
-Common patterns that suggest hardcoded secrets:
-
-```python
-patterns = [
-    r'password\s*=\s*["\'][^"\']{4,}["\']',    # password = "something"
-    r'api_?key\s*=\s*["\'][^"\']{8,}["\']',     # api_key = "something"
-    r'secret\s*=\s*["\'][^"\']{4,}["\']',       # secret = "something"
-    r'["\'][0-9a-fA-F]{32,}["\']',              # long hex strings (possible hashes/keys)
-    r'Bearer\s+[A-Za-z0-9\-._~+/]+=*',          # JWT/Bearer tokens
-]
-```
-
----
-
-## SECTION 12 — EXERCISES
-
-Do each one before looking at the answer. Write the pattern, then test your reasoning.
-
----
-
-### BEGINNER
-
-**Exercise 1**
-Write a pattern that matches any 4-digit number.
-```
-Answer: \d{4}
-Note: this also matches "12345" (the first 4 digits). To match ONLY 4 digits as a standalone number use: \b\d{4}\b
-```
-
-**Exercise 2**
-Write a pattern that matches "colour" and "color" (British vs American spelling).
-```
-Answer: colou?r
-The u? makes u optional (0 or 1 times).
-```
-
-**Exercise 3**
-Write a pattern that matches any line that starts with #  (comment lines in many config files).
-```
-Answer: ^#.*
-^    — start of line
-#    — literal hash
-.*   — anything after (0 or more of any character)
-```
-
-**Exercise 4**
-Write a pattern matching a UK postcode format like "SW1A 2AA" or "EC1A 1BB"
-(1-2 letters, 1-2 digits, space, 1 digit, 2 letters)
-```
-Answer: [A-Z]{1,2}\d{1,2}\s\d[A-Z]{2}
-```
-
-**Exercise 5**
-Match a hexadecimal number like 0x1A3F or 0xFF
-```
-Answer: 0x[0-9a-fA-F]+
-Or with case insensitive flag: 0x[0-9a-f]+  with re.I
-```
-
----
-
-### INTERMEDIATE
-
-**Exercise 6**
-Extract all domain names from this string:
-`"Visit https://google.com and http://example.co.uk for info"`
-
-Goal: match google.com and example.co.uk
-```
-Answer: (?:https?://)([\w\-]+(?:\.[\w\-]+)+)
-
-Breaking down:
-(?:https?://)         — non-capturing group: match http:// or https:// but don't capture
-([\w\-]+              — capture group starts: domain name part (letters, digits, hyphens)
-(?:\.[\w\-]+)+)       — one or more occurrences of: dot then more domain chars
-```
-
-**Exercise 7**
-Write a pattern that matches a valid time in 24-hour format: HH:MM (00:00 to 23:59)
-
-```
-Answer: ([01]\d|2[0-3]):[0-5]\d
-
-Breaking down:
-([01]\d|2[0-3])    — hours: 00-19 (0 or 1, then any digit) OR 20-23 (2, then 0-3)
-:                  — literal colon
-[0-5]\d            — minutes: 0-5, then any digit (00-59)
-```
-
-**Exercise 8**
-In Python, write code that finds all words in a string that appear more than once (doubled words).
-
-```python
-import re
-text = "the the cat sat on the mat"
-doubled = re.findall(r'\b(\w+)\s+\1\b', text)
-# ['the'] — finds "the the"
-
-# \b(\w+)   — word boundary, then capture a word
-# \s+       — one or more whitespace
-# \1        — backreference: same word again
-# \b        — word boundary
-```
-
-**Exercise 9**
-Write a Bash one-liner that extracts all IP addresses from a log file called access.log
-
-```bash
-grep -oP '\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b' access.log
-
-# -o: print only matched part
-# -P: Perl regex (enables full \d support)
-# \b: word boundaries to avoid matching IPs inside larger numbers
-```
-
-**Exercise 10**
-Write a PowerShell command to find all lines in a file that contain "ERROR" or "CRITICAL" (case insensitive).
-
-```powershell
-Get-Content system.log | Select-String -Pattern 'ERROR|CRITICAL' -CaseSensitive:$false
-
-# Or with -match in a pipeline:
-Get-Content system.log | Where-Object { $_ -match 'ERROR|CRITICAL' }
-```
-
----
-
-### ADVANCED
-
-**Exercise 11**
-Write a pattern that matches a URL (simplified: http or https, domain, optional path).
-
-```
-Answer: https?://[\w\-]+(\.[\w\-]+)+(\/[\w\-._~:/?#\[\]@!$&'()*+,;=%]*)?
-
-Breaking down:
-https?://              — http or https
-[\w\-]+                — domain start
-(\.[\w\-]+)+           — one or more domain segments (e.g. .co.uk)
-(\/[\w\-._~:/?#...]*)?  — optional path after /
-```
-
-**Exercise 12**
-Write a Python function that takes a log line and extracts:
-- timestamp
-- log level
-- message
-
-from lines like: `[2024-03-15 14:32:01] ERROR: Connection refused`
-
-```python
-import re
-
-def parse_log(line):
-    pattern = r'\[(\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2})\]\s(\w+):\s(.+)'
-    match = re.match(pattern, line)
-    if match:
-        return {
-            'timestamp': match.group(1),
-            'level':     match.group(2),
-            'message':   match.group(3)
-        }
-    return None
-
-# Test
-result = parse_log("[2024-03-15 14:32:01] ERROR: Connection refused")
-# {'timestamp': '2024-03-15 14:32:01', 'level': 'ERROR', 'message': 'Connection refused'}
-```
-
-**Exercise 13**
-Write a sed command that replaces all occurrences of an IP address in a file with [REDACTED].
-
-```bash
-sed -E 's/\b[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\b/[REDACTED]/g' file.txt
-```
-
-**Exercise 14**
-Write a pattern using a negative lookbehind to match numbers that are NOT preceded by a $ sign.
-
-```
-Answer: (?<!\$)\d+
-
-(?<!\$)   — negative lookbehind: not preceded by $
-\d+       — one or more digits
-
-Test:
-"$100 and 200"  →  matches only "200"
-```
-
-**Exercise 15 — Security focused**
-You are scanning source code files for potential SQL injection vulnerabilities.
-Write a Python script that finds lines where string concatenation is used to build what looks like a SQL query.
-
-```python
-import re
-
-# Patterns that suggest string-built SQL queries
-dangerous_patterns = [
-    r'(SELECT|INSERT|UPDATE|DELETE|DROP).*\+',    # SQL keyword followed by + (concatenation)
-    r'["\']\s*\+\s*\w+\s*\+\s*["\']',            # "..." + var + "..." string building
-    r'f["\'].*(?:SELECT|INSERT|UPDATE|DELETE)',    # f-strings with SQL keywords (Python)
-    r'%s.*(?:SELECT|WHERE|FROM)',                  # %s formatting with SQL
-    r'\.format\(.*\).*(?:SELECT|WHERE)',           # .format() with SQL
-]
-
-def scan_file(filepath):
-    findings = []
-    with open(filepath) as f:
-        for i, line in enumerate(f, 1):
-            for pattern in dangerous_patterns:
-                if re.search(pattern, line, re.IGNORECASE):
-                    findings.append((i, line.strip(), pattern))
-                    break  # don't double-report same line
-    return findings
-```
-
----
-
-## SECTION 13 — COMMON MISTAKES AND HOW TO AVOID THEM
-
-### Mistake 1: Forgetting to escape the dot
-```
-Wrong:  192.168.1.1     (the dots match ANY character)
-Right:  192\.168\.1\.1  (literal dots)
-```
-
-### Mistake 2: Greedy matching eating too much
-```
-Wrong:  <.+>   matches "<b>hello</b>" as one entire match
-Right:  <.+?>  lazy — stops at first >
-Or:     <[^>]+>  explicit — match anything that isn't >
-```
-
-### Mistake 3: `^` and `$` not working as expected with multiline text
+- *PowerShell's `-match` is case insensitive by default. Use `-cmatch` for case sensitive.
+
+1. Multiline flag — why it matters
+    - Without multiline:
+        EG.
+            Pattern:   ^\d+
+            String:    "123\n456\n789"
+            Match:     "123" only  (^ = start of whole string)
+
+    - With multiline (`re.M` in Python):
+        EG.
+            Pattern:   ^\d+
+            String:    "123\n456\n789"
+            Matches:   "123", "456", "789"  (^ = start of each line)
+
+
+                 SYNTAX ACROSS LANGUAGES
+                --------------------------
+1. Python (`re` module)
+    EG.
+        # python
+        import re
+
+        text = "My phone is 0712-345-678"
+
+        # Search (finds first match anywhere)
+        match = re.search(r'\d{4}-\d{3}-\d{3}', text)
+        if match:
+            print(match.group())        # "0712-345-678"
+
+        # Match (only checks at START of string)
+        match = re.match(r'\d{4}', text)  # None — string starts with "My"
+
+        # Findall (returns list of all matches)
+        numbers = re.findall(r'\d+', text)  # ['0712', '345', '678']
+
+        # Sub (search and replace)
+        clean = re.sub(r'\d', 'X', text)   # "My phone is XXXX-XXX-XXX"
+
+        # Compile (reuse a pattern efficiently)
+        pattern = re.compile(r'\d{4}-\d{3}-\d{3}')
+        match = pattern.search(text)
+
+        # Flags
+        re.search(r'phone', text, re.IGNORECASE)
+        re.search(r'phone', text, re.I)        # same thing
+        re.search(r'^\d', text, re.MULTILINE)  # ^ matches each line
+
+        # Raw strings — ALWAYS use r'' for regex in Python
+        # Without r'': \d means d (the escape is consumed by Python)
+        # With    r'': \d is passed as-is to the regex engine
+
+
+2. Named groups in Python
+    EG.
+        # python
+        pattern = re.compile(r'(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})')
+        match = pattern.search("Date: 2024-03-15")
+        if match:
+            print(match.group('year'))   # "2024"
+            print(match.group('month'))  # "03"
+            print(match.group('day'))    # "15"
+            print(match.groupdict())     # {'year': '2024', 'month': '03', 'day': '15'}
+
+
+3. Bash — `grep`, `sed`, `awk`
+    - Bash has TWO regex flavours:
+        > **BRE (Basic)** — default in grep, sed. Some characters need escaping to be special.
+        > **ERE (Extended)** — use `grep -E` or `egrep`, `sed -E`. More natural syntax.
+
+    - **Key difference:** 
+        > In BRE, `+` `?` `|` `( )` `{ }` need a backslash to be special.
+        > In ERE, they work without backslash (like Python).
+        EG.
+            # bash
+            # grep — search for pattern in file or stdin
+            grep 'pattern' file.txt
+            grep -E 'pattern' file.txt       # Extended regex
+            grep -i 'pattern' file.txt       # Case insensitive
+            grep -n 'pattern' file.txt       # Show line numbers
+            grep -v 'pattern' file.txt       # Invert — lines that DON'T match
+            grep -o 'pattern' file.txt       # Only print matched part, not whole line
+            grep -P 'pattern' file.txt       # Perl-compatible regex (enables \d \w etc fully)
+
+            # Examples
+            grep -E '\d{4}-\d{2}-\d{2}' logfile.txt      # find dates (ERE)
+            grep -oP '(?<=src=)\S+' logfile.txt           # extract value after src= (Perl)
+            grep -v '^#' config.txt                       # remove comment lines
+
+            # sed — stream editor, mainly for substitution
+            sed 's/pattern/replacement/' file.txt         # replace first match per line
+            sed 's/pattern/replacement/g' file.txt        # replace ALL matches per line
+            sed -E 's/pattern/replacement/g' file.txt     # Extended regex
+            sed -n '/pattern/p' file.txt                  # only print matching lines
+
+            # Examples
+            sed 's/foo/bar/g' file.txt
+            sed -E 's/\b([A-Z])/\L\1/g' file.txt         # lowercase first letter of each word (\L is GNU extension)
+            sed '/^$/d' file.txt                          # delete blank lines
+
+            # awk — process text by fields
+            awk '/pattern/ {print $0}' file.txt           # print lines matching pattern
+            awk -F: '/root/ {print $1}' /etc/passwd       # print field 1 of lines matching root
+
+            # In Bash [[ ]] conditionals — uses ERE, captured in BASH_REMATCH
+            if [[ "hello123" =~ ^([a-z]+)([0-9]+)$ ]]; then
+                echo "Full match: ${BASH_REMATCH[0]}"    # "hello123"
+                echo "Group 1:    ${BASH_REMATCH[1]}"    # "hello"
+                echo "Group 2:    ${BASH_REMATCH[2]}"    # "123"
+            fi
+
+
+4. PowerShell
+    EG.
+        # powershell
+        # -match operator (case insensitive by default)
+        "hello123" -match '\d+'           # True
+        $matches[0]                        # "123" — last match stored in $matches
+
+        # -cmatch operator (case sensitive)
+        "Hello" -cmatch '^[A-Z]'          # True
+
+        # -notmatch
+        "hello" -notmatch '^\d'           # True
+
+        # With groups — $matches stores all groups
+        "2024-03-15" -match '(\d{4})-(\d{2})-(\d{2})'
+        $matches[0]   # "2024-03-15"
+        $matches[1]   # "2024"
+        $matches[2]   # "03"
+        $matches[3]   # "15"
+
+        # Select-String — like grep for files and pipeline
+        Select-String -Pattern '\d{4}' -Path *.log
+        Get-Content log.txt | Select-String -Pattern 'ERROR'
+        Get-Content log.txt | Select-String -Pattern 'ERROR' -NotMatch    # invert
+
+        # -replace operator (regex by default)
+        "hello world" -replace 'world', 'there'         # "hello there"
+        "foo123bar" -replace '\d+', 'NUM'                # "fooNUMbar"
+
+        # [regex] class for more control
+        $r = [regex]'\d+'
+        $r.Matches("abc123def456") | ForEach { $_.Value }   # "123", "456"
+
+        # Named groups in PowerShell
+        "2024-03-15" -match '(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2})'
+        $matches['year']    # "2024"
+        $matches['month']   # "03"
+
+
+                     BUILDING REAL PATTERNS
+                    -------------------------
+- This section walks through building practical patterns from scratch.
+- The process is always: describe what you want in English first, then translate.
+
+1. Pattern: Email address (simplified)
+    - English: "one or more word characters or dots or hyphens, then @, then one or more word chars or hyphens, then a dot, then 2-6 letters"
+        EG.
+            [\w.\-]+@[\w\-]+\.[a-zA-Z]{2,6}
+
+                > Breaking it down:
+                    [\w.\-]+    — username: word chars, dots, hyphens, one or more
+                    @           — literal @
+                    [\w\-]+     — domain name: word chars and hyphens
+                    \.          — literal dot
+                    [a-zA-Z]{2,6} — TLD: 2 to 6 letters
+
+
+2. Pattern: IPv4 address
+    - English: "1-3 digits, dot, 1-3 digits, dot, 1-3 digits, dot, 1-3 digits"
+        EG.
+            \d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}
+
+                > Note: this matches invalid IPs like 999.999.999.999.
+                > A fully correct IPv4 regex is complex. For most use cases, this is enough.
+                    ### Pattern: Extract key=value pairs from a log
+                    Log line: `timestamp=2024-03-15 src=192.168.1.1 action=BLOCK port=443`
+                    Goal: extract all values
+
+            # python
+            import re
+            log = "timestamp=2024-03-15 src=192.168.1.1 action=BLOCK port=443"
+            pairs = re.findall(r'(\w+)=(\S+)', log)
+            # [('timestamp', '2024-03-15'), ('src', '192.168.1.1'), ('action', 'BLOCK'), ('port', '443')]
+            result = dict(pairs)
+            # {'timestamp': '2024-03-15', 'src': '192.168.1.1', 'action': 'BLOCK', 'port': '443'}
+
+
+3. Pattern: Password validation
+    - Rules: min 8 chars, at least one uppercase, one lowercase, one digit, one special char
+        EG.
+            # python
+            import re
+
+            def validate_password(pw):
+                checks = [
+                    re.search(r'.{8,}', pw),           # at least 8 chars
+                    re.search(r'[A-Z]', pw),            # at least one uppercase
+                    re.search(r'[a-z]', pw),            # at least one lowercase
+                    re.search(r'\d', pw),               # at least one digit
+                    re.search(r'[!@#$%^&*(),.?":{}|]', pw),  # at least one special
+                ]
+                return all(checks)
+
+
+                    > Note: these are SEPARATE patterns, each checking one rule.
+                    > One combined pattern using lookaheads also works:
+                        ^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%]).{8,}$
+
+                    > The lookaheads assert conditions without consuming characters.
+
+4. Pattern: Find hardcoded credentials in code (security use case)
+    - Common patterns that suggest hardcoded secrets:
+        EG.
+            # python
+            patterns = [
+                r'password\s*=\s*["\'][^"\']{4,}["\']',    # password = "something"
+                r'api_?key\s*=\s*["\'][^"\']{8,}["\']',     # api_key = "something"
+                r'secret\s*=\s*["\'][^"\']{4,}["\']',       # secret = "something"
+                r'["\'][0-9a-fA-F]{32,}["\']',              # long hex strings (possible hashes/keys)
+                r'Bearer\s+[A-Za-z0-9\-._~+/]+=*',          # JWT/Bearer tokens
+            ]
+
+
+                         EXERCISES
+                        -----------
+- Do each one before looking at the answer. Write the pattern, then test your reasoning.
+
+1. BEGINNER
+    i. **Exercise 1**
+        > Write a pattern that matches any 4-digit number.
+
+            Answer: \d{4}
+
+            * Note: this also matches "12345" (the first 4 digits). To match ONLY 4 digits as a standalone number use: \b\d{4}\b
+
+
+    ii. **Exercise 2**
+        > Write a pattern that matches "colour" and "color" (British vs American spelling).
+
+            Answer: colou?r
+            
+            * The u? makes u optional (0 or 1 times).
+
+
+    iii. *z*Exercise 3**
+        > Write a pattern that matches any line that starts with #  (comment lines in many config files).
+
+            Answer: ^#.*
+
+                ^    — start of line
+                #    — literal hash
+                .*   — anything after (0 or more of any character)
+
+
+    iv. **Exercise 4**
+        > Write a pattern matching a UK postcode format like "SW1A 2AA" or "EC1A 1BB"
+        (1-2 letters, 1-2 digits, space, 1 digit, 2 letters)
+
+            Answer: [A-Z]{1,2}\d{1,2}\s\d[A-Z]{2}
+
+
+    v. **Exercise 5**
+        > Match a hexadecimal number like 0x1A3F or 0xFF
+
+            Answer: 0x[0-9a-fA-F]+
+            
+            Or with case insensitive flag: 0x[0-9a-f]+  with re.I
+
+
+2.  INTERMEDIATE
+    vi. **Exercise 6**
+        > Extract all domain names from this string:
+        `"Visit https://google.com and http://example.co.uk for info"`
+        Goal: match google.com and example.co.uk
+
+            Answer: (?:https?://)([\w\-]+(?:\.[\w\-]+)+)
+
+            Breaking down:
+            (?:https?://)         — non-capturing group: match http:// or https:// but don't capture
+            ([\w\-]+              — capture group starts: domain name part (letters, digits, hyphens)
+            (?:\.[\w\-]+)+)       — one or more occurrences of: dot then more domain chars
+
+    
+    vii. **Exercise 7**
+        > Write a pattern that matches a valid time in 24-hour format: HH:MM (00:00 to 23:59)
+
+            Answer: ([01]\d|2[0-3]):[0-5]\d
+
+            Breaking down:
+            ([01]\d|2[0-3])    — hours: 00-19 (0 or 1, then any digit) OR 20-23 (2, then 0-3)
+            :                  — literal colon
+            [0-5]\d            — minutes: 0-5, then any digit (00-59)
+
+
+    viii. **Exercise 8**
+        > In Python, write code that finds all words in a string that appear more than once (doubled words).
+
+                ```python
+                import re
+                text = "the the cat sat on the mat"
+                doubled = re.findall(r'\b(\w+)\s+\1\b', text)
+                # ['the'] — finds "the the"
+
+                # \b(\w+)   — word boundary, then capture a word
+                # \s+       — one or more whitespace
+                # \1        — backreference: same word again
+                # \b        — word boundary
+
+
+    vix. **Exercise 9**
+        > Write a Bash one-liner that extracts all IP addresses from a log file called access.log
+
+                ```bash
+                grep -oP '\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b' access.log
+
+                # -o: print only matched part
+                # -P: Perl regex (enables full \d support)
+                # \b: word boundaries to avoid matching IPs inside larger numbers
+
+
+    vx. **Exercise 10**
+        > Write a PowerShell command to find all lines in a file that contain "ERROR" or "CRITICAL" (case insensitive).
+
+            ```powershell
+            Get-Content system.log | Select-String -Pattern 'ERROR|CRITICAL' -CaseSensitive:$false
+
+            # Or with -match in a pipeline:
+            Get-Content system.log | Where-Object { $_ -match 'ERROR|CRITICAL' }
+
+
+3. ADVANCED
+    vxi. **Exercise 11**
+        > Write a pattern that matches a URL (simplified: http or https, domain, optional path).
+
+            Answer: https?://[\w\-]+(\.[\w\-]+)+(\/[\w\-._~:/?#\[\]@!$&'()*+,;=%]*)?
+
+            Breaking down:
+            https?://              — http or https
+            [\w\-]+                — domain start
+            (\.[\w\-]+)+           — one or more domain segments (e.g. .co.uk)
+            (\/[\w\-._~:/?#...]*)?  — optional path after /
+
+
+    vxii. **Exercise 12**
+        > Write a Python function that takes a log line and extracts:
+            - timestamp
+            - log level
+            - message
+
+        > from lines like: `[2024-03-15 14:32:01] ERROR: Connection refused`
+
+            ```python
+            import re
+
+            def parse_log(line):
+                pattern = r'\[(\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2})\]\s(\w+):\s(.+)'
+                match = re.match(pattern, line)
+                if match:
+                    return {
+                        'timestamp': match.group(1),
+                        'level':     match.group(2),
+                        'message':   match.group(3)
+                    }
+                return None
+
+            # Test
+            result = parse_log("[2024-03-15 14:32:01] ERROR: Connection refused")
+            # {'timestamp': '2024-03-15 14:32:01', 'level': 'ERROR', 'message': 'Connection refused'}
+
+
+    vxiii. **Exercise 13**
+        > Write a sed command that replaces all occurrences of an IP address in a file with [REDACTED].
+
+            ```bash
+            sed -E 's/\b[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\b/[REDACTED]/g' file.txt
+            
+
+    vxiv. **Exercise 14**
+        > Write a pattern using a negative lookbehind to match numbers that are NOT preceded by a $ sign.
+
+            Answer: (?<!\$)\d+
+
+            (?<!\$)   — negative lookbehind: not preceded by $
+            \d+       — one or more digits
+
+            Test:
+            "$100 and 200"  →  matches only "200"
+
+
+    vxv. **Exercise 15 — Security focused**
+        > You are scanning source code files for potential SQL injection vulnerabilities.
+        > Write a Python script that finds lines where string concatenation is used to build what looks like a SQL query.
+
+            ```python
+            import re
+
+            # Patterns that suggest string-built SQL queries
+            dangerous_patterns = [
+                r'(SELECT|INSERT|UPDATE|DELETE|DROP).*\+',    # SQL keyword followed by + (concatenation)
+                r'["\']\s*\+\s*\w+\s*\+\s*["\']',            # "..." + var + "..." string building
+                r'f["\'].*(?:SELECT|INSERT|UPDATE|DELETE)',    # f-strings with SQL keywords (Python)
+                r'%s.*(?:SELECT|WHERE|FROM)',                  # %s formatting with SQL
+                r'\.format\(.*\).*(?:SELECT|WHERE)',           # .format() with SQL
+            ]
+
+            def scan_file(filepath):
+                findings = []
+                with open(filepath) as f:
+                    for i, line in enumerate(f, 1):
+                        for pattern in dangerous_patterns:
+                            if re.search(pattern, line, re.IGNORECASE):
+                                findings.append((i, line.strip(), pattern))
+                                break  # don't double-report same line
+                return findings
+
+
+                 COMMON MISTAKES AND HOW TO AVOID THEM
+                ----------------------------------------
+1: Forgetting to escape the dot
+    EG.
+        Wrong:  192.168.1.1     (the dots match ANY character)
+        Right:  192\.168\.1\.1  (literal dots)
+
+
+2: Greedy matching eating too much
+    EG.
+        Wrong:  <.+>   matches "<b>hello</b>" as one entire match
+        Right:  <.+?>  lazy — stops at first >
+        Or:     <[^>]+>  explicit — match anything that isn't >
+
+
+3: `^` and `$` not working as expected with multiline text
 If you have a string with multiple lines and you want to match per line, you need the multiline flag.
 ```python
 # Without re.M: ^ only matches the very start of the string
