@@ -25,10 +25,13 @@ class HashTable:
     # 1. The Hashing Algorithm (Simple Sum)
     def _get_hash(self, key):
         ascii_sum = 0
-        print(f"ascii value is {ascii_sum} ")
         for char in key:
             ascii_sum = (ascii_sum * 31 + ord(char)) # ord() gets the ASCII number
         
+        index = ascii_sum % self.size 
+        print(f"index for '{key}' is {index} ")
+        print(f"ascii value is {ascii_sum} ")
+
         # The Modulo ensures the index fits in our table size
         return ascii_sum % self.size 
 

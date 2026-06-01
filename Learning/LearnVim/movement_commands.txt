@@ -180,9 +180,9 @@ kk:
         i. in visual mode:
            EG.
                 press > to indent the selected lines to the right
-                        OR
-                press < to indent the selected lines to the left
-
+                        OR 
+                press < to indent the selected lines to the left 
+        
         ii. in normal mode:
             EG.
                 press >> to indent the current line to the right
@@ -211,7 +211,7 @@ kk:
                             :set shiftwidth=0 to use the same number of spaces as 'tabstop' for each step of indentation when you press > or < in visual mode or normal mode.
 
 
-            MOVEMENT BETWEEN FILES, WINDOWS AND TABS 
+         MOVEMENT BETWEEN FILES, WINDOWS AND TABS
         --------------------------------------------
 1. Navigating with a sidebar:
     EG.
@@ -331,7 +331,7 @@ kk:
 
                 > After searching, pressing n will go to the next occurrence of the search term in the same direction as the original search.
                     EG.
-                        press n after searching forward to go to the next occurrence forward
+                        press N after searching forward to go to the next occurrence forward
                                 OR
                         press n after searching backward to go to the next occurrence backward
 
@@ -356,6 +356,6 @@ kk:
                 OR
         press :s/\<old\>/new/g to replace only whole word occurrences of "old" with "new" in the current line
                 OR
-        press :%s/old/new/gc to replace all occurrences of "old" with "new" in the entire file with confirmation before each replacement, ignoring case
+        press :%s/old/new/gci to replace all occurrences of "old" with "new" in the entire file with confirmation before each replacement, ignoring case
                 OR
-        press :s/old/new/gc to replace all occurrences of "old" with "new" in the current line with confirmation before each replacement, ignoring case
+        press :s/old/new/gci to replace all occurrences of "old" with "new" in the current line with confirmation before each replacement, ignoring case
